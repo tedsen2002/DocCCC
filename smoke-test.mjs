@@ -14,7 +14,7 @@ assert.match(html, /elements\.teacherName\.required = role === "teacher"/, "教�
 assert.match(html, /residents: rosterSnapshot/, "每個期別應保存獨立名單快照");
 assert.match(html, /type: "unlock"/, "密碼解鎖應建立稽核事件");
 assert.match(html, /type: "modification"/, "分數修改應建立稽核事件");
-assert.match(html, /const ADMIN_PASSWORD = "rtd1234#"/, "應設定預設管理密碼");
+assert.match(html, /const ADMIN_PASSWORD = "tsgh123"/, "應設定預設管理密碼");
 assert.match(html, /function exportAuditCSV\(\)/, "稽核紀錄應可匯出試算表 CSV");
 assert.match(html, /window\.print\(\)/, "評分作業應支援列印為 PDF");
 assert.match(html, /drawRadarChart/, "雙方完成後應支援雷達圖");
