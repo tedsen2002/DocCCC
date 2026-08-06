@@ -1,0 +1,20 @@
+{
+  "profiles": [
+    "general"
+  ],
+  "summary": "CCC 核心能力評分、稽核與匯出公開預覽網站",
+  "test_commands": [
+    "node smoke-test.mjs"
+  ],
+  "important_paths": [
+    "index.html",
+    "smoke-test.mjs"
+  ],
+  "success_criteria": [
+    "每個期別保存獨立 R1-R4 名單快照，修改新期名單不影響歷史期別",
+    "學生完成後才可由具名教師評分，兩者提交後皆鎖定",
+    "管理密碼解鎖與分數修改分別留下不可覆蓋的稽核事件",
+    "稽核紀錄可匯出 Excel 相容 CSV，四人評分表可列印為 A4 橫式單頁 PDF",
+    "雙方完成後顯示學生紅色、教師藍色六角圖"
+  ]
+}

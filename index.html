@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CCC 核心能力雙向評分與稽核公開預覽版">
+  <title>CCC 核心能力評分</title>
+  <style>
+    :root {
+      --ink: #17211b;
+      --muted: #667168;
+      --paper: #f5f4ee;
+      --card: #fffefa;
+      --line: #daddd3;
+      --green: #134e3a;
+      --green-2: #1d6b50;
+      --lime: #dff06b;
+      --blue: #1769ff;
+      --red: #e5484d;
+      --amber: #9a6410;
+      --shadow: 0 18px 45px rgba(27, 47, 37, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 7% 2%, rgba(223, 240, 107, 0.28), transparent 28rem),
+        var(--paper);
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      line-height: 1.5;
+    }
+
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid rgba(23, 105, 255, 0.25);
+      outline-offset: 2px;
+    }
+
+    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+
+    header {
+      position: sticky;
+      z-index: 20;
+      top: 0;
+      border-bottom: 1px solid rgba(19, 78, 58, 0.12);
+      background: rgba(245, 244, 238, 0.9);
+      backdrop-filter: blur(14px);
+    }
+
+    .topbar {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -0.03em; }
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      color: white;
+      background: var(--green);
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+    .preview-badge {
+      padding: 5px 9px;
+      border: 1px solid rgba(19, 78, 58, 0.18);
+      border-radius: 999px;
+      color: var(--green);
+      background: white;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
+      gap: 28px;
+      padding: 56px 0 34px;
+      align-items: end;
+    }
+
+    .eyebrow { color: var(--green-2); font-size: 13px; font-weight: 800; letter-spacing: 0.12em; }
+    h1 { margin: 8px 0 14px; max-width: 720px; font-size: clamp(36px, 6vw, 72px); line-height: 1.03; letter-spacing: -0.06em; }
+    .hero p { max-width: 680px; margin: 0; color: var(--muted); font-size: 17px; }
+    .local-note {
+      padding: 18px;
+      border: 1px solid rgba(19, 78, 58, 0.14);
+      border-radius: 18px;
+      background: rgba(255, 254, 250, 0.72);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .local-note strong { display: block; margin-bottom: 5px; color: var(--ink); font-size: 14px; }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin: 14px 0 22px;
+      padding: 5px;
+      width: max-content;
+      max-width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.55);
+    }
+    .tab {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 16px;
+      color: var(--muted);
+      background: transparent;
+      white-space: nowrap;
+      font-weight: 700;
+    }
+    .tab.active { color: white; background: var(--green); }
+    .panel[hidden] { display: none; }
+
+    .toolbar, .section-card {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+    }
+    .toolbar-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .field-label { color: var(--muted); font-size: 13px; font-weight: 800; }
+    select, input[type="text"], input[type="number"], input[type="password"] {
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      color: var(--ink);
+      background: white;
+    }
+    select, input[type="text"], input[type="password"] { min-height: 44px; padding: 9px 12px; }
+    select { min-width: 190px; }
+
+    .btn {
+      min-height: 42px;
+      padding: 9px 15px;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      font-weight: 800;
+      transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn:disabled { cursor: not-allowed; opacity: 0.48; }
+    .btn-primary { color: white; background: var(--green); }
+    .btn-secondary { border-color: var(--line); color: var(--ink); background: white; }
+    .btn-blue { border-color: rgba(23, 105, 255, 0.22); color: #0f4ec5; background: #edf3ff; }
+    .btn-red { border-color: rgba(229, 72, 77, 0.22); color: #b92f35; background: #fff0f0; }
+    .btn-amber { border-color: #ead4a3; color: #76500d; background: #fff5dc; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .stat { padding: 18px 20px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255, 254, 250, 0.74); }
+    .stat-value { font-size: 30px; font-weight: 850; letter-spacing: -0.05em; }
+    .stat-label { color: var(--muted); font-size: 13px; }
+
+    .resident-grid { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .resident-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 250px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+    .resident-card.complete::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 4px;
+      background: linear-gradient(90deg, var(--red) 0 50%, var(--blue) 50%);
+    }
+    .resident-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+    .level {
+      display: inline-flex;
+      padding: 4px 8px;
+      border-radius: 8px;
+      color: var(--green);
+      background: #e8f0e9;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .resident-name { margin: 8px 0 0; font-size: 24px; font-weight: 850; letter-spacing: -0.04em; }
+    .resident-name.muted { color: #8e968f; }
+    .status-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .status {
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .status.pending { color: var(--amber); background: #fff3d7; }
+    .status.student-done { color: #a9282e; background: #ffe9e9; }
+    .status.teacher-done { color: #124eae; background: #e7efff; }
+    .card-actions { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
+    .done-time { margin-top: 15px; color: var(--muted); font-size: 12px; }
+    .chart-wrap { margin-top: 14px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .chart-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 5px; }
+    .chart-title strong { font-size: 14px; }
+    .legend { display: flex; gap: 12px; color: var(--muted); font-size: 11px; }
+    .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 50%; }
+    .legend .student::before { background: var(--red); }
+    .legend .teacher::before { background: var(--blue); }
+    canvas { display: block; width: 100%; max-width: 440px; height: auto; margin: 0 auto; }
+
+    .empty {
+      padding: 56px 24px;
+      border: 1px dashed #bbc1b9;
+      border-radius: 20px;
+      text-align: center;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.42);
+    }
+    .empty strong { display: block; margin-bottom: 6px; color: var(--ink); }
+
+    .section-card { padding: 24px; }
+    .section-heading { margin: 0 0 7px; font-size: 24px; letter-spacing: -0.04em; }
+    .section-help { margin: 0 0 24px; color: var(--muted); font-size: 14px; }
+    .roster { display: grid; gap: 12px; }
+    .roster-row {
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fbfbf7;
+    }
+    .roster-row input { width: 100%; }
+    .saved-hint { min-width: 52px; color: var(--green-2); font-size: 12px; font-weight: 800; opacity: 0; }
+    .saved-hint.show { opacity: 1; }
+
+    .audit-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    th, td { padding: 14px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+    th { color: var(--muted); font-size: 12px; letter-spacing: 0.04em; }
+    td { font-size: 14px; }
+    .time-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; color: var(--green); }
+    .score-list { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .audit-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+    .event-badge { display: inline-flex; padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .event-submit { color: var(--green); background: #e8f0e9; }
+    .event-unlock { color: #76500d; background: #fff2d2; }
+    .event-modify { color: #6d2d83; background: #f4e7f8; }
+    .teacher-name { color: #124eae; font-weight: 800; }
+    .print-header, .print-score-grid { display: none; }
+
+    dialog {
+      width: min(560px, calc(100% - 28px));
+      max-height: calc(100vh - 36px);
+      padding: 0;
+      border: 0;
+      border-radius: 22px;
+      color: var(--ink);
+      background: var(--card);
+      box-shadow: 0 30px 100px rgba(11, 26, 18, 0.24);
+    }
+    dialog::backdrop { background: rgba(15, 28, 21, 0.54); backdrop-filter: blur(3px); }
+    .dialog-head { display: flex; justify-content: space-between; gap: 18px; padding: 22px 24px 16px; border-bottom: 1px solid var(--line); }
+    .dialog-head h2 { margin: 0 0 4px; font-size: 22px; }
+    .dialog-head p { margin: 0; color: var(--muted); font-size: 13px; }
+    .icon-button { width: 38px; height: 38px; border: 0; border-radius: 10px; color: var(--muted); background: #f0f1eb; font-size: 20px; }
+    .dialog-body { max-height: calc(100vh - 210px); overflow-y: auto; padding: 20px 24px 24px; }
+    .score-fields { display: grid; gap: 10px; }
+    .score-field { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 14px; align-items: center; padding: 12px 13px; border: 1px solid var(--line); border-radius: 13px; }
+    .score-field label { font-weight: 800; }
+    .score-field small { display: block; color: var(--muted); font-weight: 400; }
+    .score-field input { width: 100%; padding: 10px; text-align: right; font-weight: 850; }
+    .lock-warning { margin: 16px 0; padding: 12px 14px; border-radius: 12px; color: #6f4a0b; background: #fff2d2; font-size: 13px; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+    .simple-field { display: grid; gap: 7px; margin-bottom: 18px; }
+    .simple-field label { font-size: 13px; font-weight: 800; }
+    .simple-field[hidden], .modify-stage[hidden] { display: none; }
+    .modify-stage { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .modify-role { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .modify-role label { display: flex; align-items: center; gap: 8px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; font-weight: 800; background: white; }
+
+    .toast {
+      position: fixed;
+      z-index: 50;
+      right: 22px;
+      bottom: 22px;
+      max-width: min(360px, calc(100% - 44px));
+      padding: 13px 16px;
+      border-radius: 12px;
+      color: white;
+      background: var(--green);
+      box-shadow: var(--shadow);
+      transform: translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.2s ease;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    footer { padding: 34px 0 50px; color: var(--muted); font-size: 12px; }
+
+    @media (max-width: 820px) {
+      .hero { grid-template-columns: 1fr; padding-top: 38px; }
+      .resident-grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 20px, 1180px); }
+      .topbar { min-height: 62px; }
+      .brand-name { display: none; }
+      .hero { padding: 30px 4px 22px; }
+      .hero h1 { font-size: 42px; }
+      .toolbar { align-items: stretch; flex-direction: column; }
+      .toolbar-group { align-items: stretch; }
+      .toolbar-group select { flex: 1; }
+      .stats { gap: 7px; }
+      .stat { padding: 13px 10px; }
+      .stat-value { font-size: 24px; }
+      .resident-card, .section-card { padding: 18px; }
+      .resident-head { flex-direction: column; }
+      .status-row { justify-content: flex-start; }
+      .card-actions .btn { flex: 1; }
+      .roster-row { grid-template-columns: 48px minmax(0, 1fr); }
+      .saved-hint { grid-column: 2; }
+      .score-field { grid-template-columns: minmax(0, 1fr) 82px; }
+      .audit-heading { align-items: stretch; flex-direction: column; }
+    }
+
+    @media print {
+      @page { size: A4 landscape; margin: 7mm; }
+      body { background: white; color: #111; }
+      header, .hero, .tabs, .toolbar, .stats, #panel-roster, #panel-audit, footer, .toast { display: none !important; }
+      .shell { width: 100%; margin: 0; }
+      main { width: 100%; }
+      #panel-assessment { display: block !important; }
+      .print-header { display: flex; align-items: flex-end; justify-content: space-between; margin: 0 0 3mm; }
+      .print-header h1 { margin: 0; font-size: 17pt; letter-spacing: -0.03em; }
+      .print-header p { margin: 0; color: #555; font-size: 9pt; }
+      .resident-grid { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 82mm); gap: 3mm; }
+      .resident-card { min-height: 0; height: 82mm; padding: 3.5mm; border-radius: 3mm; box-shadow: none; break-inside: avoid; overflow: hidden; }
+      .resident-head { align-items: center; }
+      .resident-name { margin-top: 2px; font-size: 14pt; }
+      .level, .status { padding: 2px 5px; font-size: 7.5pt; }
+      .card-actions { display: none; }
+      .done-time { margin-top: 2mm; font-size: 7pt; }
+      .chart-wrap { display: grid; grid-template-columns: 67mm 1fr; grid-template-rows: auto 1fr; gap: 1mm 2mm; margin-top: 2mm; padding-top: 2mm; }
+      .chart-title { grid-column: 1 / -1; margin: 0; }
+      .chart-title strong { font-size: 8pt; }
+      .legend { font-size: 7pt; }
+      canvas { width: 65mm !important; height: 47mm !important; margin: 0; }
+      .print-score-grid { display: grid; grid-template-columns: 1fr; align-content: center; gap: 1.2mm; font-size: 7.5pt; }
+      .print-score-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2mm; padding-bottom: 1mm; border-bottom: 0.2mm solid #ddd; }
+      .print-score-row span:first-child { font-weight: 800; }
+      .resident-card:not(.complete) .print-score-grid { display: grid; margin-top: 4mm; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell topbar">
+      <div class="brand">
+        <span class="brand-mark">CCC</span>
+        <span class="brand-name">核心能力評分系統</span>
+      </div>
+      <span class="preview-badge">PUBLIC PREVIEW</span>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">COMPETENCY REVIEW</div>
+        <h1>讓每一次評分，<br>都有跡可循。</h1>
+        <p>住院醫師自評與教師評分分開提交、完成即鎖定；雙方完成後，以六角圖快速看見能力輪廓。</p>
+      </div>
+      <aside class="local-note">
+        <strong>公開預覽版</strong>
+        資料僅儲存在目前瀏覽器。清除網站資料或更換裝置後不會同步，時間紀錄亦以本機時間為準。
+      </aside>
+    </section>
+
+    <nav class="tabs" aria-label="主要功能">
+      <button class="tab active" data-tab="assessment" type="button">評分作業</button>
+      <button class="tab" data-tab="roster" type="button">名單設定</button>
+      <button class="tab" data-tab="audit" type="button">稽核紀錄</button>
+    </nav>
+
+    <section id="panel-assessment" class="panel">
+      <div class="print-header">
+        <div><h1>CCC 核心能力評分表</h1><p id="printPeriodName"></p></div>
+        <p>學生自評：紅色　教師評分：藍色</p>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <label class="field-label" for="periodSelect">目前期別</label>
+          <select id="periodSelect" aria-label="選擇期別"></select>
+        </div>
+        <div class="toolbar-group">
+          <button id="printButton" class="btn btn-secondary" type="button">匯出一頁 PDF</button>
+          <button id="addPeriodButton" class="btn btn-primary" type="button">＋ 新增期別</button>
+        </div>
+      </div>
+
+      <div id="stats" class="stats" aria-label="完成概況"></div>
+      <div id="residentGrid" class="resident-grid"></div>
+    </section>
+
+    <section id="panel-roster" class="panel" hidden>
+      <div class="section-card">
+        <h2 class="section-heading">住院醫師名單</h2>
+        <p class="section-help">目前編輯：<strong id="rosterPeriodName"></strong>。每個期別保存自己的名單快照；修改這裡不會影響其他期別。新增期別時會複製目前名單。</p>
+        <div id="roster" class="roster"></div>
+      </div>
+    </section>
+
+    <section id="panel-audit" class="panel" hidden>
+      <div class="section-card">
+        <div class="audit-heading">
+          <div>
+            <h2 class="section-heading">提交稽核紀錄</h2>
+            <p class="section-help">提交、解鎖與修改都會保存完成時間、操作者與當次六項分數。</p>
+          </div>
+          <button id="exportAuditButton" class="btn btn-primary" type="button">匯出 Excel（CSV）</button>
+        </div>
+        <div id="auditContent" class="audit-wrap"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell">CCC 核心能力評分系統 · 公開流程預覽</footer>
+
+  <dialog id="scoreDialog">
+    <form id="scoreForm">
+      <div class="dialog-head">
+        <div>
+          <h2 id="scoreDialogTitle">填寫評分</h2>
+          <p id="scoreDialogMeta"></p>
+        </div>
+        <button class="icon-button" data-close-dialog="scoreDialog" type="button" aria-label="關閉">×</button>
+      </div>
+      <div class="dialog-body">
+        <div id="teacherNameField" class="simple-field" hidden>
+          <label for="teacherName">教師姓名</label>
+          <input id="teacherName" name="teacherName" type="text" maxlength="30" autocomplete="name" placeholder="請輸入評分教師姓名">
+        </div>
+        <div id="scoreFields" class="score-fields"></div>
+        <div class="lock-warning">請確認六項分數無誤。提交後即鎖定，無法修改。</div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" data-close-dialog="scoreDialog" type="button">取消</button>
+          <button id="submitScoreButton" class="btn btn-primary" type="submit">確認並提交</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="modifyDialog">
+    <form id="modifyForm">
+      <div class="dialog-head">
+        <div>
+          <h2>解鎖並修改分數</h2>
+          <p id="modifyDialogMeta"></p>
+        </div>
+        <button class="icon-button" data-close-dialog="modifyDialog" type="button" aria-label="關閉">×</button>
+      </div>
+      <div class="dialog-body">
+        <div id="unlockStage">
+          <div class="simple-field">
+            <label for="adminPassword">管理密碼</label>
+            <input id="adminPassword" name="adminPassword" type="password" autocomplete="current-password" required placeholder="輸入管理密碼">
+          </div>
+          <div class="lock-warning">密碼驗證成功會立即留下「解鎖」稽核紀錄，即使之後取消修改也會保留。</div>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" data-close-dialog="modifyDialog" type="button">取消</button>
+            <button id="unlockButton" class="btn btn-amber" type="button">驗證並解鎖</button>
+          </div>
+        </div>
+        <div id="modifyStage" class="modify-stage" hidden>
+          <div id="modifyRole" class="modify-role"></div>
+          <div id="modifyScoreFields" class="score-fields"></div>
+          <div class="lock-warning">儲存後會更新分數並新增一筆「分數修改」稽核紀錄；原始提交紀錄不會被覆蓋。</div>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" data-close-dialog="modifyDialog" type="button">取消</button>
+            <button class="btn btn-primary" type="submit">儲存修改</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="periodDialog">
+    <form id="periodForm">
+      <div class="dialog-head">
+        <div>
+          <h2>新增評分期別</h2>
+          <p>建立後，R1–R4 會各自產生一份空白評分表。</p>
+        </div>
+        <button class="icon-button" data-close-dialog="periodDialog" type="button" aria-label="關閉">×</button>
+      </div>
+      <div class="dialog-body">
+        <div class="simple-field">
+          <label for="periodName">期別名稱</label>
+          <input id="periodName" name="periodName" type="text" maxlength="40" required placeholder="例如：2026 年第 2 期">
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" data-close-dialog="periodDialog" type="button">取消</button>
+          <button class="btn btn-primary" type="submit">建立期別</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const STORAGE_KEY = "docccc-assessment-v1";
+    const SCHEMA_VERSION = 2;
+    const ADMIN_PASSWORD = "rtd1234#";
+    const COMPETENCIES = [
+      "核心能力 1",
+      "核心能力 2",
+      "核心能力 3",
+      "核心能力 4",
+      "核心能力 5",
+      "核心能力 6"
+    ];
+    const ROLE_LABELS = { student: "學生自評", teacher: "教師評分" };
+    const ROLE_COLORS = { student: "#e5484d", teacher: "#1769ff" };
+    const EVENT_LABELS = { submission: "完成提交", unlock: "管理解鎖", modification: "分數修改" };
+
+    function defaultResidents() {
+      return ["R1", "R2", "R3", "R4"].map((level, index) => ({ id: `r${index + 1}`, level, name: "" }));
+    }
+
+    function copyResidents(residents) {
+      return residents.map(({ id, level, name }) => ({ id, level, name: name || "" }));
+    }
+
+    function makePeriod(name, residents) {
+      const rosterSnapshot = copyResidents(residents);
+      return {
+        id: `period-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name,
+        createdAt: new Date().toISOString(),
+        residents: rosterSnapshot,
+        assessments: Object.fromEntries(rosterSnapshot.map((resident) => [resident.id, { student: null, teacher: null }]))
+      };
+    }
+
+    function makeDefaultState() {
+      const period = makePeriod(`${new Date().getFullYear()} 年第 1 期`, defaultResidents());
+      return { schemaVersion: SCHEMA_VERSION, periods: [period], selectedPeriodId: period.id, auditLog: [] };
+    }
+
+    function legacyAuditEvents(periods) {
+      const events = [];
+      periods.forEach((period) => {
+        period.residents.forEach((resident) => {
+          const assessment = period.assessments?.[resident.id];
+          ["student", "teacher"].forEach((role) => {
+            const submission = assessment?.[role];
+            if (!submission) return;
+            events.push({
+              id: `legacy-${period.id}-${resident.id}-${role}`,
+              type: "submission",
+              periodId: period.id,
+              periodName: period.name,
+              residentId: resident.id,
+              residentLevel: resident.level,
+              residentName: resident.name || "",
+              role,
+              teacherName: submission.teacherName || "",
+              actorName: role === "teacher" ? submission.teacherName || "未記錄（舊資料）" : resident.name || "未命名",
+              occurredAt: submission.submittedAt,
+              scores: [...submission.scores]
+            });
+          });
+        });
+      });
+      return events;
+    }
+
+    function migrateState(saved) {
+      if (!saved || !Array.isArray(saved.periods)) return null;
+      const fallbackResidents = Array.isArray(saved.residents) ? saved.residents : defaultResidents();
+      const periods = saved.periods.map((period) => {
+        const residents = Array.isArray(period.residents) ? copyResidents(period.residents) : copyResidents(fallbackResidents);
+        const assessments = period.assessments || {};
+        residents.forEach((resident) => { assessments[resident.id] ||= { student: null, teacher: null }; });
+        return { ...period, residents, assessments };
+      });
+      return {
+        schemaVersion: SCHEMA_VERSION,
+        periods,
+        selectedPeriodId: periods.some((period) => period.id === saved.selectedPeriodId) ? saved.selectedPeriodId : periods[0]?.id || null,
+        auditLog: Array.isArray(saved.auditLog) ? saved.auditLog : legacyAuditEvents(periods)
+      };
+    }
+
+    function loadState() {
+      try {
+        const migrated = migrateState(JSON.parse(localStorage.getItem(STORAGE_KEY)));
+        if (migrated) return migrated;
+      } catch (error) {
+        console.warn("無法讀取既有資料，改用預設狀態。", error);
+      }
+      return makeDefaultState();
+    }
+
+    let state = loadState();
+    let activeScoreContext = null;
+    let activeModifyContext = null;
+    let toastTimer = null;
+
+    const elements = {
+      tabs: document.querySelectorAll(".tab"),
+      panels: document.querySelectorAll(".panel"),
+      periodSelect: document.querySelector("#periodSelect"),
+      addPeriodButton: document.querySelector("#addPeriodButton"),
+      printButton: document.querySelector("#printButton"),
+      printPeriodName: document.querySelector("#printPeriodName"),
+      stats: document.querySelector("#stats"),
+      residentGrid: document.querySelector("#residentGrid"),
+      roster: document.querySelector("#roster"),
+      rosterPeriodName: document.querySelector("#rosterPeriodName"),
+      auditContent: document.querySelector("#auditContent"),
+      exportAuditButton: document.querySelector("#exportAuditButton"),
+      scoreDialog: document.querySelector("#scoreDialog"),
+      scoreForm: document.querySelector("#scoreForm"),
+      scoreDialogTitle: document.querySelector("#scoreDialogTitle"),
+      scoreDialogMeta: document.querySelector("#scoreDialogMeta"),
+      scoreFields: document.querySelector("#scoreFields"),
+      teacherNameField: document.querySelector("#teacherNameField"),
+      teacherName: document.querySelector("#teacherName"),
+      modifyDialog: document.querySelector("#modifyDialog"),
+      modifyForm: document.querySelector("#modifyForm"),
+      modifyDialogMeta: document.querySelector("#modifyDialogMeta"),
+      unlockStage: document.querySelector("#unlockStage"),
+      modifyStage: document.querySelector("#modifyStage"),
+      modifyRole: document.querySelector("#modifyRole"),
+      modifyScoreFields: document.querySelector("#modifyScoreFields"),
+      adminPassword: document.querySelector("#adminPassword"),
+      unlockButton: document.querySelector("#unlockButton"),
+      periodDialog: document.querySelector("#periodDialog"),
+      periodForm: document.querySelector("#periodForm"),
+      periodName: document.querySelector("#periodName"),
+      toast: document.querySelector("#toast")
+    };
+
+    function persist() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (error) {
+        showToast("瀏覽器無法保存資料，請檢查隱私設定。");
+        console.error(error);
+      }
+    }
+
+    function escapeHTML(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function currentPeriod() {
+      return state.periods.find((period) => period.id === state.selectedPeriodId) || state.periods[0] || null;
+    }
+
+    function residentFor(period, residentId) {
+      return period?.residents?.find((resident) => resident.id === residentId) || null;
+    }
+
+    function ensureAssessments(period) {
+      if (!period) return;
+      period.assessments ||= {};
+      period.residents.forEach((resident) => { period.assessments[resident.id] ||= { student: null, teacher: null }; });
+    }
+
+    function formatAuditTime(iso) {
+      const date = new Date(iso);
+      return [
+        date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0"),
+        String(date.getHours()).padStart(2, "0"), String(date.getMinutes()).padStart(2, "0")
+      ].join("");
+    }
+
+    function formatReadableTime(iso) {
+      return new Intl.DateTimeFormat("zh-TW", {
+        year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false
+      }).format(new Date(iso));
+    }
+
+    function addAuditEvent({ type, period, resident, role = null, scores = null, beforeScores = null, teacherName = "", actorName = "" }) {
+      state.auditLog.push({
+        id: `audit-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        type,
+        periodId: period.id,
+        periodName: period.name,
+        residentId: resident.id,
+        residentLevel: resident.level,
+        residentName: resident.name || "",
+        role,
+        teacherName,
+        actorName,
+        occurredAt: new Date().toISOString(),
+        scores: scores ? [...scores] : null,
+        beforeScores: beforeScores ? [...beforeScores] : null
+      });
+    }
+
+    function render() {
+      const period = currentPeriod();
+      ensureAssessments(period);
+      renderPeriodSelect();
+      renderStats(period);
+      renderResidents(period);
+      renderRoster(period);
+      renderAudit();
+      elements.printPeriodName.textContent = period?.name || "尚未建立期別";
+    }
+
+    function renderPeriodSelect() {
+      elements.periodSelect.innerHTML = state.periods
+        .map((period) => `<option value="${escapeHTML(period.id)}"${period.id === state.selectedPeriodId ? " selected" : ""}>${escapeHTML(period.name)}</option>`)
+        .join("");
+      elements.periodSelect.disabled = state.periods.length === 0;
+    }
+
+    function renderStats(period) {
+      if (!period) { elements.stats.innerHTML = ""; return; }
+      const records = period.residents.map((resident) => period.assessments[resident.id]);
+      const studentDone = records.filter((record) => record.student).length;
+      const teacherDone = records.filter((record) => record.teacher).length;
+      const pairedDone = records.filter((record) => record.student && record.teacher).length;
+      elements.stats.innerHTML = `
+        <div class="stat"><div class="stat-value">${studentDone}/${records.length}</div><div class="stat-label">學生已完成</div></div>
+        <div class="stat"><div class="stat-value">${teacherDone}/${records.length}</div><div class="stat-label">教師已完成</div></div>
+        <div class="stat"><div class="stat-value">${pairedDone}/${records.length}</div><div class="stat-label">雙方已完成</div></div>
+      `;
+    }
+
+    function printScoreGrid(assessment) {
+      return `<div class="print-score-grid">${COMPETENCIES.map((_, index) => `
+        <div class="print-score-row"><span>能力 ${index + 1}</span><span>學生 ${assessment.student?.scores[index] ?? "—"}</span><span>教師 ${assessment.teacher?.scores[index] ?? "—"}</span></div>
+      `).join("")}</div>`;
+    }
+
+    function renderResidents(period) {
+      if (!period) {
+        elements.residentGrid.innerHTML = `<div class="empty"><strong>尚未建立期別</strong>新增期別後即可開始評分。</div>`;
+        return;
+      }
+      elements.residentGrid.innerHTML = period.residents.map((resident) => {
+        const assessment = period.assessments[resident.id];
+        const complete = Boolean(assessment.student && assessment.teacher);
+        const displayName = resident.name.trim() || "尚未填寫姓名";
+        const timeLines = ["student", "teacher"].filter((role) => assessment[role]).map((role) => {
+          const teacher = role === "teacher" ? `（${assessment.teacher.teacherName || "教師未記錄"}）` : "";
+          return `${ROLE_LABELS[role]} ${formatAuditTime(assessment[role].submittedAt)}${teacher}`;
+        }).join(" · ");
+        const scoreGrid = printScoreGrid(assessment);
+        return `
+          <article class="resident-card${complete ? " complete" : ""}">
+            <div class="resident-head">
+              <div><span class="level">${escapeHTML(resident.level)}</span><h3 class="resident-name${resident.name.trim() ? "" : " muted"}">${escapeHTML(displayName)}</h3></div>
+              <div class="status-row">
+                <span class="status ${assessment.student ? "student-done" : "pending"}">學生${assessment.student ? "已完成" : "待評"}</span>
+                <span class="status ${assessment.teacher ? "teacher-done" : "pending"}">教師${assessment.teacher ? "已完成" : "待評"}</span>
+              </div>
+            </div>
+            <div class="card-actions">
+              <button class="btn btn-red" type="button" data-score-resident="${resident.id}" data-score-role="student" ${assessment.student ? "disabled" : ""}>${assessment.student ? "學生自評已鎖定" : "填寫學生自評"}</button>
+              <button class="btn btn-blue" type="button" data-score-resident="${resident.id}" data-score-role="teacher" ${assessment.teacher || !assessment.student ? "disabled" : ""}>${assessment.teacher ? "教師評分已鎖定" : assessment.student ? "填寫教師評分" : "請先完成學生自評"}</button>
+              ${assessment.student || assessment.teacher ? `<button class="btn btn-amber" type="button" data-modify-resident="${resident.id}">修改分數</button>` : ""}
+            </div>
+            ${timeLines ? `<div class="done-time">${escapeHTML(timeLines)}</div>` : ""}
+            ${complete ? `
+              <div class="chart-wrap">
+                <div class="chart-title"><strong>核心能力六角圖</strong><div class="legend"><span class="student">學生</span><span class="teacher">教師</span></div></div>
+                <canvas width="440" height="320" data-radar-resident="${resident.id}" aria-label="${escapeHTML(resident.level)} 核心能力六角圖"></canvas>
+                ${scoreGrid}
+              </div>
+            ` : scoreGrid}
+          </article>
+        `;
+      }).join("");
+
+      elements.residentGrid.querySelectorAll("[data-score-resident]").forEach((button) => {
+        button.addEventListener("click", () => openScoreDialog(button.dataset.scoreResident, button.dataset.scoreRole));
+      });
+      elements.residentGrid.querySelectorAll("[data-modify-resident]").forEach((button) => {
+        button.addEventListener("click", () => openModifyDialog(button.dataset.modifyResident));
+      });
+      elements.residentGrid.querySelectorAll("[data-radar-resident]").forEach((canvas) => {
+        const assessment = period.assessments[canvas.dataset.radarResident];
+        drawRadarChart(canvas, assessment.student.scores, assessment.teacher.scores);
+      });
+    }
+
+    function renderRoster(period) {
+      elements.rosterPeriodName.textContent = period?.name || "尚未建立期別";
+      if (!period) { elements.roster.innerHTML = `<div class="empty">請先建立期別。</div>`; return; }
+      elements.roster.innerHTML = period.residents.map((resident) => `
+        <label class="roster-row">
+          <span class="level">${escapeHTML(resident.level)}</span>
+          <input type="text" maxlength="30" value="${escapeHTML(resident.name)}" data-resident-name="${resident.id}" placeholder="輸入住院醫師姓名" aria-label="${escapeHTML(resident.level)} 姓名">
+          <span class="saved-hint" data-saved-hint="${resident.id}">已保存</span>
+        </label>
+      `).join("");
+      elements.roster.querySelectorAll("[data-resident-name]").forEach((input) => {
+        input.addEventListener("change", () => {
+          const resident = residentFor(period, input.dataset.residentName);
+          if (!resident) return;
+          resident.name = input.value.trim();
+          input.value = resident.name;
+          persist();
+          const hint = elements.roster.querySelector(`[data-saved-hint="${resident.id}"]`);
+          hint.classList.add("show");
+          setTimeout(() => hint.classList.remove("show"), 1500);
+          renderResidents(period);
+        });
+      });
+    }
+
+    function getAuditRows() {
+      return [...state.auditLog].sort((a, b) => new Date(b.occurredAt) - new Date(a.occurredAt));
+    }
+
+    function scoreText(event) {
+      if (!event.scores) return "—";
+      const current = event.scores.map((score, index) => `能力${index + 1}: ${score}`).join(" ／ ");
+      if (!event.beforeScores) return current;
+      const before = event.beforeScores.map((score, index) => `能力${index + 1}: ${score}`).join(" ／ ");
+      return `${current}<br><small>修改前：${before}</small>`;
+    }
+
+    function renderAudit() {
+      const rows = getAuditRows();
+      elements.exportAuditButton.disabled = rows.length === 0;
+      if (rows.length === 0) {
+        elements.auditContent.innerHTML = `<div class="empty"><strong>尚無稽核紀錄</strong>第一份評分提交後，完成時間會顯示在這裡。</div>`;
+        return;
+      }
+      elements.auditContent.innerHTML = `
+        <table>
+          <thead><tr><th>事件</th><th>期別</th><th>人員</th><th>評分類型</th><th>教師／操作者</th><th>完成時間</th><th>六項分數</th></tr></thead>
+          <tbody>${rows.map((event) => `
+            <tr>
+              <td><span class="event-badge event-${event.type === "submission" ? "submit" : event.type === "unlock" ? "unlock" : "modify"}">${EVENT_LABELS[event.type] || event.type}</span></td>
+              <td>${escapeHTML(event.periodName)}</td>
+              <td><strong>${escapeHTML(event.residentLevel)}</strong> ${escapeHTML(event.residentName || "未命名")}</td>
+              <td>${event.role ? `<span class="status ${event.role === "student" ? "student-done" : "teacher-done"}">${ROLE_LABELS[event.role]}</span>` : "整份評分表"}</td>
+              <td class="teacher-name">${escapeHTML(event.teacherName || event.actorName || "—")}</td>
+              <td><span class="time-code">${formatAuditTime(event.occurredAt)}</span><br><small>${escapeHTML(formatReadableTime(event.occurredAt))}</small></td>
+              <td class="score-list">${scoreText(event)}</td>
+            </tr>
+          `).join("")}</tbody>
+        </table>
+      `;
+    }
+
+    function openScoreDialog(residentId, role) {
+      const period = currentPeriod();
+      const resident = residentFor(period, residentId);
+      const assessment = period?.assessments?.[residentId];
+      if (!period || !resident || !assessment || assessment[role] || (role === "teacher" && !assessment.student)) {
+        showToast("這份評分已鎖定或不存在。");
+        render();
+        return;
+      }
+      activeScoreContext = { periodId: period.id, residentId, role };
+      elements.scoreDialogTitle.textContent = ROLE_LABELS[role];
+      elements.scoreDialogMeta.textContent = `${period.name} · ${resident.level} ${resident.name || "未命名"}`;
+      elements.teacherNameField.hidden = role !== "teacher";
+      elements.teacherName.required = role === "teacher";
+      elements.teacherName.value = "";
+      elements.scoreFields.innerHTML = COMPETENCIES.map((name, index) => `
+        <div class="score-field"><label for="score-${index}">${name}<small>0–100 分</small></label><input id="score-${index}" name="score-${index}" type="number" min="0" max="100" step="1" inputmode="numeric" required placeholder="—"></div>
+      `).join("");
+      elements.scoreDialog.showModal();
+      (role === "teacher" ? elements.teacherName : elements.scoreFields.querySelector("input"))?.focus();
+    }
+
+    function validScores(scores) {
+      return scores.length === 6 && scores.every((score) => Number.isInteger(score) && score >= 0 && score <= 100);
+    }
+
+    function submitScores(event) {
+      event.preventDefault();
+      const context = activeScoreContext;
+      const period = state.periods.find((item) => item.id === context?.periodId);
+      const resident = residentFor(period, context?.residentId);
+      const assessment = period?.assessments?.[context?.residentId];
+      if (!context || !resident || !assessment || assessment[context.role]) {
+        elements.scoreDialog.close();
+        showToast("這份評分已鎖定，未重複寫入。");
+        render();
+        return;
+      }
+      const scores = COMPETENCIES.map((_, index) => Number(elements.scoreForm.elements[`score-${index}`].value));
+      const teacherName = context.role === "teacher" ? elements.teacherName.value.trim() : "";
+      if (!validScores(scores)) { showToast("六項分數皆須為 0–100 的整數。"); return; }
+      if (context.role === "teacher" && !teacherName) { showToast("請輸入教師姓名。"); elements.teacherName.focus(); return; }
+      const submittedAt = new Date().toISOString();
+      assessment[context.role] = { scores, submittedAt, ...(teacherName ? { teacherName } : {}) };
+      addAuditEvent({
+        type: "submission", period, resident, role: context.role, scores, teacherName,
+        actorName: context.role === "teacher" ? teacherName : resident.name || "未命名"
+      });
+      persist();
+      elements.scoreDialog.close();
+      activeScoreContext = null;
+      render();
+      showToast(`${ROLE_LABELS[context.role]}已提交並鎖定。`);
+    }
+
+    function openModifyDialog(residentId) {
+      const period = currentPeriod();
+      const resident = residentFor(period, residentId);
+      const assessment = period?.assessments?.[residentId];
+      const availableRoles = ["student", "teacher"].filter((role) => assessment?.[role]);
+      if (!period || !resident || availableRoles.length === 0) { showToast("目前沒有可修改的分數。"); return; }
+      activeModifyContext = { periodId: period.id, residentId, role: availableRoles.includes("teacher") ? "teacher" : "student", unlocked: false };
+      elements.modifyDialogMeta.textContent = `${period.name} · ${resident.level} ${resident.name || "未命名"}`;
+      elements.adminPassword.value = "";
+      elements.unlockStage.hidden = false;
+      elements.modifyStage.hidden = true;
+      elements.modifyDialog.showModal();
+      elements.adminPassword.focus();
+    }
+
+    function unlockModification() {
+      const context = activeModifyContext;
+      const period = state.periods.find((item) => item.id === context?.periodId);
+      const resident = residentFor(period, context?.residentId);
+      const assessment = period?.assessments?.[context?.residentId];
+      if (!context || !period || !resident || !assessment) return;
+      if (elements.adminPassword.value !== ADMIN_PASSWORD) { showToast("管理密碼不正確。"); elements.adminPassword.select(); return; }
+      context.unlocked = true;
+      addAuditEvent({ type: "unlock", period, resident, actorName: "管理者（密碼驗證）" });
+      persist();
+      elements.unlockStage.hidden = true;
+      elements.modifyStage.hidden = false;
+      const availableRoles = ["student", "teacher"].filter((role) => assessment[role]);
+      elements.modifyRole.innerHTML = availableRoles.map((role) => `
+        <label><input type="radio" name="modifyRole" value="${role}" ${context.role === role ? "checked" : ""}>${ROLE_LABELS[role]}</label>
+      `).join("");
+      elements.modifyRole.querySelectorAll("input").forEach((input) => {
+        input.addEventListener("change", () => { context.role = input.value; renderModifyScores(); });
+      });
+      renderModifyScores();
+      renderAudit();
+      showToast("已解鎖，稽核紀錄已建立。");
+    }
+
+    function renderModifyScores() {
+      const context = activeModifyContext;
+      const period = state.periods.find((item) => item.id === context?.periodId);
+      const scores = period?.assessments?.[context?.residentId]?.[context?.role]?.scores;
+      if (!scores) return;
+      elements.modifyScoreFields.innerHTML = COMPETENCIES.map((name, index) => `
+        <div class="score-field"><label for="modify-score-${index}">${name}<small>0–100 分</small></label><input id="modify-score-${index}" name="modify-score-${index}" type="number" min="0" max="100" step="1" inputmode="numeric" required value="${scores[index]}"></div>
+      `).join("");
+    }
+
+    function submitModification(event) {
+      event.preventDefault();
+      const context = activeModifyContext;
+      const period = state.periods.find((item) => item.id === context?.periodId);
+      const resident = residentFor(period, context?.residentId);
+      const submission = period?.assessments?.[context?.residentId]?.[context?.role];
+      if (!context?.unlocked || !period || !resident || !submission) { showToast("請先驗證管理密碼。"); return; }
+      const scores = COMPETENCIES.map((_, index) => Number(elements.modifyForm.elements[`modify-score-${index}`].value));
+      if (!validScores(scores)) { showToast("六項分數皆須為 0–100 的整數。"); return; }
+      const beforeScores = [...submission.scores];
+      if (scores.every((score, index) => score === beforeScores[index])) { showToast("分數沒有變動。"); return; }
+      submission.scores = scores;
+      submission.updatedAt = new Date().toISOString();
+      addAuditEvent({
+        type: "modification", period, resident, role: context.role, scores, beforeScores,
+        teacherName: context.role === "teacher" ? submission.teacherName || "未記錄（舊資料）" : "",
+        actorName: "管理者（密碼驗證）"
+      });
+      persist();
+      elements.modifyDialog.close();
+      activeModifyContext = null;
+      render();
+      showToast("分數已修改，原始與修改紀錄均已保留。");
+    }
+
+    function createPeriod(event) {
+      event.preventDefault();
+      const name = elements.periodName.value.trim();
+      if (!name) return;
+      if (state.periods.some((period) => period.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+        showToast("期別名稱已存在，請使用其他名稱。");
+        return;
+      }
+      const sourceRoster = currentPeriod()?.residents || defaultResidents();
+      const period = makePeriod(name, sourceRoster);
+      state.periods.push(period);
+      state.selectedPeriodId = period.id;
+      persist();
+      elements.periodDialog.close();
+      elements.periodForm.reset();
+      render();
+      showToast(`已建立「${name}」，名單已複製且與舊期別分開。`);
+    }
+
+    function csvCell(value) {
+      let text = String(value ?? "");
+      if (/^[=+\-@]/.test(text)) text = `'${text}`;
+      return `"${text.replaceAll('"', '""')}"`;
+    }
+
+    function exportAuditCSV() {
+      const rows = getAuditRows();
+      if (rows.length === 0) { showToast("目前沒有可匯出的稽核紀錄。"); return; }
+      const header = ["事件", "期別", "級別", "姓名", "評分類型", "教師姓名", "操作者", "完成時間", ...COMPETENCIES, ...COMPETENCIES.map((name) => `修改前 ${name}`)];
+      const body = rows.map((event) => [
+        EVENT_LABELS[event.type] || event.type, event.periodName, event.residentLevel, event.residentName || "未命名",
+        event.role ? ROLE_LABELS[event.role] : "整份評分表", event.teacherName || "", event.actorName || "", formatAuditTime(event.occurredAt),
+        ...(event.scores || Array(6).fill("")), ...(event.beforeScores || Array(6).fill(""))
+      ]);
+      const csv = `\uFEFF${[header, ...body].map((row) => row.map(csvCell).join(",")).join("\r\n")}`;
+      const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `CCC_稽核紀錄_${formatAuditTime(new Date().toISOString())}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast("稽核紀錄已匯出，可使用 Excel 開啟。");
+    }
+
+    function exportPDF() {
+      switchTab("assessment");
+      renderResidents(currentPeriod());
+      requestAnimationFrame(() => window.print());
+    }
+
+    function drawRadarChart(canvas, studentScores, teacherScores) {
+      const context = canvas.getContext("2d");
+      const width = canvas.width;
+      const height = canvas.height;
+      const centerX = width / 2;
+      const centerY = height / 2 + 2;
+      const radius = Math.min(width, height) * 0.34;
+      const angles = COMPETENCIES.map((_, index) => -Math.PI / 2 + index * (Math.PI * 2 / 6));
+      context.clearRect(0, 0, width, height);
+      for (let ring = 1; ring <= 5; ring += 1) {
+        context.beginPath();
+        angles.forEach((angle, index) => {
+          const ringRadius = radius * ring / 5;
+          const x = centerX + Math.cos(angle) * ringRadius;
+          const y = centerY + Math.sin(angle) * ringRadius;
+          index === 0 ? context.moveTo(x, y) : context.lineTo(x, y);
+        });
+        context.closePath();
+        context.strokeStyle = ring === 5 ? "#b9c0b9" : "#e0e3dd";
+        context.lineWidth = 1;
+        context.stroke();
+      }
+      angles.forEach((angle, index) => {
+        context.beginPath();
+        context.moveTo(centerX, centerY);
+        context.lineTo(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius);
+        context.strokeStyle = "#d7dbd5";
+        context.stroke();
+        const labelRadius = radius + 27;
+        const labelX = centerX + Math.cos(angle) * labelRadius;
+        const labelY = centerY + Math.sin(angle) * labelRadius;
+        context.fillStyle = "#667168";
+        context.font = "700 12px sans-serif";
+        context.textAlign = Math.abs(Math.cos(angle)) < 0.1 ? "center" : Math.cos(angle) > 0 ? "left" : "right";
+        context.textBaseline = Math.abs(Math.sin(angle)) < 0.1 ? "middle" : Math.sin(angle) > 0 ? "top" : "bottom";
+        context.fillText(`能力 ${index + 1}`, labelX, labelY);
+      });
+      function plot(scores, color) {
+        context.beginPath();
+        scores.forEach((score, index) => {
+          const pointRadius = radius * score / 100;
+          const x = centerX + Math.cos(angles[index]) * pointRadius;
+          const y = centerY + Math.sin(angles[index]) * pointRadius;
+          index === 0 ? context.moveTo(x, y) : context.lineTo(x, y);
+        });
+        context.closePath();
+        context.fillStyle = `${color}22`;
+        context.strokeStyle = color;
+        context.lineWidth = 2.5;
+        context.fill();
+        context.stroke();
+        scores.forEach((score, index) => {
+          const pointRadius = radius * score / 100;
+          context.beginPath();
+          context.arc(centerX + Math.cos(angles[index]) * pointRadius, centerY + Math.sin(angles[index]) * pointRadius, 3.5, 0, Math.PI * 2);
+          context.fillStyle = color;
+          context.fill();
+        });
+      }
+      plot(studentScores, ROLE_COLORS.student);
+      plot(teacherScores, ROLE_COLORS.teacher);
+    }
+
+    function switchTab(tabName) {
+      elements.tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === tabName));
+      elements.panels.forEach((panel) => { panel.hidden = panel.id !== `panel-${tabName}`; });
+      if (tabName === "assessment") renderResidents(currentPeriod());
+      if (tabName === "roster") renderRoster(currentPeriod());
+      if (tabName === "audit") renderAudit();
+    }
+
+    function showToast(message) {
+      elements.toast.textContent = message;
+      elements.toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => elements.toast.classList.remove("show"), 2600);
+    }
+
+    elements.tabs.forEach((tab) => tab.addEventListener("click", () => switchTab(tab.dataset.tab)));
+    elements.periodSelect.addEventListener("change", () => { state.selectedPeriodId = elements.periodSelect.value; persist(); render(); });
+    elements.addPeriodButton.addEventListener("click", () => {
+      elements.periodName.value = `${new Date().getFullYear()} 年第 ${state.periods.length + 1} 期`;
+      elements.periodDialog.showModal();
+      elements.periodName.select();
+    });
+    elements.printButton.addEventListener("click", exportPDF);
+    elements.exportAuditButton.addEventListener("click", exportAuditCSV);
+    elements.scoreForm.addEventListener("submit", submitScores);
+    elements.modifyForm.addEventListener("submit", submitModification);
+    elements.unlockButton.addEventListener("click", unlockModification);
+    elements.adminPassword.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") { event.preventDefault(); unlockModification(); }
+    });
+    elements.periodForm.addEventListener("submit", createPeriod);
+    document.querySelectorAll("[data-close-dialog]").forEach((button) => {
+      button.addEventListener("click", () => document.querySelector(`#${button.dataset.closeDialog}`).close());
+    });
+    [elements.scoreDialog, elements.modifyDialog, elements.periodDialog].forEach((dialog) => {
+      dialog.addEventListener("click", (event) => {
+        const rect = dialog.getBoundingClientRect();
+        const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+        if (outside) dialog.close();
+      });
+    });
+
+    persist();
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+# Source documents are local reference material, not website assets.
+*.doc
+*.docx
+~$*
+*:Zone.Identifier
+放射腫瘤科_*.md
+
+# Local agent and backup metadata.
+.agents/
+.codex
+*.bak-*
