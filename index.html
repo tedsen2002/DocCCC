@@ -232,6 +232,9 @@
     .legend .student::before { background: var(--red); }
     .legend .teacher::before { background: var(--blue); }
     canvas { display: block; width: 100%; max-width: 360px; height: auto; margin: 0 auto; }
+    canvas[data-radar-kind="absolute"] { cursor: pointer; border-radius: 10px; }
+    canvas[data-radar-kind="absolute"]:focus-visible { outline: 3px solid rgba(29, 107, 80, 0.28); outline-offset: 2px; }
+    .chart-hint { margin: 2px 0 0; color: var(--green-2); text-align: center; font-size: 11px; font-weight: 800; }
     .result-summary { display: grid; gap: 4px; margin-top: 10px; font-size: 11px; }
     .result-row { display: grid; grid-template-columns: minmax(86px, 1.25fr) 1fr 1fr; gap: 8px; padding: 5px 2px; border-bottom: 1px solid #e5e7e1; }
     .result-row span:first-child { font-weight: 850; }
@@ -284,7 +287,7 @@
     .event-unlock { color: #76500d; background: #fff2d2; }
     .event-modify { color: #6d2d83; background: #f4e7f8; }
     .teacher-name { color: #124eae; font-weight: 800; }
-    .print-header, .print-score-grid { display: none; }
+    .print-header, .print-score-grid, .formal-print-report { display: none; }
 
     dialog {
       width: min(560px, calc(100% - 28px));
@@ -351,7 +354,7 @@
     .item-score-row { display: grid; grid-template-columns: minmax(0, 1fr) 104px; gap: 14px; align-items: center; padding: 10px 11px; border: 1px solid #e3e5df; border-radius: 11px; background: white; }
     .item-copy { font-size: 13px; }
     .item-code { display: block; margin-bottom: 2px; color: var(--green-2); font-size: 11px; font-weight: 900; letter-spacing: 0.04em; }
-    .item-score-row input { width: 100%; padding: 9px; text-align: right; font-weight: 850; }
+    .item-score-row select { width: 100%; min-width: 0; padding: 9px; font-weight: 850; }
     .level-field { display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 14px; align-items: center; padding: 12px 13px; border: 1px solid var(--line); border-radius: 13px; background: white; }
     .level-field strong { display: block; }
     .level-field small { display: block; color: var(--muted); }
@@ -360,6 +363,14 @@
     .modify-stage { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
     .modify-role { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
     .modify-role label { display: flex; align-items: center; gap: 8px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; font-weight: 800; background: white; }
+    .score-detail-summary { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 14px; padding: 12px 14px; border-radius: 12px; color: var(--green); background: #eef5ef; font-weight: 850; }
+    .score-detail-groups { display: grid; gap: 14px; }
+    .score-detail-group { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; }
+    .score-detail-group h3 { margin: 0; padding: 10px 12px; color: var(--green); background: #f3f6ef; font-size: 15px; }
+    .score-detail-table { min-width: 0; }
+    .score-detail-table th, .score-detail-table td { padding: 9px 12px; }
+    .score-detail-table th:last-child, .score-detail-table td:last-child { width: 72px; text-align: center; }
+    .score-detail-table td:last-child { color: var(--green); font-size: 16px; font-weight: 900; }
 
     .toast {
       position: fixed;
@@ -419,30 +430,45 @@
       .shell { width: 100%; margin: 0; }
       main { width: 100%; }
       #panel-assessment { display: block !important; }
-      .print-header { display: flex; align-items: flex-end; justify-content: space-between; margin: 0 0 3mm; }
-      .print-header h1 { margin: 0; font-size: 17pt; letter-spacing: -0.03em; }
-      .print-header p { margin: 0; color: #555; font-size: 9pt; }
-      .resident-grid { display: grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 174mm; gap: 3mm; }
-      .resident-card { min-height: 0; height: 174mm; padding: 3.5mm; border-radius: 3mm; box-shadow: none; break-inside: avoid; overflow: visible; }
+      .print-header { display: none !important; }
+      .resident-grid { display: block; }
+      .resident-card { min-height: 0; height: 194mm; padding: 0; border: 0; border-radius: 0; box-shadow: none; break-inside: avoid; overflow: hidden; }
       .resident-card:not(.complete) { display: none !important; }
-      .resident-head { align-items: center; }
-      .resident-name { margin-top: 2px; font-size: 14pt; }
-      .level, .status { padding: 2px 5px; font-size: 7.5pt; }
-      .card-actions { display: none; }
-      .done-time { margin-top: 2mm; font-size: 7pt; }
-      .chart-wrap { margin-top: 1.5mm; padding-top: 1.5mm; }
-      .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5mm; }
-      .chart-panel { padding: 1mm; border-radius: 1.5mm; }
-      .chart-title { margin: 0; }
-      .chart-title strong { font-size: 9pt; }
-      .legend { font-size: 7pt; }
-      canvas { width: 58mm !important; height: 45mm !important; margin: 0 auto; }
-      .result-summary { gap: 0; margin-top: 1.5mm; font-size: 8pt; }
-      .result-row { grid-template-columns: 1.25fr 1fr 1fr; gap: 1mm; padding: 0.75mm 0; }
-      .result-row.head { font-size: 7pt; }
-      .print-score-grid { display: grid; grid-template-columns: 1fr; align-content: center; gap: 1.2mm; font-size: 7.5pt; }
-      .print-score-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2mm; padding-bottom: 1mm; border-bottom: 0.2mm solid #ddd; }
-      .print-score-row span:first-child { font-weight: 800; }
+      .resident-card:not(.print-ready) { display: none !important; }
+      .resident-card.complete { break-after: page; }
+      .resident-card.complete::before { display: none !important; }
+      .resident-card > :not(.formal-print-report) { display: none !important; }
+      .formal-print-report { display: block; height: 194mm; box-sizing: border-box; padding-top: 3mm; color: #111; font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; }
+      .formal-print-title { padding-bottom: 2mm; border-bottom: 0.5mm double #222; text-align: center; }
+      .formal-print-title h1 { margin: 0; font-size: 15pt; letter-spacing: 0.08em; }
+      .formal-print-title p { margin: 1mm 0 0; font-size: 8.5pt; font-weight: 700; }
+      .formal-print-meta { display: grid; grid-template-columns: 1.15fr 1fr 0.65fr 1fr 1.35fr; border: 0.25mm solid #555; border-top: 0; font-size: 7.5pt; }
+      .formal-print-meta span { padding: 1.2mm 1.5mm; border-right: 0.25mm solid #777; }
+      .formal-print-meta span:last-child { border-right: 0; }
+      .formal-print-meta strong { margin-right: 1mm; }
+      .formal-code-legend { display: grid; grid-template-columns: auto repeat(6, 1fr); align-items: center; gap: 1mm; padding: 1.2mm 1.5mm; border: 0.25mm solid #555; border-top: 0; background: #eee; font-size: 6.5pt; }
+      .formal-code-legend > strong { font-size: 7pt; }
+      .formal-code-legend span { text-align: center; white-space: nowrap; }
+      .formal-code-legend b { margin-right: 0.7mm; font-size: 7pt; }
+      .formal-print-overview { display: grid; grid-template-columns: 0.8fr 0.8fr 1.4fr; gap: 2mm; margin-top: 1.5mm; }
+      .formal-chart-panel, .formal-final-score { height: 62mm; box-sizing: border-box; padding: 1.7mm; border: 0.25mm solid #666; }
+      .formal-section-title { margin: 0 0 1mm; font-size: 8.5pt; font-weight: 900; text-align: center; }
+      .formal-chart-panel canvas { width: 65mm !important; height: 51mm !important; margin: 0 auto; }
+      .formal-final-score table, .formal-detail-table { min-width: 0; table-layout: fixed; }
+      .formal-final-score th, .formal-final-score td { padding: 1.2mm 1.2mm; border: 0.2mm solid #777; font-size: 7pt; text-align: center; }
+      .formal-final-score th { color: #111; background: #eee; }
+      .formal-final-score .formal-total td { font-size: 7.5pt; font-weight: 900; }
+      .formal-detail-heading { display: flex; align-items: center; justify-content: space-between; margin: 2mm 0 1mm; }
+      .formal-detail-heading h2 { margin: 0; font-size: 8.5pt; }
+      .formal-detail-heading span { font-size: 6.5pt; }
+      .formal-item-tables { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2mm; }
+      .formal-detail-table th, .formal-detail-table td { padding: 1.1mm 1mm; border: 0.2mm solid #777; font-size: 6.2pt; line-height: 1.22; vertical-align: middle; }
+      .formal-detail-table th { color: #111; background: #eee; text-align: center; }
+      .formal-detail-table .domain { width: 18%; text-align: center; font-weight: 900; }
+      .formal-detail-table .score { width: 8%; text-align: center; font-size: 7pt; font-weight: 900; }
+      .formal-detail-table .allocation { width: 8%; text-align: center; }
+      .formal-detail-table .item-code-print { font-weight: 900; }
+      .formal-print-footer { display: flex; justify-content: space-between; margin-top: 1.5mm; padding-top: 1mm; border-top: 0.25mm solid #777; font-size: 6.5pt; }
     }
   </style>
 </head>
@@ -602,6 +628,17 @@
         </div>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="scoreDetailDialog" class="assessment-dialog">
+    <div class="dialog-head">
+      <div>
+        <h2>教師原始分項評分</h2>
+        <p id="scoreDetailMeta"></p>
+      </div>
+      <button class="icon-button" data-close-dialog="scoreDetailDialog" type="button" aria-label="關閉">×</button>
+    </div>
+    <div id="scoreDetailContent" class="dialog-body"></div>
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -812,6 +849,9 @@
       periodDialog: document.querySelector("#periodDialog"),
       periodForm: document.querySelector("#periodForm"),
       periodName: document.querySelector("#periodName"),
+      scoreDetailDialog: document.querySelector("#scoreDetailDialog"),
+      scoreDetailMeta: document.querySelector("#scoreDetailMeta"),
+      scoreDetailContent: document.querySelector("#scoreDetailContent"),
       toast: document.querySelector("#toast")
     };
 
@@ -969,6 +1009,124 @@
       `;
     }
 
+    function printSummaryTable(assessment) {
+      const metrics = teacherDomainMetrics(assessment.teacher.itemScores);
+      const total = metrics.reduce((sum, metric) => sum + metric.score, 0);
+      return `
+        <table aria-label="最後評分彙整">
+          <thead><tr><th>核心能力</th><th>小項總分</th><th>百分比</th><th>教師評核分數</th><th>學生自評</th></tr></thead>
+          <tbody>
+            ${metrics.map((metric, index) => `
+              <tr><td>${metric.name}</td><td>${metric.score}/${metric.max}</td><td>${metric.percent}%</td><td>L${assessment.teacher.levels[index]}</td><td>L${assessment.student.levels[index]}</td></tr>
+            `).join("")}
+            <tr class="formal-total"><td>總分</td><td colspan="4">${total}/100</td></tr>
+          </tbody>
+        </table>
+      `;
+    }
+
+    function detailedAssessmentItems(assessment) {
+      let itemIndex = 0;
+      return COMPETENCIES.flatMap((competency) => competency.items.map((item) => ({
+        competency,
+        item,
+        score: assessment.teacher.itemScores[itemIndex++]
+      })));
+    }
+
+    function printItemTables(assessment) {
+      const items = detailedAssessmentItems(assessment);
+      return [items.slice(0, 10), items.slice(10)].map((column, columnIndex) => `
+        <table class="formal-detail-table" aria-label="原始詳細評分第 ${columnIndex + 1} 欄">
+          <thead><tr><th class="domain">核心能力</th><th>評估要點與實證標準（專科臨床表現）</th><th class="allocation">配分</th><th class="score">評分</th></tr></thead>
+          <tbody>${column.map(({ competency, item, score }) => `
+            <tr>
+              <td class="domain">${escapeHTML(competency.name)}</td>
+              <td><span class="item-code-print">${item.code}</span>　${escapeHTML(item.description)}</td>
+              <td class="allocation">5</td>
+              <td class="score">${score}</td>
+            </tr>
+          `).join("")}</tbody>
+        </table>
+      `).join("");
+    }
+
+    function formalPrintReport(period, resident, assessment) {
+      return `
+        <section class="formal-print-report" aria-label="${escapeHTML(resident.level)} ${escapeHTML(resident.name || "未命名")} 正式評分表">
+          <div class="formal-print-title">
+            <h1>三軍總醫院 放射腫瘤部住院醫師訓練考核表</h1>
+            <p>ACGME Milestones 2.0 暨 100分制雙軌評核</p>
+          </div>
+          <div class="formal-print-meta">
+            <span><strong>評核期別</strong>${escapeHTML(period.name)}</span>
+            <span><strong>受評醫師</strong>${escapeHTML(resident.name || "未命名")}</span>
+            <span><strong>年級</strong>${escapeHTML(resident.level)}</span>
+            <span><strong>評核教師</strong>${escapeHTML(assessment.teacher.teacherName || "未記錄")}</span>
+            <span><strong>完成時間</strong>${escapeHTML(formatReadableTime(assessment.teacher.submittedAt))}</span>
+          </div>
+          <div class="formal-code-legend">
+            <strong>六角圖縮寫對照</strong>
+            ${COMPETENCIES.map((competency) => `<span><b>${competency.code}</b>${competency.name}</span>`).join("")}
+          </div>
+          <div class="formal-print-overview">
+            <section class="formal-chart-panel">
+              <h2 class="formal-section-title">教師分項評分百分比六角圖</h2>
+              <canvas width="360" height="280" data-radar-resident="${resident.id}" data-radar-kind="print-absolute" aria-label="教師分項評分百分比六角圖"></canvas>
+            </section>
+            <section class="formal-chart-panel">
+              <h2 class="formal-section-title">學生自評與教師評核分數六角圖</h2>
+              <canvas width="360" height="280" data-radar-resident="${resident.id}" data-radar-kind="print-levels" aria-label="學生自評與教師評核分數六角圖"></canvas>
+            </section>
+            <section class="formal-final-score">
+              <h2 class="formal-section-title">最後評分</h2>
+              ${printSummaryTable(assessment)}
+            </section>
+          </div>
+          <section>
+            <div class="formal-detail-heading"><h2>原始表單詳細評分表</h2><span>各小項滿分 5 分；總滿分 100 分</span></div>
+            <div class="formal-item-tables">${printItemTables(assessment)}</div>
+          </section>
+          <div class="formal-print-footer"><span>本表由 CCC 核心能力評分系統依鎖定資料產出</span><span>評核教師：${escapeHTML(assessment.teacher.teacherName || "未記錄")}</span></div>
+        </section>
+      `;
+    }
+
+    function scoreDetailMarkup(assessment) {
+      const metrics = teacherDomainMetrics(assessment.teacher.itemScores);
+      const total = metrics.reduce((sum, metric) => sum + metric.score, 0);
+      let itemIndex = 0;
+      return `
+        <div class="score-detail-summary"><span>20 項原始評分</span><span>總分 ${total}/100</span></div>
+        <div class="score-detail-groups">${COMPETENCIES.map((competency, competencyIndex) => {
+          const metric = metrics[competencyIndex];
+          const rows = competency.items.map((item) => {
+            const score = assessment.teacher.itemScores[itemIndex++];
+            return `<tr><td><strong>${item.code}</strong>　${escapeHTML(item.description)}</td><td>${score} / 5</td></tr>`;
+          }).join("");
+          return `
+            <section class="score-detail-group">
+              <h3>${competency.code} ${competency.name}　${metric.score}/${metric.max}（${metric.percent}%）</h3>
+              <table class="score-detail-table"><thead><tr><th>評估要點與實證標準</th><th>原始評分</th></tr></thead><tbody>${rows}</tbody></table>
+            </section>
+          `;
+        }).join("")}</div>
+      `;
+    }
+
+    function openScoreDetail(residentId) {
+      const period = currentPeriod();
+      const resident = residentFor(period, residentId);
+      const assessment = period?.assessments?.[residentId];
+      if (!period || !resident || !assessment?.teacher || !validItemScores(assessment.teacher.itemScores || [])) {
+        showToast("目前沒有可查看的教師原始分項評分。");
+        return;
+      }
+      elements.scoreDetailMeta.textContent = `${period.name} · ${resident.level} ${resident.name || "未命名"} · ${assessment.teacher.teacherName || "教師未記錄"}`;
+      elements.scoreDetailContent.innerHTML = scoreDetailMarkup(assessment);
+      elements.scoreDetailDialog.showModal();
+    }
+
     function renderResidents(period) {
       if (!period) {
         elements.residentGrid.innerHTML = `<div class="empty"><strong>尚未建立期別</strong>新增期別後即可開始評分。</div>`;
@@ -993,7 +1151,7 @@
         if (teacherDraft) submissionTimes.push(`教師暫存 ${formatAuditTime(assessment.teacherDraft.savedAt)}`);
         const timeLines = submissionTimes.join(" · ");
         return `
-          <article class="resident-card${modernComplete || (legacy && complete) ? " complete" : ""}">
+          <article class="resident-card${modernComplete || (legacy && complete) ? " complete" : ""}${modernComplete ? " print-ready" : ""}">
             <div class="resident-head">
               <div><span class="level">${escapeHTML(resident.level)}</span><h3 class="resident-name${resident.name.trim() ? "" : " muted"}">${escapeHTML(displayName)}</h3></div>
               <div class="status-row">
@@ -1016,10 +1174,11 @@
                 <div class="chart-grid">
                   <section class="chart-panel">
                     <div class="chart-title"><strong>教師評分</strong><div class="legend"><span class="absolute">百分比</span></div></div>
-                    <canvas width="360" height="280" data-radar-resident="${resident.id}" data-radar-kind="absolute" aria-label="${escapeHTML(resident.level)} 教師分項評核百分比六角圖"></canvas>
+                    <canvas width="360" height="280" data-radar-resident="${resident.id}" data-radar-kind="absolute" role="button" tabindex="0" aria-label="${escapeHTML(resident.level)} 教師分項評核百分比六角圖，點擊查看 20 項原始評分"></canvas>
+                    <p class="chart-hint">點擊查看 20 項原始評分</p>
                   </section>
                   <section class="chart-panel">
-                    <div class="chart-title"><strong>整體表現 Level</strong><div class="legend"><span class="student">學生</span><span class="teacher">教師</span></div></div>
+                    <div class="chart-title"><strong>學生自評／教師評核分數</strong><div class="legend"><span class="student">學生</span><span class="teacher">教師</span></div></div>
                     <canvas width="360" height="280" data-radar-resident="${resident.id}" data-radar-kind="levels" aria-label="${escapeHTML(resident.level)} 學生與教師 Level 六角圖"></canvas>
                   </section>
                 </div>
@@ -1035,6 +1194,7 @@
                 </section>
               </div>
             ` : ""}
+            ${modernComplete ? formalPrintReport(period, resident, assessment) : ""}
           </article>
         `;
       }).join("");
@@ -1047,10 +1207,10 @@
       });
       elements.residentGrid.querySelectorAll("[data-radar-resident]").forEach((canvas) => {
         const assessment = period.assessments[canvas.dataset.radarResident];
-        if (canvas.dataset.radarKind === "absolute") {
+        if (canvas.dataset.radarKind === "absolute" || canvas.dataset.radarKind === "print-absolute") {
           const percentages = teacherDomainMetrics(assessment.teacher.itemScores).map((metric) => metric.percent);
           drawRadarChart(canvas, [{ scores: percentages, color: ROLE_COLORS.absolute }], 100);
-        } else if (canvas.dataset.radarKind === "levels") {
+        } else if (canvas.dataset.radarKind === "levels" || canvas.dataset.radarKind === "print-levels") {
           drawRadarChart(canvas, [
             { scores: assessment.student.levels, color: ROLE_COLORS.student },
             { scores: assessment.teacher.levels, color: ROLE_COLORS.teacher }
@@ -1061,6 +1221,13 @@
             { scores: assessment.teacher.scores, color: ROLE_COLORS.teacher }
           ], 100);
         }
+      });
+      elements.residentGrid.querySelectorAll('canvas[data-radar-kind="absolute"]').forEach((canvas) => {
+        const open = () => openScoreDetail(canvas.dataset.radarResident);
+        canvas.addEventListener("click", open);
+        canvas.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); }
+        });
       });
     }
 
@@ -1208,12 +1375,18 @@
       ).join("")}`;
     }
 
+    function itemScoreOptions(selected = null) {
+      return `<option value="">請選擇</option>${[0, 1, 2, 3, 4, 5].map((score) =>
+        `<option value="${score}"${selected !== null && selected !== "" && Number(selected) === score ? " selected" : ""}>${score} 分</option>`
+      ).join("")}`;
+    }
+
     function renderAssessmentFields(role, prefix, submission = null) {
       const levels = submission?.levels || [];
       if (role === "student") {
         return COMPETENCIES.map((competency, index) => `
           <label class="level-field" for="${prefix}-level-${index}">
-            <span><strong>${competency.code} ${competency.name}</strong><small>整體表現自評</small></span>
+            <span><strong>${competency.code} ${competency.name}</strong><small>Level 自評</small></span>
             <select class="level-select" id="${prefix}-level-${index}" name="${prefix}-level-${index}" required>${levelOptions(levels[index])}</select>
           </label>
         `).join("");
@@ -1228,7 +1401,7 @@
           return `
             <label class="item-score-row" for="${prefix}-item-${currentIndex}">
               <span class="item-copy"><span class="item-code">${item.code}</span>${item.description}</span>
-              <input id="${prefix}-item-${currentIndex}" name="${prefix}-item-${currentIndex}" type="number" min="0" max="5" step="1" inputmode="numeric" required value="${submission?.itemScores?.[currentIndex] ?? ""}" placeholder="0–5">
+              <select class="item-score-select" id="${prefix}-item-${currentIndex}" name="${prefix}-item-${currentIndex}" required>${itemScoreOptions(submission?.itemScores?.[currentIndex])}</select>
             </label>
           `;
         }).join("");
@@ -1241,7 +1414,7 @@
             <div class="item-score-list">${rows}</div>
             <div class="teacher-levels">
               <label class="level-field" for="${prefix}-level-${competencyIndex}">
-                <span><strong>教師整體表現</strong><small>${competency.code} Level 1–5</small></span>
+                <span><strong>教師評核分數</strong><small>${competency.code} Level 1–5</small></span>
                 <select class="level-select" id="${prefix}-level-${competencyIndex}" name="${prefix}-level-${competencyIndex}" required>${levelOptions(levels[competencyIndex])}</select>
               </label>
             </div>
@@ -1334,7 +1507,7 @@
       const { levels, itemScores } = readTeacherDraftFields(elements.scoreForm, "score");
       const teacherName = elements.teacherName.value.trim();
       if (!validPartialScores(itemScores, 0, ITEM_MAX_SCORE)) { showToast("已填的分項分數須為 0–5 的整數。"); return; }
-      if (!validPartialScores(levels, 1, 5)) { showToast("已填的整體表現須為 L1–L5。"); return; }
+      if (!validPartialScores(levels, 1, 5)) { showToast("已填的教師評核分數須為 L1–L5。"); return; }
       const hasContent = teacherName || itemScores.some((score) => score !== null) || levels.some((level) => level !== null);
       if (!hasContent) { showToast("請至少填寫一項內容再暫存。"); return; }
       assessment.teacherDraft = { teacherName, itemScores, levels, savedAt: new Date().toISOString() };
@@ -1359,7 +1532,7 @@
       }
       const { levels, itemScores } = readAssessmentFields(elements.scoreForm, context.role, "score");
       const teacherName = context.role === "teacher" ? elements.teacherName.value.trim() : "";
-      if (!validLevels(levels)) { showToast("六項整體表現皆須選擇 L1–L5。"); return; }
+      if (!validLevels(levels)) { showToast("六項 Level 皆須選擇 L1–L5。"); return; }
       if (context.role === "teacher" && !validItemScores(itemScores)) { showToast("20 個分項分數皆須為 0–5 的整數。"); return; }
       if (context.role === "teacher" && !teacherName) { showToast("請輸入教師姓名。"); elements.teacherName.focus(); return; }
       const submittedAt = new Date().toISOString();
@@ -1441,7 +1614,7 @@
       const submission = period?.assessments?.[context?.residentId]?.[context?.role];
       if (!context?.unlocked || !period || !resident || !submission) { showToast("請先驗證管理密碼。"); return; }
       const { levels, itemScores } = readAssessmentFields(elements.modifyForm, context.role, "modify");
-      if (!validLevels(levels)) { showToast("六項整體表現皆須選擇 L1–L5。"); return; }
+      if (!validLevels(levels)) { showToast("六項 Level 皆須選擇 L1–L5。"); return; }
       if (context.role === "teacher" && !validItemScores(itemScores)) { showToast("20 個分項分數皆須為 0–5 的整數。"); return; }
       const beforeLevels = [...submission.levels];
       const beforeItemScores = context.role === "teacher" ? [...submission.itemScores] : null;
@@ -1536,7 +1709,7 @@
     function exportPDF() {
       switchTab("assessment");
       renderResidents(currentPeriod());
-      if (elements.residentGrid.querySelectorAll(".resident-card.complete").length === 0) {
+      if (elements.residentGrid.querySelectorAll(".resident-card.print-ready").length === 0) {
         showToast("目前沒有已完成且可輸出的評核。");
         return;
       }
@@ -1642,7 +1815,7 @@
     document.querySelectorAll("[data-close-dialog]").forEach((button) => {
       button.addEventListener("click", () => document.querySelector(`#${button.dataset.closeDialog}`).close());
     });
-    [elements.scoreDialog, elements.modifyDialog, elements.periodDialog].forEach((dialog) => {
+    [elements.scoreDialog, elements.modifyDialog, elements.periodDialog, elements.scoreDetailDialog].forEach((dialog) => {
       dialog.addEventListener("click", (event) => {
         const rect = dialog.getBoundingClientRect();
         const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
