@@ -417,8 +417,9 @@
       .print-header { display: flex; align-items: flex-end; justify-content: space-between; margin: 0 0 3mm; }
       .print-header h1 { margin: 0; font-size: 17pt; letter-spacing: -0.03em; }
       .print-header p { margin: 0; color: #555; font-size: 9pt; }
-      .resident-grid { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 82mm); gap: 3mm; }
-      .resident-card { min-height: 0; height: 82mm; padding: 3.5mm; border-radius: 3mm; box-shadow: none; break-inside: avoid; overflow: hidden; }
+      .resident-grid { display: grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 174mm; gap: 3mm; }
+      .resident-card { min-height: 0; height: 174mm; padding: 3.5mm; border-radius: 3mm; box-shadow: none; break-inside: avoid; overflow: visible; }
+      .resident-card:not(.complete) { display: none !important; }
       .resident-head { align-items: center; }
       .resident-name { margin-top: 2px; font-size: 14pt; }
       .level, .status { padding: 2px 5px; font-size: 7.5pt; }
@@ -428,16 +429,15 @@
       .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5mm; }
       .chart-panel { padding: 1mm; border-radius: 1.5mm; }
       .chart-title { margin: 0; }
-      .chart-title strong { font-size: 8pt; }
+      .chart-title strong { font-size: 9pt; }
       .legend { font-size: 7pt; }
-      canvas { width: 49mm !important; height: 38mm !important; margin: 0 auto; }
-      .result-summary { gap: 0; margin-top: 0.5mm; font-size: 6.5pt; }
-      .result-row { grid-template-columns: 1fr 1fr 1fr; gap: 1mm; padding: 0.35mm 0; }
-      .result-row.head { font-size: 6pt; }
+      canvas { width: 58mm !important; height: 45mm !important; margin: 0 auto; }
+      .result-summary { gap: 0; margin-top: 1.5mm; font-size: 8pt; }
+      .result-row { grid-template-columns: 1.25fr 1fr 1fr; gap: 1mm; padding: 0.75mm 0; }
+      .result-row.head { font-size: 7pt; }
       .print-score-grid { display: grid; grid-template-columns: 1fr; align-content: center; gap: 1.2mm; font-size: 7.5pt; }
       .print-score-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2mm; padding-bottom: 1mm; border-bottom: 0.2mm solid #ddd; }
       .print-score-row span:first-child { font-weight: 800; }
-      .resident-card:not(.complete) .print-score-grid { display: grid; margin-top: 4mm; }
     }
   </style>
 </head>
@@ -1458,6 +1458,10 @@
     function exportPDF() {
       switchTab("assessment");
       renderResidents(currentPeriod());
+      if (elements.residentGrid.querySelectorAll(".resident-card.complete").length === 0) {
+        showToast("目前沒有已完成且可輸出的評核。");
+        return;
+      }
       requestAnimationFrame(() => window.print());
     }
 

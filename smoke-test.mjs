@@ -21,6 +21,9 @@ assert.match(html, /const ADMIN_PASSWORD = "tsgh123"/, "應設定預設管理密
 assert.match(html, /function exportAuditCSV\(\)/, "稽核紀錄應可匯出試算表 CSV");
 assert.match(html, /window\.print\(\)/, "評分作業應支援列印為 PDF");
 assert.match(html, /@page \{ size: A4 landscape/, "列印版應使用 A4 橫式");
+assert.match(html, /\.resident-card:not\(\.complete\) \{ display: none !important; \}/, "列印時應省略尚未完成的學生");
+assert.match(html, /grid-auto-rows: 174mm/, "列印版每頁應只容納一列兩位學生");
+assert.match(html, /目前沒有已完成且可輸出的評核/, "沒有完整評核時不應輸出空白 PDF");
 assert.match(html, /data-radar-kind="absolute"/, "應提供教師絕對百分比六角圖");
 assert.match(html, /data-radar-kind="levels"/, "應提供學生與教師 Level 六角圖");
 assert.match(html, /<strong>教師評分<\/strong>/, "綠色百分比六角圖標題應為教師評分");
