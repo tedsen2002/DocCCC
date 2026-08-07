@@ -44,6 +44,10 @@ assert.match(html, /data-radar-kind="print-absolute"/, "列印表應包含教師
 assert.match(html, /data-radar-kind="print-levels"/, "列印表應包含學生與教師 Level 六角圖");
 assert.match(html, /教師評核分數/, "教師 Level 應使用教師評核分數名稱");
 assert.doesNotMatch(html, /教師整體表現|<th>教師整體<\/th>/, "不得再使用語意不清的教師整體表現名稱");
+assert.match(html, /紅色虛線：學生自評/, "列印紅藍六角圖應標示學生自評圖例");
+assert.match(html, /藍色實線：教師評核分數/, "列印紅藍六角圖應標示教師評核圖例");
+assert.match(html, /scores: assessment\.student\.levels, color: ROLE_COLORS\.student, dash: \[7, 5\]/, "學生自評六角圖應使用虛線");
+assert.match(html, /context\.setLineDash\(dash\)/, "六角圖繪製應套用資料線型");
 assert.match(html, /function printItemTables\(assessment\)/, "列印表應包含 20 項原始詳細評分");
 assert.match(html, /<th class="score">評分<\/th>/, "原始詳細評分表欄名應簡潔顯示評分");
 assert.doesNotMatch(html, /<th class="score">小項評分<\/th>/, "原始詳細評分表不得再顯示小項評分欄名");

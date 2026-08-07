@@ -454,6 +454,12 @@
       .formal-chart-panel, .formal-final-score { height: 62mm; box-sizing: border-box; padding: 1.7mm; border: 0.25mm solid #666; }
       .formal-section-title { margin: 0 0 1mm; font-size: 8.5pt; font-weight: 900; text-align: center; }
       .formal-chart-panel canvas { width: 65mm !important; height: 51mm !important; margin: 0 auto; }
+      .formal-chart-panel.has-series-legend canvas { height: 46mm !important; }
+      .formal-chart-legend { display: flex; justify-content: center; gap: 3mm; margin: -0.4mm 0 0.6mm; font-size: 6.5pt; font-weight: 800; }
+      .formal-chart-legend span { display: inline-flex; align-items: center; gap: 1mm; }
+      .formal-chart-legend span::before { content: ""; display: inline-block; width: 7mm; }
+      .formal-chart-legend .student::before { border-top: 0.6mm dashed #e5484d; }
+      .formal-chart-legend .teacher::before { border-top: 0.6mm solid #1769ff; }
       .formal-final-score table, .formal-detail-table { min-width: 0; table-layout: fixed; }
       .formal-final-score th, .formal-final-score td { padding: 1.2mm 1.2mm; border: 0.2mm solid #777; font-size: 7pt; text-align: center; }
       .formal-final-score th { color: #111; background: #eee; }
@@ -1074,8 +1080,9 @@
               <h2 class="formal-section-title">教師分項評分百分比六角圖</h2>
               <canvas width="360" height="280" data-radar-resident="${resident.id}" data-radar-kind="print-absolute" aria-label="教師分項評分百分比六角圖"></canvas>
             </section>
-            <section class="formal-chart-panel">
+            <section class="formal-chart-panel has-series-legend">
               <h2 class="formal-section-title">學生自評與教師評核分數六角圖</h2>
+              <div class="formal-chart-legend" aria-label="六角圖線型圖例"><span class="student">紅色虛線：學生自評</span><span class="teacher">藍色實線：教師評核分數</span></div>
               <canvas width="360" height="280" data-radar-resident="${resident.id}" data-radar-kind="print-levels" aria-label="學生自評與教師評核分數六角圖"></canvas>
             </section>
             <section class="formal-final-score">
@@ -1212,12 +1219,12 @@
           drawRadarChart(canvas, [{ scores: percentages, color: ROLE_COLORS.absolute }], 100);
         } else if (canvas.dataset.radarKind === "levels" || canvas.dataset.radarKind === "print-levels") {
           drawRadarChart(canvas, [
-            { scores: assessment.student.levels, color: ROLE_COLORS.student },
+            { scores: assessment.student.levels, color: ROLE_COLORS.student, dash: [7, 5] },
             { scores: assessment.teacher.levels, color: ROLE_COLORS.teacher }
           ], 5);
         } else {
           drawRadarChart(canvas, [
-            { scores: assessment.student.scores, color: ROLE_COLORS.student },
+            { scores: assessment.student.scores, color: ROLE_COLORS.student, dash: [7, 5] },
             { scores: assessment.teacher.scores, color: ROLE_COLORS.teacher }
           ], 100);
         }
@@ -1753,7 +1760,7 @@
         context.textBaseline = Math.abs(Math.sin(angle)) < 0.1 ? "middle" : Math.sin(angle) > 0 ? "top" : "bottom";
         context.fillText(COMPETENCIES[index].code, labelX, labelY);
       });
-      function plot(scores, color) {
+      function plot(scores, color, dash = []) {
         context.beginPath();
         scores.forEach((score, index) => {
           const boundedScore = Math.min(maxValue, Math.max(0, Number(score) || 0));
@@ -1767,7 +1774,9 @@
         context.strokeStyle = color;
         context.lineWidth = 2.5;
         context.fill();
+        context.setLineDash(dash);
         context.stroke();
+        context.setLineDash([]);
         scores.forEach((score, index) => {
           const boundedScore = Math.min(maxValue, Math.max(0, Number(score) || 0));
           const pointRadius = radius * boundedScore / maxValue;
@@ -1777,7 +1786,7 @@
           context.fill();
         });
       }
-      datasets.forEach((dataset) => plot(dataset.scores, dataset.color));
+      datasets.forEach((dataset) => plot(dataset.scores, dataset.color, dataset.dash || []));
     }
 
     function switchTab(tabName) {
