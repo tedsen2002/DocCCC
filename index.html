@@ -222,11 +222,12 @@
     .card-actions { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
     .done-time { margin-top: 15px; color: var(--muted); font-size: 12px; }
     .chart-wrap { margin-top: 14px; padding-top: 16px; border-top: 1px solid var(--line); }
-    .chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 12px; }
     .chart-panel { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: #fbfbf7; }
     .chart-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 5px; }
-    .chart-title strong { font-size: 14px; }
-    .legend { display: flex; gap: 12px; color: var(--muted); font-size: 11px; }
+    .chart-title strong { font-size: 14px; white-space: nowrap; }
+    .legend { display: flex; flex-wrap: wrap; gap: 5px 12px; color: var(--muted); font-size: 11px; }
+    .legend span { white-space: nowrap; }
     .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 50%; }
     .legend .absolute::before { background: var(--green-2); }
     .legend .student::before { background: var(--red); }
@@ -1045,14 +1046,18 @@
       return [items.slice(0, 10), items.slice(10)].map((column, columnIndex) => `
         <table class="formal-detail-table" aria-label="原始詳細評分第 ${columnIndex + 1} 欄">
           <thead><tr><th class="domain">核心能力</th><th>評估要點與實證標準（專科臨床表現）</th><th class="allocation">配分</th><th class="score">評分</th></tr></thead>
-          <tbody>${column.map(({ competency, item, score }) => `
-            <tr>
-              <td class="domain">${escapeHTML(competency.name)}</td>
-              <td><span class="item-code-print">${item.code}</span>　${escapeHTML(item.description)}</td>
-              <td class="allocation">5</td>
-              <td class="score">${score}</td>
-            </tr>
-          `).join("")}</tbody>
+          <tbody>${column.map(({ competency, item, score }, rowIndex) => {
+            const firstInGroup = rowIndex === 0 || column[rowIndex - 1].competency.code !== competency.code;
+            const domainItemCount = column.filter((entry) => entry.competency.code === competency.code).length;
+            return `
+              <tr>
+                ${firstInGroup ? `<td class="domain" rowspan="${domainItemCount}">${escapeHTML(competency.name)}</td>` : ""}
+                <td><span class="item-code-print">${item.code}</span>　${escapeHTML(item.description)}</td>
+                <td class="allocation">5</td>
+                <td class="score">${score}</td>
+              </tr>
+            `;
+          }).join("")}</tbody>
         </table>
       `).join("");
     }
@@ -1185,7 +1190,7 @@
                     <p class="chart-hint">點擊查看 20 項原始評分</p>
                   </section>
                   <section class="chart-panel">
-                    <div class="chart-title"><strong>學生自評／教師評核分數</strong><div class="legend"><span class="student">學生</span><span class="teacher">教師</span></div></div>
+                    <div class="chart-title"><strong>Level 評核比較</strong><div class="legend"><span class="student">學生</span><span class="teacher">教師</span></div></div>
                     <canvas width="360" height="280" data-radar-resident="${resident.id}" data-radar-kind="levels" aria-label="${escapeHTML(resident.level)} 學生與教師 Level 六角圖"></canvas>
                   </section>
                 </div>

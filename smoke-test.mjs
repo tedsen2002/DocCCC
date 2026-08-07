@@ -39,7 +39,8 @@ assert.match(html, /ACGME Milestones 2\.0 暨 100分制雙軌評核/, "列印副
 assert.match(html, /class="formal-code-legend"/, "正式列印表應醒目說明六角圖縮寫");
 assert.match(html, /六角圖縮寫對照/, "縮寫對照應有清楚標題");
 assert.match(html, /<td>\$\{metric\.name\}<\/td>/, "最後評分表的核心能力應顯示中文全名");
-assert.match(html, /<td class="domain">\$\{escapeHTML\(competency\.name\)\}<\/td>/, "原始詳細評分表的核心能力應顯示中文全名");
+assert.match(html, /const firstInGroup = rowIndex === 0 \|\| column\[rowIndex - 1\]\.competency\.code !== competency\.code/, "原始詳細評分表應辨識每個能力群組的第一列");
+assert.match(html, /<td class="domain" rowspan="\$\{domainItemCount\}">\$\{escapeHTML\(competency\.name\)\}<\/td>/, "核心能力中文全名應依題數合併儲存格");
 assert.match(html, /data-radar-kind="print-absolute"/, "列印表應包含教師分項六角圖");
 assert.match(html, /data-radar-kind="print-levels"/, "列印表應包含學生與教師 Level 六角圖");
 assert.match(html, /教師評核分數/, "教師 Level 應使用教師評核分數名稱");
@@ -54,6 +55,11 @@ assert.doesNotMatch(html, /<th class="score">小項評分<\/th>/, "原始詳細�
 assert.match(html, /目前沒有已完成且可輸出的評核/, "沒有完整評核時不應輸出空白 PDF");
 assert.match(html, /data-radar-kind="absolute"/, "應提供教師絕對百分比六角圖");
 assert.match(html, /data-radar-kind="levels"/, "應提供學生與教師 Level 六角圖");
+assert.match(html, /repeat\(auto-fit, minmax\(min\(240px, 100%\), 1fr\)\)/, "網頁六角圖應依可用寬度自動改為單欄");
+assert.match(html, /\.legend span \{ white-space: nowrap; \}/, "網頁六角圖的單一圖例不得拆字換行");
+assert.match(html, /\.chart-title strong \{[^}]*white-space: nowrap;/, "網頁六角圖標題不得換行");
+assert.match(html, /<strong>Level 評核比較<\/strong>/, "網頁紅藍六角圖應使用精簡標題");
+assert.match(html, /<span class="student">學生<\/span><span class="teacher">教師<\/span>/, "網頁圖例應精簡標示學生與教師");
 assert.match(html, /<strong>教師評分<\/strong>/, "綠色百分比六角圖標題應為教師評分");
 assert.match(html, /teacherDomainMetrics/, "教師分項應換算各能力小計與百分比");
 assert.match(html, /score \/ max \* 100/, "絕對六角圖應依各能力滿分換算百分比");
