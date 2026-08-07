@@ -252,10 +252,13 @@
     .section-card { padding: 24px; }
     .section-heading { margin: 0 0 7px; font-size: 24px; letter-spacing: -0.04em; }
     .section-help { margin: 0 0 24px; color: var(--muted); font-size: 14px; }
+    .roster-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+    .roster-add { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .roster-count { padding: 2px 7px; border-radius: 999px; color: var(--green); background: #e8f0e9; font-size: 11px; }
     .roster { display: grid; gap: 12px; }
     .roster-row {
       display: grid;
-      grid-template-columns: 64px minmax(0, 1fr) auto;
+      grid-template-columns: 64px minmax(0, 1fr) 52px auto;
       gap: 14px;
       align-items: center;
       padding: 13px;
@@ -266,6 +269,7 @@
     .roster-row input { width: 100%; }
     .saved-hint { min-width: 52px; color: var(--green-2); font-size: 12px; font-weight: 800; opacity: 0; }
     .saved-hint.show { opacity: 1; }
+    .roster-remove { min-height: 36px; padding: 6px 10px; font-size: 12px; }
 
     .audit-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; min-width: 760px; }
@@ -399,8 +403,9 @@
       .resident-head { flex-direction: column; }
       .status-row { justify-content: flex-start; }
       .card-actions .btn { flex: 1; }
-      .roster-row { grid-template-columns: 48px minmax(0, 1fr); }
-      .saved-hint { grid-column: 2; }
+      .roster-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .roster-row { grid-template-columns: 48px minmax(0, 1fr) auto; gap: 8px; }
+      .saved-hint { display: none; }
       .score-field { grid-template-columns: minmax(0, 1fr) 82px; }
       .item-score-row, .level-field { grid-template-columns: 1fr 88px; }
       .competency-group { padding: 12px; }
@@ -482,7 +487,7 @@
           <select id="periodSelect" aria-label="選擇期別"></select>
         </div>
         <div class="toolbar-group">
-          <button id="printButton" class="btn btn-secondary" type="button">匯出一頁 PDF</button>
+          <button id="printButton" class="btn btn-secondary" type="button">匯出 PDF</button>
           <button id="addPeriodButton" class="btn btn-primary" type="button">＋ 新增期別</button>
         </div>
       </div>
@@ -494,7 +499,8 @@
     <section id="panel-roster" class="panel" hidden>
       <div class="section-card">
         <h2 class="section-heading">住院醫師名單</h2>
-        <p class="section-help">目前編輯：<strong id="rosterPeriodName"></strong>。每個期別保存自己的名單快照；修改這裡不會影響其他期別。新增期別時會複製目前名單。</p>
+        <p class="section-help">目前編輯：<strong id="rosterPeriodName"></strong>。可依年級新增或縮減人數；已有評核、暫存或稽核紀錄者不可移除。每個期別保存自己的名單快照，新增期別時會複製目前名單。</p>
+        <div id="rosterActions" class="roster-actions" aria-label="依年級新增住院醫師"></div>
         <div id="roster" class="roster"></div>
       </div>
     </section>
@@ -581,7 +587,7 @@
       <div class="dialog-head">
         <div>
           <h2>新增評分期別</h2>
-          <p>建立後，R1–R4 會各自產生一份空白評分表。</p>
+          <p>建立後會複製目前期別的完整名單，並產生各自獨立的空白評分表。</p>
         </div>
         <button class="icon-button" data-close-dialog="periodDialog" type="button" aria-label="關閉">×</button>
       </div>
@@ -664,12 +670,21 @@
       }
     ];
     const ASSESSMENT_ITEMS = COMPETENCIES.flatMap((competency) => competency.items);
+    const RESIDENT_LEVELS = ["R1", "R2", "R3", "R4"];
     const ROLE_LABELS = { student: "學生自評", teacher: "教師評分" };
     const ROLE_COLORS = { student: "#e5484d", teacher: "#1769ff", absolute: "#1d6b50" };
     const EVENT_LABELS = { submission: "完成提交", unlock: "管理解鎖", modification: "分數修改" };
 
     function defaultResidents() {
-      return ["R1", "R2", "R3", "R4"].map((level, index) => ({ id: `r${index + 1}`, level, name: "" }));
+      return RESIDENT_LEVELS.map((level, index) => ({ id: `r${index + 1}`, level, name: "" }));
+    }
+
+    function makeResident(level) {
+      return {
+        id: `resident-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        level,
+        name: ""
+      };
     }
 
     function copyResidents(residents) {
@@ -769,6 +784,7 @@
       printPeriodName: document.querySelector("#printPeriodName"),
       stats: document.querySelector("#stats"),
       residentGrid: document.querySelector("#residentGrid"),
+      rosterActions: document.querySelector("#rosterActions"),
       roster: document.querySelector("#roster"),
       rosterPeriodName: document.querySelector("#rosterPeriodName"),
       auditContent: document.querySelector("#auditContent"),
@@ -958,6 +974,10 @@
         elements.residentGrid.innerHTML = `<div class="empty"><strong>尚未建立期別</strong>新增期別後即可開始評分。</div>`;
         return;
       }
+      if (period.residents.length === 0) {
+        elements.residentGrid.innerHTML = `<div class="empty"><strong>本期尚無住院醫師</strong>請到「名單設定」依年級新增人員。</div>`;
+        return;
+      }
       elements.residentGrid.innerHTML = period.residents.map((resident) => {
         const assessment = period.assessments[resident.id];
         const complete = Boolean(assessment.student && assessment.teacher);
@@ -1044,16 +1064,71 @@
       });
     }
 
+    function residentHasProtectedData(period, residentId) {
+      const assessment = period?.assessments?.[residentId];
+      return Boolean(
+        assessment?.student || assessment?.teacher || assessment?.teacherDraft ||
+        state.auditLog.some((event) => event.periodId === period?.id && event.residentId === residentId)
+      );
+    }
+
+    function addRosterResident(level) {
+      const period = currentPeriod();
+      if (!period || !RESIDENT_LEVELS.includes(level)) return;
+      const resident = makeResident(level);
+      const levelIndex = RESIDENT_LEVELS.indexOf(level);
+      const insertAt = period.residents.findIndex((item) => RESIDENT_LEVELS.indexOf(item.level) > levelIndex);
+      period.residents.splice(insertAt === -1 ? period.residents.length : insertAt, 0, resident);
+      period.assessments ||= {};
+      period.assessments[resident.id] = { student: null, teacher: null };
+      persist();
+      render();
+      requestAnimationFrame(() => elements.roster.querySelector(`[data-resident-name="${resident.id}"]`)?.focus());
+      showToast(`已新增一位 ${level}，評分表已同步建立。`);
+    }
+
+    function removeRosterResident(residentId) {
+      const period = currentPeriod();
+      const resident = residentFor(period, residentId);
+      if (!period || !resident) return;
+      if (residentHasProtectedData(period, residentId)) {
+        showToast("已有評核、暫存或稽核紀錄，不能從名單移除。");
+        return;
+      }
+      const label = `${resident.level} ${resident.name || "未命名"}`;
+      if (!window.confirm(`確定要從本期名單移除「${label}」嗎？`)) return;
+      period.residents = period.residents.filter((item) => item.id !== residentId);
+      delete period.assessments[residentId];
+      persist();
+      render();
+      showToast(`已移除「${label}」，評分表已同步更新。`);
+    }
+
     function renderRoster(period) {
       elements.rosterPeriodName.textContent = period?.name || "尚未建立期別";
+      elements.rosterActions.innerHTML = RESIDENT_LEVELS.map((level) => {
+        const count = period?.residents?.filter((resident) => resident.level === level).length || 0;
+        return `<button class="btn btn-secondary roster-add" type="button" data-add-resident-level="${level}" ${period ? "" : "disabled"}><span>＋ 新增 ${level}</span><span class="roster-count">${count} 位</span></button>`;
+      }).join("");
+      elements.rosterActions.querySelectorAll("[data-add-resident-level]").forEach((button) => {
+        button.addEventListener("click", () => addRosterResident(button.dataset.addResidentLevel));
+      });
       if (!period) { elements.roster.innerHTML = `<div class="empty">請先建立期別。</div>`; return; }
-      elements.roster.innerHTML = period.residents.map((resident) => `
-        <label class="roster-row">
-          <span class="level">${escapeHTML(resident.level)}</span>
-          <input type="text" maxlength="30" value="${escapeHTML(resident.name)}" data-resident-name="${resident.id}" placeholder="輸入住院醫師姓名" aria-label="${escapeHTML(resident.level)} 姓名">
-          <span class="saved-hint" data-saved-hint="${resident.id}">已保存</span>
-        </label>
-      `).join("");
+      if (period.residents.length === 0) {
+        elements.roster.innerHTML = `<div class="empty"><strong>本期名單目前是空的</strong>請使用上方按鈕新增 R1–R4 人員。</div>`;
+        return;
+      }
+      elements.roster.innerHTML = period.residents.map((resident) => {
+        const protectedData = residentHasProtectedData(period, resident.id);
+        return `
+          <div class="roster-row">
+            <span class="level">${escapeHTML(resident.level)}</span>
+            <input type="text" maxlength="30" value="${escapeHTML(resident.name)}" data-resident-name="${resident.id}" placeholder="輸入住院醫師姓名" aria-label="${escapeHTML(resident.level)} 姓名">
+            <span class="saved-hint" data-saved-hint="${resident.id}">已保存</span>
+            <button class="btn btn-secondary roster-remove" type="button" data-remove-resident="${resident.id}" ${protectedData ? "disabled" : ""} title="${protectedData ? "已有評核、暫存或稽核紀錄，不能移除" : `移除 ${escapeHTML(resident.level)} ${escapeHTML(resident.name || "未命名")}`}">移除</button>
+          </div>
+        `;
+      }).join("");
       elements.roster.querySelectorAll("[data-resident-name]").forEach((input) => {
         input.addEventListener("change", () => {
           const resident = residentFor(period, input.dataset.residentName);
@@ -1066,6 +1141,9 @@
           setTimeout(() => hint.classList.remove("show"), 1500);
           renderResidents(period);
         });
+      });
+      elements.roster.querySelectorAll("[data-remove-resident]").forEach((button) => {
+        button.addEventListener("click", () => removeRosterResident(button.dataset.removeResident));
       });
     }
 

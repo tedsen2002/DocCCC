@@ -15,6 +15,12 @@ assert.match(html, /assessment\.teacher \|\| !assessment\.student/, "教師評�
 assert.match(html, /const submittedAt = new Date\(\)\.toISOString\(\)/, "提交時應保存完成時間");
 assert.match(html, /elements\.teacherName\.required = role === "teacher"/, "教師評分應要求教師姓名");
 assert.match(html, /residents: rosterSnapshot/, "每個期別應保存獨立名單快照");
+assert.match(html, /const RESIDENT_LEVELS = \["R1", "R2", "R3", "R4"\]/, "名單應支援四種住院醫師年級");
+assert.match(html, /data-add-resident-level/, "名單設定應可依年級新增人員");
+assert.match(html, /period\.assessments\[resident\.id\] = \{ student: null, teacher: null \}/, "新增人員時應同步建立空白評分表");
+assert.match(html, /delete period\.assessments\[residentId\]/, "移除未評核人員時應同步移除空白評分表");
+assert.match(html, /function residentHasProtectedData/, "移除前應檢查評核與稽核資料");
+assert.match(html, /assessment\?\.teacherDraft/, "教師暫存存在時不得移除名單人員");
 assert.match(html, /type: "unlock"/, "密碼解鎖應建立稽核事件");
 assert.match(html, /type: "modification"/, "分數修改應建立稽核事件");
 assert.match(html, /const ADMIN_PASSWORD = "tsgh123"/, "應設定預設管理密碼");
