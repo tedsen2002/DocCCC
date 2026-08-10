@@ -9,6 +9,13 @@ assert.match(html, /data-tab="ccc"/, "應有獨立 CCC 評核表分頁");
 assert.match(html, /id="panel-ccc"/, "CCC 評核表應有獨立頁面容器");
 assert.match(html, /data-tab="roster"/, "應有名單設定分頁");
 assert.match(html, /data-tab="audit"/, "應有稽核紀錄分頁");
+assert.match(html, /id="exportDataButton"[^>]*>匯出資料<\/button>/, "右上角應提供完整資料匯出按鈕");
+assert.match(html, /id="importDataButton"[^>]*>匯入資料<\/button>/, "右上角應提供完整資料匯入按鈕");
+assert.match(html, /id="importDataInput" type="file" accept="\.json,application\/json" hidden/, "匯入按鈕應使用隱藏的 JSON 檔案選擇器");
+assert.match(html, /function exportDataBackup\(\)/, "應提供完整 JSON 備份匯出流程");
+assert.match(html, /async function importDataBackup\(event\)/, "應提供完整 JSON 備份匯入流程");
+assert.match(html, /取代目前瀏覽器內的所有資料/, "匯入取代現有資料前應明確警告使用者");
+assert.match(html, /elements\.importDataInput\.addEventListener\("change", importDataBackup\)/, "選取備份檔後應啟動匯入流程");
 assert.match(html, /const SCHEMA_VERSION = 6/, "CCC 核心總分修正後應使用 schema v6");
 assert.match(html, /const ITEM_MAX_SCORE = 5/, "每個教師分項滿分應為 5 分");
 assert.match(html, /function itemScoreOptions\(selected = null\)/, "教師 0–5 分應由共用下拉選項產生");
@@ -112,7 +119,9 @@ assert.match(html, /@page ccc-report \{ size: A4 portrait/, "CCC PDF 應使用 A
 assert.match(html, /pageStyle\.textContent = "@page \{ size: A4 portrait; margin: 7mm; \}"/, "CCC 匯出時應覆寫既有橫式列印設定");
 assert.match(html, /height: 280mm;/, "CCC PDF 內容應保留列印安全距離並限制在 A4 單頁內");
 assert.match(html, /function exportCCCPDF\(\)/, "CCC 表單應能匯出獨立 PDF");
-assert.match(html, /放射腫瘤部 CCC 評核紀錄表/, "CCC PDF 應使用正式評核表標題");
+assert.match(html, /住院醫師核心能力適任性評核表/, "評核 PDF 應使用指定的正式表名");
+assert.doesNotMatch(html, /ccc-print-status|草稿預覽/, "評核 PDF 不得顯示右上或右下的草稿／提交狀態小字");
+assert.match(html, /document\.title = `住院醫師核心能力適任性評核表_/, "評核 PDF 檔名應使用正式表名");
 assert.match(html, /name="learnerFeedback"/, "參考表所需的學員省思與回饋欄應存在");
 assert.match(html, /name="mentorName"/, "參考表所需的導師簽核欄應存在");
 assert.match(html, /name="educationLeadName"/, "參考表所需的教學負責人簽核欄應存在");
@@ -142,10 +151,113 @@ assert.equal(scripts.length, 1, "應只有一段應用程式腳本");
 new Function(scripts[0][1]);
 
 function extractFunction(name) {
-  const match = scripts[0][1].match(new RegExp(`    function ${name}\\([\\s\\S]*?\\n    \\}`));
+  const match = scripts[0][1].match(new RegExp(`    (?:async )?function ${name}\\([\\s\\S]*?\\n    \\}`));
   assert.ok(match, `應可抽取 ${name} 做實際邏輯驗證`);
   return match[0];
 }
+
+const backupLogic = new Function(`
+  const DATA_BACKUP_APP = "DocCCC";
+  const DATA_BACKUP_VERSION = 1;
+  const SCHEMA_VERSION = 6;
+  const RESIDENT_LEVELS = ["R1", "R2", "R3", "R4"];
+  const ITEM_MAX_SCORE = 5;
+  const COMPETENCIES = Array.from({ length: 6 }, () => ({}));
+  const ASSESSMENT_ITEMS = Array.from({ length: 20 }, () => ({}));
+  const migrateState = (saved) => saved ? { ...saved, schemaVersion: SCHEMA_VERSION } : null;
+  ${extractFunction("createDataBackup")}
+  ${extractFunction("validDataBackupState")}
+  ${extractFunction("parseDataBackup")}
+  return { createDataBackup, parseDataBackup };
+`)();
+const backupState = {
+  schemaVersion: 6,
+  periods: [{
+    id: "period-1", name: "2026 年第 2 期", residents: [{ id: "r1", level: "R1", name: "測試醫師" }],
+    assessments: { r1: { student: { levels: [3, 3, 3, 3, 3, 3], submittedAt: "2026-08-10T07:00:00.000Z" }, teacher: null, cccDraft: { comments: "保留草稿" } } }
+  }],
+  selectedPeriodId: "period-1",
+  auditLog: [{ type: "submission", role: "student", periodName: "2026 年第 2 期", occurredAt: "2026-08-10T07:00:00.000Z" }]
+};
+const backupPayload = backupLogic.createDataBackup(backupState, "2026-08-10T08:00:00.000Z");
+assert.equal(backupPayload.app, "DocCCC", "完整備份應帶有 DocCCC 格式識別");
+assert.equal(backupPayload.backupVersion, 1, "完整備份應帶有獨立格式版本");
+assert.equal(backupPayload.exportedAt, "2026-08-10T08:00:00.000Z", "完整備份應記錄匯出時間");
+assert.deepEqual(backupPayload.data, backupState, "完整備份應包含期別、名單、評分、草稿與稽核狀態");
+assert.deepEqual(backupLogic.parseDataBackup(JSON.stringify(backupPayload)), backupState, "有效備份應可在另一個瀏覽器還原完整狀態");
+assert.throws(() => backupLogic.parseDataBackup("{}"), /有效的 DocCCC 備份/, "不得匯入其他 JSON 檔案");
+assert.throws(
+  () => backupLogic.parseDataBackup(JSON.stringify({ ...backupPayload, schemaVersion: 7 })),
+  /較新版 DocCCC/,
+  "不得用舊版網頁匯入較新 schema 的備份"
+);
+const unsafeBackup = structuredClone(backupPayload);
+unsafeBackup.data.periods[0].residents[0].id = 'r1" onclick="alert(1)';
+assert.throws(() => backupLogic.parseDataBackup(JSON.stringify(unsafeBackup)), /格式不正確/, "匯入時應拒絕不安全的資料識別碼");
+
+const replacedBackupState = new Function(`
+  let state = { marker: "old" };
+  let selectedCCCResidentId = "old-resident";
+  let activeScoreContext = { open: true };
+  let activeModifyContext = { open: true };
+  let persistCount = 0;
+  let renderCount = 0;
+  const persist = () => { persistCount += 1; return true; };
+  const render = () => { renderCount += 1; };
+  ${extractFunction("replaceStateFromBackup")}
+  const importedState = { marker: "imported" };
+  const replaced = replaceStateFromBackup(importedState);
+  return { state, importedState, selectedCCCResidentId, activeScoreContext, activeModifyContext, persistCount, renderCount, replaced };
+`)();
+assert.equal(replacedBackupState.replaced, true, "有效匯入應回報已完成取代");
+assert.strictEqual(replacedBackupState.state, replacedBackupState.importedState, "匯入應以備份完整取代目前瀏覽器狀態");
+assert.equal(replacedBackupState.persistCount, 1, "匯入資料應寫入瀏覽器儲存一次");
+assert.equal(replacedBackupState.renderCount, 1, "匯入完成後應重新渲染畫面");
+assert.equal(replacedBackupState.selectedCCCResidentId, null, "匯入後應清除舊瀏覽器的 CCC 人員選取狀態");
+assert.equal(replacedBackupState.activeScoreContext, null, "匯入後應清除舊評分操作狀態");
+assert.equal(replacedBackupState.activeModifyContext, null, "匯入後應清除舊修改操作狀態");
+
+const rejectedBackupReplacement = new Function(`
+  let state = { marker: "old" };
+  let selectedCCCResidentId = "old-resident";
+  let activeScoreContext = { open: true };
+  let activeModifyContext = { open: true };
+  let renderCount = 0;
+  const persist = () => false;
+  const render = () => { renderCount += 1; };
+  ${extractFunction("replaceStateFromBackup")}
+  const replaced = replaceStateFromBackup({ marker: "imported" });
+  return { state, selectedCCCResidentId, renderCount, replaced };
+`)();
+assert.equal(rejectedBackupReplacement.replaced, false, "瀏覽器無法保存時不得誤報匯入成功");
+assert.equal(rejectedBackupReplacement.state.marker, "old", "匯入寫入失敗時應保留原本資料");
+assert.equal(rejectedBackupReplacement.selectedCCCResidentId, "old-resident", "匯入失敗時不得清除目前操作狀態");
+assert.equal(rejectedBackupReplacement.renderCount, 0, "匯入失敗時不得渲染未保存的備份資料");
+
+const importHandlerResult = await new Function(`
+  let importedState = null;
+  let confirmation = "";
+  let toast = "";
+  const parseDataBackup = JSON.parse;
+  const replaceStateFromBackup = (value) => { importedState = value; return true; };
+  const window = { confirm(message) { confirmation = message; return true; } };
+  const showToast = (message) => { toast = message; };
+  const console = { error() {} };
+  ${extractFunction("importDataBackup")}
+  const target = {
+    value: "selected",
+    files: [{
+      name: "DocCCC_完整備份.json",
+      size: 1024,
+      async text() { return JSON.stringify({ periods: [{ residents: [{}, {}] }, { residents: [{}] }] }); }
+    }]
+  };
+  return importDataBackup({ target }).then(() => ({ importedState, confirmation, toast, inputValue: target.value }));
+`)();
+assert.equal(importHandlerResult.importedState.periods.length, 2, "確認匯入後應交由完整狀態取代流程處理");
+assert.match(importHandlerResult.confirmation, /2 個期別、3 筆名單資料/, "匯入確認應顯示即將取代的資料筆數");
+assert.match(importHandlerResult.toast, /已匯入 2 個期別/, "匯入完成後應回報結果");
+assert.equal(importHandlerResult.inputValue, "", "每次匯入後應清空檔案欄位以允許重選同一檔案");
 
 const cccMath = new Function(`
   ${extractFunction("cccScoreValue")}
@@ -196,7 +308,7 @@ const renderedCCC = new Function(`
   const CCC_BOOLEAN_OPTIONS = [["none", "無"], ["yes", "有"]];
   const CCC_SEVERITY_OPTIONS = [["mild", "輕微"], ["moderate", "中等"], ["severe", "嚴重"]];
   const CCC_CONCLUSION_OPTIONS = [["promotion", "可晉升"]];
-  const CCC_FOLLOWUP_OPTIONS = [["next-ccc", "下次 CCC"]];
+  const CCC_FOLLOWUP_OPTIONS = [["next-ccc", "下次適任性評核"]];
   let selectedCCCResidentId = null;
   const elements = {
     cccResidentSelect: { innerHTML: "", disabled: false },
@@ -314,7 +426,7 @@ const cccPDFMarkup = new Function(`
   const CCC_BOOLEAN_OPTIONS = [["none", "無"], ["yes", "有"]];
   const CCC_SEVERITY_OPTIONS = [["mild", "輕微"]];
   const CCC_CONCLUSION_OPTIONS = [["promotion", "可晉升"]];
-  const CCC_FOLLOWUP_OPTIONS = [["next-ccc", "下次 CCC"]];
+  const CCC_FOLLOWUP_OPTIONS = [["next-ccc", "下次適任性評核"]];
   const cccCoreMetrics = () => null;
   const cccCoreScore = () => null;
   const formatReadableTime = () => "2026/08/10 10:00";
@@ -339,7 +451,8 @@ const cccPDFMarkup = new Function(`
   };
   return cccPrintReportMarkup(period, resident, record);
 `)();
-assert.match(cccPDFMarkup, /放射腫瘤部 CCC 評核紀錄表/, "CCC PDF 應產生正式標題");
+assert.match(cccPDFMarkup, /住院醫師核心能力適任性評核表/, "評核 PDF 應產生指定的正式標題");
+assert.doesNotMatch(cccPDFMarkup, /CCC|草稿預覽|正式提交/, "評核 PDF 可見內容不得再出現 CCC 或草稿／提交狀態小字");
 assert.match(cccPDFMarkup, /六大核心考核表[\s\S]*30%[\s\S]*80[\s\S]*24/, "CCC PDF 應同列顯示核心原始總分與 30% 加權得分");
 assert.match(cccPDFMarkup, /綜合加權總分[\s\S]*84/, "CCC PDF 應顯示四項加總後的 84 分");
 assert.match(cccPDFMarkup, /學員回饋/, "CCC PDF 應帶入學員省思與回饋");

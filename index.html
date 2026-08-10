@@ -81,6 +81,8 @@
       font-weight: 700;
       letter-spacing: 0.04em;
     }
+    .topbar-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+    .topbar-actions .btn { min-height: 36px; padding: 7px 11px; font-size: 13px; }
 
     .hero {
       display: grid;
@@ -466,8 +468,11 @@
     }
     @media (max-width: 560px) {
       .shell { width: min(100% - 20px, 1180px); }
-      .topbar { min-height: 62px; }
+      .topbar { min-height: 62px; gap: 8px; }
       .brand-name { display: none; }
+      .topbar-actions { gap: 5px; }
+      .topbar-actions .btn { min-height: 34px; padding: 6px 8px; font-size: 12px; }
+      .preview-badge { display: none; }
       .hero { padding: 30px 4px 22px; }
       .hero h1 { font-size: 42px; }
       .toolbar { align-items: stretch; flex-direction: column; }
@@ -564,11 +569,9 @@
         font-family: "Noto Serif TC", "PMingLiU", "Microsoft JhengHei", serif;
       }
       body.print-ccc #panel-assessment { display: none !important; }
-      .ccc-print-attachment { margin: 0 0 1mm; font-size: 8pt; }
       .ccc-print-title { margin: 0 0 3mm; text-align: center; font-size: 16pt; letter-spacing: 0.12em; }
       .ccc-print-meta { display: grid; grid-template-columns: 1.2fr 0.65fr 1.15fr; gap: 4mm; margin-bottom: 2.5mm; font-size: 9pt; }
       .ccc-print-meta span { padding-bottom: 1mm; border-bottom: 0.25mm solid #333; }
-      .ccc-print-status { float: right; font-size: 7.5pt; font-weight: 700; letter-spacing: 0; }
       .ccc-print-report table { width: 100%; min-width: 0; table-layout: fixed; border-collapse: collapse; }
       .ccc-print-report th, .ccc-print-report td { padding: 1.5mm 1.8mm; border: 0.25mm solid #333; color: #111; font-size: 7.5pt; line-height: 1.25; vertical-align: middle; }
       .ccc-print-report th { background: #f0f0f0; text-align: center; font-weight: 900; }
@@ -591,7 +594,7 @@
       .ccc-print-signatures .role { width: 20%; text-align: right; font-weight: 900; }
       .ccc-print-signatures .name { width: 35%; }
       .ccc-print-signatures .date { width: 45%; text-align: center; }
-      .ccc-print-footer { display: flex; justify-content: space-between; margin-top: 1.5mm; font-size: 6.5pt; }
+      .ccc-print-footer { margin-top: 1.5mm; font-size: 6.5pt; }
     }
   </style>
 </head>
@@ -602,7 +605,12 @@
         <span class="brand-mark">CCC</span>
         <span class="brand-name">核心能力評分系統</span>
       </div>
-      <span class="preview-badge">PUBLIC PREVIEW</span>
+      <div class="topbar-actions" aria-label="資料備份與還原">
+        <button id="exportDataButton" class="btn btn-secondary" type="button" title="下載完整 JSON 備份">匯出資料</button>
+        <button id="importDataButton" class="btn btn-primary" type="button" title="從 JSON 備份還原資料">匯入資料</button>
+        <input id="importDataInput" type="file" accept=".json,application/json" hidden>
+        <span class="preview-badge">PUBLIC PREVIEW</span>
+      </div>
     </div>
   </header>
 
@@ -615,7 +623,7 @@
       </div>
       <aside class="local-note">
         <strong>公開預覽版</strong>
-        資料僅儲存在目前瀏覽器。清除網站資料或更換裝置後不會同步，時間紀錄亦以本機時間為準。
+        資料僅儲存在目前瀏覽器；更換瀏覽器或裝置時，可使用右上角「匯出資料／匯入資料」搬移完整紀錄。時間紀錄以本機時間為準。
       </aside>
     </section>
 
@@ -786,6 +794,8 @@
   <script>
     const STORAGE_KEY = "docccc-assessment-v1";
     const SCHEMA_VERSION = 6;
+    const DATA_BACKUP_APP = "DocCCC";
+    const DATA_BACKUP_VERSION = 1;
     const ADMIN_PASSWORD = "tsgh123";
     const ITEM_MAX_SCORE = 5;
     const COMPETENCIES = [
@@ -858,7 +868,7 @@
     const CCC_BOOLEAN_OPTIONS = [["none", "無"], ["yes", "有"]];
     const CCC_SEVERITY_OPTIONS = [["mild", "輕微"], ["moderate", "中等"], ["severe", "嚴重"]];
     const CCC_CONCLUSION_OPTIONS = [["promotion", "可晉升"], ["conditional", "條件式晉升"], ["reinforce", "需補強"], ["no-promotion", "無法晉升"]];
-    const CCC_FOLLOWUP_OPTIONS = [["1-month", "1 個月"], ["3-months", "3 個月"], ["next-ccc", "下次 CCC"]];
+    const CCC_FOLLOWUP_OPTIONS = [["1-month", "1 個月"], ["3-months", "3 個月"], ["next-ccc", "下次適任性評核"]];
 
     function defaultResidents() {
       return RESIDENT_LEVELS.map((level, index) => ({ id: `r${index + 1}`, level, name: "" }));
@@ -981,6 +991,9 @@
       rosterPeriodName: document.querySelector("#rosterPeriodName"),
       auditContent: document.querySelector("#auditContent"),
       exportAuditButton: document.querySelector("#exportAuditButton"),
+      exportDataButton: document.querySelector("#exportDataButton"),
+      importDataButton: document.querySelector("#importDataButton"),
+      importDataInput: document.querySelector("#importDataInput"),
       scoreDialog: document.querySelector("#scoreDialog"),
       scoreForm: document.querySelector("#scoreForm"),
       scoreDialogTitle: document.querySelector("#scoreDialogTitle"),
@@ -1013,9 +1026,133 @@
     function persist() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        return true;
       } catch (error) {
         showToast("瀏覽器無法保存資料，請檢查隱私設定。");
         console.error(error);
+        return false;
+      }
+    }
+
+    function createDataBackup(sourceState, exportedAt = new Date().toISOString()) {
+      return {
+        app: DATA_BACKUP_APP,
+        backupVersion: DATA_BACKUP_VERSION,
+        schemaVersion: SCHEMA_VERSION,
+        exportedAt,
+        data: sourceState
+      };
+    }
+
+    function validDataBackupState(value) {
+      if (!value || typeof value !== "object" || !Array.isArray(value.periods) || value.periods.length === 0 || !Array.isArray(value.auditLog)) return false;
+      const isRecord = (item) => Boolean(item && typeof item === "object" && !Array.isArray(item));
+      const validId = (id) => typeof id === "string" && id.length <= 120 && /^[A-Za-z0-9._:-]+$/.test(id) && !["__proto__", "constructor", "prototype"].includes(id);
+      const validDate = (date) => typeof date === "string" && !Number.isNaN(Date.parse(date));
+      const validLevelsSnapshot = (levels) => Array.isArray(levels) && levels.length === COMPETENCIES.length && levels.every((level) => Number.isInteger(level) && level >= 1 && level <= 5);
+      const validItemsSnapshot = (scores) => Array.isArray(scores) && scores.length === ASSESSMENT_ITEMS.length && scores.every((score) => Number.isInteger(score) && score >= 0 && score <= ITEM_MAX_SCORE);
+      const validLegacyScores = (scores) => Array.isArray(scores) && scores.length === COMPETENCIES.length && scores.every((score) => Number.isFinite(Number(score)) && Number(score) >= 0 && Number(score) <= 100);
+      const validSubmission = (submission, role) => {
+        if (submission === null || submission === undefined) return true;
+        if (!isRecord(submission) || !validDate(submission.submittedAt)) return false;
+        if (validLegacyScores(submission.scores)) return true;
+        if (!validLevelsSnapshot(submission.levels)) return false;
+        return role === "student" || (validItemsSnapshot(submission.itemScores) && typeof submission.teacherName === "string");
+      };
+      const validDraft = (draft) => draft === null || draft === undefined || (isRecord(draft) &&
+        typeof draft.teacherName === "string" && validDate(draft.savedAt) &&
+        Array.isArray(draft.itemScores) && draft.itemScores.length === ASSESSMENT_ITEMS.length && draft.itemScores.every((score) => score === null || (Number.isInteger(score) && score >= 0 && score <= ITEM_MAX_SCORE)) &&
+        Array.isArray(draft.levels) && draft.levels.length === COMPETENCIES.length && draft.levels.every((level) => level === null || (Number.isInteger(level) && level >= 1 && level <= 5)));
+      const validCCCRecord = (record, submitted) => record === null || record === undefined || (isRecord(record) &&
+        (!submitted || validDate(record.submittedAt)) && (!record.coreMetrics || (Array.isArray(record.coreMetrics) && record.coreMetrics.length === COMPETENCIES.length)));
+      const periodIds = new Set();
+      const validPeriods = value.periods.every((period) => {
+        if (!period || typeof period !== "object" || !validId(period.id) || periodIds.has(period.id) || typeof period.name !== "string" || !Array.isArray(period.residents) || !period.assessments || typeof period.assessments !== "object" || Array.isArray(period.assessments)) return false;
+        periodIds.add(period.id);
+        const residentIds = new Set();
+        return period.residents.every((resident) => {
+          if (!resident || typeof resident !== "object" || !validId(resident.id) || residentIds.has(resident.id) || !RESIDENT_LEVELS.includes(resident.level) || typeof resident.name !== "string") return false;
+          residentIds.add(resident.id);
+          const assessment = period.assessments[resident.id];
+          return isRecord(assessment) && validSubmission(assessment.student, "student") && validSubmission(assessment.teacher, "teacher") &&
+            validDraft(assessment.teacherDraft) && validCCCRecord(assessment.cccDraft, false) && validCCCRecord(assessment.cccSubmission, true);
+        });
+      });
+      const validAudit = value.auditLog.every((event) => event && typeof event === "object" &&
+        ["submission", "ccc-submission", "unlock", "modification"].includes(event.type) &&
+        (event.role === null || event.role === undefined || ["student", "teacher", "ccc"].includes(event.role)) && validDate(event.occurredAt));
+      return validPeriods && validAudit;
+    }
+
+    function parseDataBackup(text) {
+      let backup;
+      try {
+        backup = JSON.parse(text);
+      } catch (error) {
+        throw new Error("選取的檔案不是有效的 JSON。");
+      }
+      if (backup?.app !== DATA_BACKUP_APP || backup?.backupVersion !== DATA_BACKUP_VERSION) {
+        throw new Error("選取的檔案不是有效的 DocCCC 備份。");
+      }
+      if (!Number.isInteger(backup.schemaVersion) || backup.schemaVersion < 1) {
+        throw new Error("備份檔缺少有效的資料版本。");
+      }
+      if (backup.schemaVersion > SCHEMA_VERSION) {
+        throw new Error("此備份由較新版 DocCCC 建立，請先更新網頁版本再匯入。");
+      }
+      if (!validDataBackupState(backup.data)) {
+        throw new Error("備份內容不完整或格式不正確。");
+      }
+      const migrated = migrateState(backup.data);
+      if (!migrated || migrated.periods.length === 0) throw new Error("備份中沒有可匯入的期別資料。");
+      return migrated;
+    }
+
+    function exportDataBackup() {
+      const exportedAt = new Date().toISOString();
+      const json = JSON.stringify(createDataBackup(state, exportedAt), null, 2);
+      const url = URL.createObjectURL(new Blob([json], { type: "application/json;charset=utf-8" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `DocCCC_完整備份_${formatAuditTime(exportedAt)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast("完整資料已匯出，可在其他瀏覽器使用「匯入資料」還原。");
+    }
+
+    function replaceStateFromBackup(importedState) {
+      const previousState = state;
+      state = importedState;
+      if (!persist()) {
+        state = previousState;
+        return false;
+      }
+      selectedCCCResidentId = null;
+      activeScoreContext = null;
+      activeModifyContext = null;
+      render();
+      return true;
+    }
+
+    async function importDataBackup(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        if (file.size > 20 * 1024 * 1024) throw new Error("備份檔超過 20 MB，無法匯入。");
+        const importedState = parseDataBackup(await file.text());
+        const residentCount = importedState.periods.reduce((total, period) => total + period.residents.length, 0);
+        const confirmed = window.confirm(
+          `確定匯入「${file.name}」嗎？\n\n將以 ${importedState.periods.length} 個期別、${residentCount} 筆名單資料取代目前瀏覽器內的所有資料。此動作無法復原；如需保留目前資料，請先按「匯出資料」。`
+        );
+        if (!confirmed) return;
+        if (replaceStateFromBackup(importedState)) showToast(`已匯入 ${importedState.periods.length} 個期別的完整資料。`);
+      } catch (error) {
+        console.error(error);
+        showToast(`匯入失敗：${error instanceof Error ? error.message : "無法讀取備份檔。"}`);
+      } finally {
+        event.target.value = "";
       }
     }
 
@@ -1561,16 +1698,14 @@
         cccOptionLabel(CCC_CONCLUSION_OPTIONS, record.conclusion),
         record.followUp ? `追蹤：${cccOptionLabel(CCC_FOLLOWUP_OPTIONS, record.followUp)}` : ""
       );
-      const status = record.submittedAt ? `正式提交 ${formatReadableTime(record.submittedAt)}` : "草稿預覽";
       return `
-        <p class="ccc-print-attachment">CCC 評核附件<span class="ccc-print-status">${escapeHTML(status)}</span></p>
-        <h1 class="ccc-print-title">放射腫瘤部 CCC 評核紀錄表</h1>
+        <h1 class="ccc-print-title">住院醫師核心能力適任性評核表</h1>
         <div class="ccc-print-meta">
           <span>姓名：<strong>${escapeHTML((record.residentName ?? resident.name) || "未命名")}</strong></span>
           <span>級職：<strong>${escapeHTML(record.residentLevel ?? resident.level)}</strong></span>
           <span>評核期別：<strong>${escapeHTML(record.periodName ?? period.name)}</strong></span>
         </div>
-        <table class="ccc-print-score-table" aria-label="CCC 臨床綜合評分">
+        <table class="ccc-print-score-table" aria-label="臨床綜合評分">
           <thead><tr><th class="item">評分項目</th><th class="weight">佔分</th><th class="raw">原始分數</th><th class="weighted">加權得分</th></tr></thead>
           <tbody>
             <tr><td class="item">六大核心考核表<span class="ccc-print-core-breakdown">${escapeHTML(coreBreakdown)}</span></td><td class="weight">30%</td><td class="raw">${formatCCCScore(coreScore)}</td><td class="weighted">${formatCCCScore(coreContribution)}</td></tr>
@@ -1580,24 +1715,24 @@
             <tr class="ccc-print-total"><td colspan="3">綜合加權總分</td><td class="weighted">${formatCCCScore(weightedTotal)}</td></tr>
           </tbody>
         </table>
-        <table class="ccc-print-summary" aria-label="CCC 綜合結論">
+        <table class="ccc-print-summary" aria-label="綜合結論">
           <tbody>
             <tr><th>EPA 臨床授權</th><td>${escapeHTML(cccOptionLabel(CCC_EPA_OPTIONS, record.epaLevel))}</td><th>學習護照</th><td>${escapeHTML(cccOptionLabel(CCC_BOOLEAN_OPTIONS, record.passport))}</td></tr>
             <tr><th>教學</th><td>${escapeHTML(teaching)}</td><th>研究</th><td>${escapeHTML(research)}</td></tr>
             <tr><th>病人安全與事件</th><td colspan="3">${escapeHTML(safetyParts || "—")}</td></tr>
-            <tr><th>CCC 結論</th><td colspan="3">${escapeHTML(conclusion)}</td></tr>
+            <tr><th>評核結論</th><td colspan="3">${escapeHTML(conclusion)}</td></tr>
           </tbody>
         </table>
-        <div class="ccc-print-comments"><strong>CCC<br>總評語</strong><div>${escapeHTML(record.comments || "—")}</div></div>
+        <div class="ccc-print-comments"><strong>總評語</strong><div>${escapeHTML(record.comments || "—")}</div></div>
         <div class="ccc-print-comments learner"><strong>學員省思<br>與回饋</strong><div>${escapeHTML(record.learnerFeedback || "—")}<p class="ccc-print-learner-sign">學員簽名：${escapeHTML(record.learnerSignature || "________________")}</p></div></div>
-        <table class="ccc-print-signatures" aria-label="CCC 簽核欄">
+        <table class="ccc-print-signatures" aria-label="簽核欄">
           <tbody>
             <tr><td class="role">導師：</td><td class="name">${escapeHTML(record.mentorName || "")}</td><td class="date">日期：${escapeHTML(formatCCCPrintDate(record.mentorDate))}</td></tr>
             <tr><td class="role">教學負責人：</td><td class="name">${escapeHTML(record.educationLeadName || "")}</td><td class="date">日期：${escapeHTML(formatCCCPrintDate(record.educationLeadDate))}</td></tr>
             <tr><td class="role">科主任：</td><td class="name">${escapeHTML(record.chiefName || "")}</td><td class="date">日期：${escapeHTML(formatCCCPrintDate(record.chiefDate))}</td></tr>
           </tbody>
         </table>
-        <div class="ccc-print-footer"><span>本表由 CCC 核心能力評分系統產出</span><span>${escapeHTML(status)}</span></div>
+        <div class="ccc-print-footer">本表由住院醫師核心能力評分系統產出</div>
       `;
     }
 
@@ -1633,7 +1768,7 @@
       pageStyle.textContent = "@page { size: A4 portrait; margin: 7mm; }";
       document.head.appendChild(pageStyle);
       cccPrintOriginalTitle = document.title;
-      document.title = `CCC_總評分表_${period.name}_${resident.name || resident.level}`.replace(/[\\/:*?"<>|]/g, "_");
+      document.title = `住院醫師核心能力適任性評核表_${period.name}_${resident.name || resident.level}`.replace(/[\\/:*?"<>|]/g, "_");
       document.body.classList.add("print-ccc");
       requestAnimationFrame(() => window.print());
     }
@@ -2491,6 +2626,12 @@
       elements.periodDialog.showModal();
       elements.periodName.select();
     });
+    elements.exportDataButton.addEventListener("click", exportDataBackup);
+    elements.importDataButton.addEventListener("click", () => {
+      elements.importDataInput.value = "";
+      elements.importDataInput.click();
+    });
+    elements.importDataInput.addEventListener("change", importDataBackup);
     elements.printButton.addEventListener("click", exportPDF);
     elements.exportAuditButton.addEventListener("click", exportAuditCSV);
     elements.scoreForm.addEventListener("submit", submitScores);
