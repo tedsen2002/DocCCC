@@ -33,9 +33,9 @@
       line-height: 1.5;
     }
 
-    button, input, select { font: inherit; }
+    button, input, select, textarea { font: inherit; }
     button { cursor: pointer; }
-    button:focus-visible, input:focus-visible, select:focus-visible {
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
       outline: 3px solid rgba(23, 105, 255, 0.25);
       outline-offset: 2px;
     }
@@ -143,13 +143,14 @@
     }
     .toolbar-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .field-label { color: var(--muted); font-size: 13px; font-weight: 800; }
-    select, input[type="text"], input[type="number"], input[type="password"] {
+    select, input[type="text"], input[type="number"], input[type="password"], input[type="date"], textarea {
       border: 1px solid var(--line);
       border-radius: 11px;
       color: var(--ink);
       background: white;
     }
-    select, input[type="text"], input[type="password"] { min-height: 44px; padding: 9px 12px; }
+    select, input[type="text"], input[type="password"], input[type="date"] { min-height: 44px; padding: 9px 12px; }
+    textarea { width: 100%; min-height: 104px; padding: 11px 12px; resize: vertical; }
     select { min-width: 190px; }
 
     .btn {
@@ -373,6 +374,67 @@
     .score-detail-table th:last-child, .score-detail-table td:last-child { width: 72px; text-align: center; }
     .score-detail-table td:last-child { color: var(--green); font-size: 16px; font-weight: 900; }
 
+    .ccc-toolbar-note { color: var(--muted); font-size: 13px; }
+    .ccc-toolbar-note strong { color: var(--green); }
+    .ccc-form { display: grid; gap: 14px; }
+    .ccc-form[hidden] { display: none; }
+    .ccc-form-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      padding-bottom: 17px;
+      border-bottom: 3px double var(--ink);
+    }
+    .ccc-form-kicker { margin: 0; color: var(--green-2); font-size: 12px; font-weight: 900; letter-spacing: 0.1em; }
+    .ccc-form-header h2 { margin: 3px 0 0; font-size: 30px; letter-spacing: 0.08em; }
+    .ccc-draft-badge { padding: 6px 10px; border-radius: 999px; color: #76500d; background: #fff2d2; font-size: 12px; font-weight: 850; }
+    .ccc-section { overflow: hidden; border: 1px solid var(--line); border-radius: 15px; background: #fbfbf7; }
+    .ccc-section-heading { display: flex; align-items: center; gap: 9px; margin: 0; padding: 11px 14px; color: white; background: var(--green); font-size: 16px; }
+    .ccc-section-number { display: grid; width: 25px; height: 25px; place-items: center; border-radius: 50%; color: var(--green); background: var(--lime); font-size: 12px; }
+    .ccc-section-body { padding: 15px; }
+    .ccc-basic-grid { display: grid; grid-template-columns: 1.2fr 0.65fr 1fr; gap: 12px; }
+    .ccc-readonly-field { min-width: 0; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: white; }
+    .ccc-readonly-field span { display: block; color: var(--muted); font-size: 11px; font-weight: 800; }
+    .ccc-readonly-field strong { display: block; overflow-wrap: anywhere; margin-top: 3px; font-size: 16px; }
+    .ccc-core-intro { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 11px; }
+    .ccc-core-intro p { margin: 0; color: var(--muted); font-size: 13px; }
+    .ccc-core-average { flex: none; color: var(--green); font-size: 20px; font-weight: 900; }
+    .ccc-core-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+    .ccc-core-score { padding: 10px 7px; border: 1px solid #dfe3db; border-radius: 10px; text-align: center; background: white; }
+    .ccc-core-score span { display: block; color: var(--muted); font-size: 10px; font-weight: 800; }
+    .ccc-core-score strong { display: block; margin-top: 2px; color: var(--green); font-size: 19px; }
+    .ccc-score-list { display: grid; gap: 8px; }
+    .ccc-score-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px 132px 112px; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid #e1e4dd; border-radius: 11px; background: white; }
+    .ccc-score-row label { font-weight: 800; }
+    .ccc-score-weight { color: var(--muted); text-align: right; font-size: 12px; }
+    .ccc-score-head { padding-top: 5px; padding-bottom: 5px; border: 0; color: var(--muted); background: transparent; font-size: 11px; font-weight: 850; }
+    .ccc-score-head span:not(:first-child) { text-align: right; }
+    .ccc-score-input { width: 100%; min-height: 42px; padding: 8px 10px; text-align: right; font-weight: 850; }
+    .ccc-score-input[readonly] { color: var(--green); background: #f2f6ef; }
+    .ccc-score-contribution { color: var(--green); text-align: right; font-size: 16px; font-weight: 900; }
+    .ccc-total-row { display: flex; align-items: center; justify-content: flex-end; gap: 18px; margin-top: 11px; padding: 12px 14px; border-radius: 11px; color: white; background: var(--ink); }
+    .ccc-total-row span { font-size: 13px; font-weight: 800; }
+    .ccc-total-row output { min-width: 74px; text-align: right; font-size: 24px; font-weight: 900; }
+    .ccc-choice-grid { display: flex; flex-wrap: wrap; gap: 9px; }
+    .ccc-choice { display: inline-flex; align-items: center; gap: 7px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; background: white; font-weight: 750; }
+    .ccc-choice input { accent-color: var(--green); }
+    .ccc-subfield { display: grid; gap: 7px; margin-top: 12px; }
+    .ccc-subfield label { font-size: 13px; font-weight: 800; }
+    .ccc-threshold { margin: 12px 0 0; padding: 10px 12px; border-left: 4px solid var(--lime); color: var(--muted); background: #f4f6e6; font-size: 12px; }
+    .ccc-threshold strong { color: var(--ink); }
+    .ccc-split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .ccc-sign-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .ccc-sign-card { display: grid; grid-template-columns: 1fr 128px; gap: 9px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: white; }
+    .ccc-sign-card label { display: grid; gap: 6px; color: var(--muted); font-size: 11px; font-weight: 800; }
+    .ccc-sign-card input { width: 100%; min-width: 0; }
+    .ccc-form-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 4px; }
+    .ccc-save-meta { color: var(--muted); font-size: 12px; }
+    .ccc-action-buttons { display: flex; justify-content: flex-end; gap: 9px; flex-wrap: wrap; }
+    .ccc-form.is-submitted .ccc-section { background: #f4f6f1; }
+    .ccc-form.is-submitted input:disabled, .ccc-form.is-submitted textarea:disabled { color: var(--ink); opacity: 1; background: #f2f3ef; -webkit-text-fill-color: var(--ink); }
+    .ccc-print-report { display: none; }
+
     .toast {
       position: fixed;
       z-index: 50;
@@ -398,6 +460,9 @@
       .resident-grid { grid-template-columns: 1fr; }
       .stats { grid-template-columns: 1fr 1fr 1fr; }
       .chart-grid { grid-template-columns: 1fr; }
+      .ccc-core-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .ccc-split { grid-template-columns: 1fr; }
+      .ccc-sign-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 560px) {
       .shell { width: min(100% - 20px, 1180px); }
@@ -422,12 +487,20 @@
       .item-score-row, .level-field { grid-template-columns: 1fr 88px; }
       .competency-group { padding: 12px; }
       .audit-heading { align-items: stretch; flex-direction: column; }
+      .ccc-basic-grid { grid-template-columns: 1fr; }
+      .ccc-core-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ccc-score-row { grid-template-columns: minmax(0, 1fr) 42px 72px 58px; gap: 7px; }
+      .ccc-form-header, .ccc-core-intro, .ccc-form-actions { align-items: stretch; flex-direction: column; }
+      .ccc-core-average { flex: auto; }
+      .ccc-action-buttons .btn { flex: 1; }
     }
+
+    @page ccc-report { size: A4 portrait; margin: 7mm; }
 
     @media print {
       @page { size: A4 landscape; margin: 7mm; }
       body { background: white; color: #111; }
-      header, .hero, .tabs, .toolbar, .stats, #panel-roster, #panel-audit, footer, .toast { display: none !important; }
+      header, .hero, .tabs, .toolbar, .stats, #panel-ccc, #panel-roster, #panel-audit, footer, .toast { display: none !important; }
       .shell { width: 100%; margin: 0; }
       main { width: 100%; }
       #panel-assessment { display: block !important; }
@@ -476,6 +549,49 @@
       .formal-detail-table .allocation { width: 8%; text-align: center; }
       .formal-detail-table .item-code-print { font-weight: 900; }
       .formal-print-footer { display: flex; justify-content: space-between; margin-top: 1.5mm; padding-top: 1mm; border-top: 0.25mm solid #777; font-size: 6.5pt; }
+
+      body.print-ccc > header, body.print-ccc > main, body.print-ccc > footer, body.print-ccc > .toast { display: none !important; }
+      body.print-ccc #cccPrintReport {
+        page: ccc-report;
+        display: flex !important;
+        width: 100%;
+        height: 280mm;
+        overflow: hidden;
+        box-sizing: border-box;
+        flex-direction: column;
+        color: #111;
+        background: white;
+        font-family: "Noto Serif TC", "PMingLiU", "Microsoft JhengHei", serif;
+      }
+      body.print-ccc #panel-assessment { display: none !important; }
+      .ccc-print-attachment { margin: 0 0 1mm; font-size: 8pt; }
+      .ccc-print-title { margin: 0 0 3mm; text-align: center; font-size: 16pt; letter-spacing: 0.12em; }
+      .ccc-print-meta { display: grid; grid-template-columns: 1.2fr 0.65fr 1.15fr; gap: 4mm; margin-bottom: 2.5mm; font-size: 9pt; }
+      .ccc-print-meta span { padding-bottom: 1mm; border-bottom: 0.25mm solid #333; }
+      .ccc-print-status { float: right; font-size: 7.5pt; font-weight: 700; letter-spacing: 0; }
+      .ccc-print-report table { width: 100%; min-width: 0; table-layout: fixed; border-collapse: collapse; }
+      .ccc-print-report th, .ccc-print-report td { padding: 1.5mm 1.8mm; border: 0.25mm solid #333; color: #111; font-size: 7.5pt; line-height: 1.25; vertical-align: middle; }
+      .ccc-print-report th { background: #f0f0f0; text-align: center; font-weight: 900; }
+      .ccc-print-score-table .item { width: 52%; }
+      .ccc-print-score-table, .ccc-print-summary, .ccc-print-comments, .ccc-print-signatures { break-inside: avoid; }
+      .ccc-print-score-table .weight { width: 13%; text-align: center; }
+      .ccc-print-score-table .raw, .ccc-print-score-table .weighted { width: 17.5%; text-align: center; font-weight: 900; }
+      .ccc-print-core-breakdown { display: block; margin-top: 0.8mm; font-size: 6.2pt; font-weight: 400; }
+      .ccc-print-total td { font-size: 9pt; font-weight: 900; }
+      .ccc-print-summary { margin-top: 2.5mm; }
+      .ccc-print-summary th { width: 20%; }
+      .ccc-print-summary td { height: 10mm; }
+      .ccc-print-comments { display: grid; grid-template-columns: 24mm 1fr; border: 0.25mm solid #333; border-top: 0; }
+      .ccc-print-comments strong { display: grid; place-items: center; padding: 1.5mm; border-right: 0.25mm solid #333; text-align: center; font-size: 8pt; }
+      .ccc-print-comments div { min-height: 20mm; max-height: 24mm; overflow: hidden; padding: 2mm; white-space: pre-wrap; font-size: 7.5pt; line-height: 1.35; }
+      .ccc-print-comments.learner div { min-height: 24mm; max-height: 28mm; }
+      .ccc-print-learner-sign { margin-top: 2mm; text-align: right; font-size: 8pt; }
+      .ccc-print-signatures { margin-top: auto; }
+      .ccc-print-signatures td { height: 9mm; font-size: 8pt; }
+      .ccc-print-signatures .role { width: 20%; text-align: right; font-weight: 900; }
+      .ccc-print-signatures .name { width: 35%; }
+      .ccc-print-signatures .date { width: 45%; text-align: center; }
+      .ccc-print-footer { display: flex; justify-content: space-between; margin-top: 1.5mm; font-size: 6.5pt; }
     }
   </style>
 </head>
@@ -504,7 +620,8 @@
     </section>
 
     <nav class="tabs" aria-label="主要功能">
-      <button class="tab active" data-tab="assessment" type="button">評分作業</button>
+      <button class="tab active" data-tab="assessment" type="button">六大核心</button>
+      <button class="tab" data-tab="ccc" type="button">CCC 評核表</button>
       <button class="tab" data-tab="roster" type="button">名單設定</button>
       <button class="tab" data-tab="audit" type="button">稽核紀錄</button>
     </nav>
@@ -529,6 +646,20 @@
       <div id="residentGrid" class="resident-grid"></div>
     </section>
 
+    <section id="panel-ccc" class="panel" hidden>
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <label class="field-label" for="cccPeriodSelect">評核期別</label>
+          <select id="cccPeriodSelect" aria-label="選擇 CCC 評核期別"></select>
+          <label class="field-label" for="cccResidentSelect">受評住院醫師</label>
+          <select id="cccResidentSelect" aria-label="選擇受評住院醫師"></select>
+        </div>
+        <div class="ccc-toolbar-note">依 <strong>CCC評核表20260810</strong> 建立的初稿</div>
+      </div>
+      <div id="cccEmpty" class="empty" hidden></div>
+      <form id="cccForm" class="section-card ccc-form" hidden></form>
+    </section>
+
     <section id="panel-roster" class="panel" hidden>
       <div class="section-card">
         <h2 class="section-heading">住院醫師名單</h2>
@@ -551,6 +682,8 @@
       </div>
     </section>
   </main>
+
+  <section id="cccPrintReport" class="ccc-print-report" aria-hidden="true"></section>
 
   <footer class="shell">CCC 核心能力評分系統 · 公開流程預覽</footer>
 
@@ -652,7 +785,7 @@
 
   <script>
     const STORAGE_KEY = "docccc-assessment-v1";
-    const SCHEMA_VERSION = 3;
+    const SCHEMA_VERSION = 6;
     const ADMIN_PASSWORD = "tsgh123";
     const ITEM_MAX_SCORE = 5;
     const COMPETENCIES = [
@@ -715,9 +848,17 @@
     ];
     const ASSESSMENT_ITEMS = COMPETENCIES.flatMap((competency) => competency.items);
     const RESIDENT_LEVELS = ["R1", "R2", "R3", "R4"];
-    const ROLE_LABELS = { student: "學生自評", teacher: "教師評分" };
+    const ROLE_LABELS = { student: "學生自評", teacher: "教師評分", ccc: "CCC 評核表" };
     const ROLE_COLORS = { student: "#e5484d", teacher: "#1769ff", absolute: "#1d6b50" };
-    const EVENT_LABELS = { submission: "完成提交", unlock: "管理解鎖", modification: "分數修改" };
+    const EVENT_LABELS = { submission: "完成提交", "ccc-submission": "CCC 正式提交", unlock: "管理解鎖", modification: "分數修改" };
+    const CCC_EPA_OPTIONS = [
+      ["L1", "L1：無法安全執行"], ["L2", "L2：需指導"], ["L3", "L3：事後確認"],
+      ["L4", "L4：可獨立"], ["L5", "L5：可教學"]
+    ];
+    const CCC_BOOLEAN_OPTIONS = [["none", "無"], ["yes", "有"]];
+    const CCC_SEVERITY_OPTIONS = [["mild", "輕微"], ["moderate", "中等"], ["severe", "嚴重"]];
+    const CCC_CONCLUSION_OPTIONS = [["promotion", "可晉升"], ["conditional", "條件式晉升"], ["reinforce", "需補強"], ["no-promotion", "無法晉升"]];
+    const CCC_FOLLOWUP_OPTIONS = [["1-month", "1 個月"], ["3-months", "3 個月"], ["next-ccc", "下次 CCC"]];
 
     function defaultResidents() {
       return RESIDENT_LEVELS.map((level, index) => ({ id: `r${index + 1}`, level, name: "" }));
@@ -817,6 +958,8 @@
     let state = loadState();
     let activeScoreContext = null;
     let activeModifyContext = null;
+    let selectedCCCResidentId = null;
+    let cccPrintOriginalTitle = null;
     let toastTimer = null;
 
     const elements = {
@@ -828,6 +971,11 @@
       printPeriodName: document.querySelector("#printPeriodName"),
       stats: document.querySelector("#stats"),
       residentGrid: document.querySelector("#residentGrid"),
+      cccPeriodSelect: document.querySelector("#cccPeriodSelect"),
+      cccResidentSelect: document.querySelector("#cccResidentSelect"),
+      cccEmpty: document.querySelector("#cccEmpty"),
+      cccForm: document.querySelector("#cccForm"),
+      cccPrintReport: document.querySelector("#cccPrintReport"),
       rosterActions: document.querySelector("#rosterActions"),
       roster: document.querySelector("#roster"),
       rosterPeriodName: document.querySelector("#rosterPeriodName"),
@@ -915,6 +1063,110 @@
       });
     }
 
+    function cccCoreMetrics(assessment) {
+      const teacher = assessment?.teacher;
+      if (validItemScores(teacher?.itemScores || [])) {
+        return teacherDomainMetrics(teacher.itemScores).map((metric) => ({
+          code: metric.code, name: metric.name, score: metric.percent
+        }));
+      }
+      if (Array.isArray(teacher?.scores) && teacher.scores.length === COMPETENCIES.length && teacher.scores.every((score) => Number.isFinite(Number(score)))) {
+        return COMPETENCIES.map((competency, index) => ({
+          code: competency.code, name: competency.name, score: Number(teacher.scores[index])
+        }));
+      }
+      return null;
+    }
+
+    function cccCoreScore(assessment, metrics) {
+      const itemScores = assessment?.teacher?.itemScores || [];
+      if (validItemScores(itemScores)) {
+        return itemScores.reduce((total, score) => total + Number(score), 0);
+      }
+      if (!metrics) return null;
+      return Math.round(metrics.reduce((total, metric) => total + metric.score, 0) / metrics.length * 10) / 10;
+    }
+
+    function cccScoreValue(value) {
+      if (value === null || value === undefined || String(value).trim() === "") return "";
+      const score = Number(value);
+      return Number.isFinite(score) && score >= 0 && score <= 100 ? score : "";
+    }
+
+    function formatCCCScore(value) {
+      if (value === null || value === undefined || value === "") return "—";
+      const score = Number(value);
+      return Number.isInteger(score) ? String(score) : score.toFixed(1).replace(/\.0$/, "");
+    }
+
+    function cccWeightedTotal(coreScore, treatmentPlanScore, journalMeetingScore, annualExamScore) {
+      const scores = [coreScore, treatmentPlanScore, journalMeetingScore, annualExamScore].map(cccScoreValue);
+      if (scores.some((score) => score === "")) return null;
+      return Math.round((scores[0] * 0.3 + scores[1] * 0.25 + scores[2] * 0.25 + scores[3] * 0.2) * 10) / 10;
+    }
+
+    function cccWeightedContribution(score, weight) {
+      const value = cccScoreValue(score);
+      return value === "" ? null : Math.round(value * weight * 10) / 10;
+    }
+
+    function cccDraftFor(assessment) {
+      return {
+        treatmentPlanScore: "", journalMeetingScore: "", annualExamScore: "", epaLevel: "",
+        teaching: "", teachingNote: "", research: "", researchNote: "", passport: "",
+        safety: "", safetyDescription: "", safetySeverity: "", safetyImprovement: "",
+        conclusion: "", followUp: "", comments: "", learnerFeedback: "", learnerSignature: "",
+        mentorName: "", mentorDate: "", educationLeadName: "", educationLeadDate: "",
+        chiefName: "", chiefDate: "", savedAt: null,
+        ...(assessment?.cccDraft || {})
+      };
+    }
+
+    function cccRecordFor(assessment) {
+      return { ...cccDraftFor(null), ...(assessment?.cccSubmission || assessment?.cccDraft || {}) };
+    }
+
+    function cccOptionLabel(options, value) {
+      return options.find(([optionValue]) => optionValue === value)?.[1] || "—";
+    }
+
+    function cccChoiceMarkup(name, options, selectedValue, required = false) {
+      return `<div class="ccc-choice-grid">${options.map(([value, label]) => {
+        const id = `ccc-${name}-${value}`;
+        return `<label class="ccc-choice" for="${id}"><input id="${id}" name="${name}" type="radio" value="${escapeHTML(value)}"${selectedValue === value ? " checked" : ""}${required ? " required" : ""}>${escapeHTML(label)}</label>`;
+      }).join("")}</div>`;
+    }
+
+    function readCCCForm(form = elements.cccForm) {
+      const formData = new FormData(form);
+      return {
+        treatmentPlanScore: cccScoreValue(formData.get("treatmentPlanScore")),
+        journalMeetingScore: cccScoreValue(formData.get("journalMeetingScore")),
+        annualExamScore: cccScoreValue(formData.get("annualExamScore")),
+        epaLevel: formData.get("epaLevel") || "",
+        teaching: formData.get("teaching") || "",
+        teachingNote: String(formData.get("teachingNote") || "").trim(),
+        research: formData.get("research") || "",
+        researchNote: String(formData.get("researchNote") || "").trim(),
+        passport: formData.get("passport") || "",
+        safety: formData.get("safety") || "",
+        safetyDescription: String(formData.get("safetyDescription") || "").trim(),
+        safetySeverity: formData.get("safetySeverity") || "",
+        safetyImprovement: String(formData.get("safetyImprovement") || "").trim(),
+        conclusion: formData.get("conclusion") || "",
+        followUp: formData.get("followUp") || "",
+        comments: String(formData.get("comments") || "").trim(),
+        learnerFeedback: String(formData.get("learnerFeedback") || "").trim(),
+        learnerSignature: String(formData.get("learnerSignature") || "").trim(),
+        mentorName: String(formData.get("mentorName") || "").trim(),
+        mentorDate: String(formData.get("mentorDate") || ""),
+        educationLeadName: String(formData.get("educationLeadName") || "").trim(),
+        educationLeadDate: String(formData.get("educationLeadDate") || ""),
+        chiefName: String(formData.get("chiefName") || "").trim(),
+        chiefDate: String(formData.get("chiefDate") || "")
+      };
+    }
+
     function ensureAssessments(period) {
       if (!period) return;
       period.assessments ||= {};
@@ -938,7 +1190,7 @@
     function addAuditEvent({
       type, period, resident, role = null, scores = null, beforeScores = null,
       levels = null, beforeLevels = null, itemScores = null, beforeItemScores = null,
-      teacherName = "", actorName = ""
+      teacherName = "", actorName = "", cccForm = null
     }) {
       state.auditLog.push({
         id: `audit-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -957,7 +1209,8 @@
         levels: levels ? [...levels] : null,
         beforeLevels: beforeLevels ? [...beforeLevels] : null,
         itemScores: itemScores ? [...itemScores] : null,
-        beforeItemScores: beforeItemScores ? [...beforeItemScores] : null
+        beforeItemScores: beforeItemScores ? [...beforeItemScores] : null,
+        cccForm: cccForm ? { ...cccForm, coreMetrics: cccForm.coreMetrics?.map((metric) => ({ ...metric })) || null } : null
       });
     }
 
@@ -967,16 +1220,20 @@
       renderPeriodSelect();
       renderStats(period);
       renderResidents(period);
+      renderCCCForm(period);
       renderRoster(period);
       renderAudit();
       elements.printPeriodName.textContent = period?.name || "尚未建立期別";
     }
 
     function renderPeriodSelect() {
-      elements.periodSelect.innerHTML = state.periods
+      const options = state.periods
         .map((period) => `<option value="${escapeHTML(period.id)}"${period.id === state.selectedPeriodId ? " selected" : ""}>${escapeHTML(period.name)}</option>`)
         .join("");
+      elements.periodSelect.innerHTML = options;
+      elements.cccPeriodSelect.innerHTML = options;
       elements.periodSelect.disabled = state.periods.length === 0;
+      elements.cccPeriodSelect.disabled = state.periods.length === 0;
     }
 
     function renderStats(period) {
@@ -990,6 +1247,395 @@
         <div class="stat"><div class="stat-value">${teacherDone}/${records.length}</div><div class="stat-label">教師已完成</div></div>
         <div class="stat"><div class="stat-value">${pairedDone}/${records.length}</div><div class="stat-label">雙方已完成</div></div>
       `;
+    }
+
+    function renderCCCForm(period) {
+      const residents = period?.residents || [];
+      if (!residents.some((resident) => resident.id === selectedCCCResidentId)) {
+        selectedCCCResidentId = residents[0]?.id || null;
+      }
+      elements.cccResidentSelect.innerHTML = residents
+        .map((resident) => `<option value="${escapeHTML(resident.id)}"${resident.id === selectedCCCResidentId ? " selected" : ""}>${escapeHTML(resident.level)}　${escapeHTML(resident.name || "未命名")}</option>`)
+        .join("");
+      elements.cccResidentSelect.disabled = residents.length === 0;
+
+      if (!period || !selectedCCCResidentId) {
+        elements.cccForm.hidden = true;
+        elements.cccEmpty.hidden = false;
+        elements.cccEmpty.innerHTML = `<strong>本期尚無住院醫師</strong>請先到「名單設定」建立本期名單。`;
+        return;
+      }
+
+      const resident = residentFor(period, selectedCCCResidentId);
+      const assessment = period.assessments[selectedCCCResidentId];
+      const submitted = Boolean(assessment.cccSubmission);
+      const draft = cccRecordFor(assessment);
+      const metrics = assessment.cccSubmission?.coreMetrics || cccCoreMetrics(assessment);
+      const coreScore = assessment.cccSubmission?.coreScore ?? assessment.cccSubmission?.coreAverage ?? cccCoreScore(assessment, metrics);
+      const weightedTotal = assessment.cccSubmission?.weightedTotal ?? cccWeightedTotal(coreScore, draft.treatmentPlanScore, draft.journalMeetingScore, draft.annualExamScore);
+      const coreContribution = cccWeightedContribution(coreScore, 0.3);
+      const treatmentContribution = cccWeightedContribution(draft.treatmentPlanScore, 0.25);
+      const journalContribution = cccWeightedContribution(draft.journalMeetingScore, 0.25);
+      const examContribution = cccWeightedContribution(draft.annualExamScore, 0.2);
+      const coreCards = (metrics || COMPETENCIES.map((competency) => ({ code: competency.code, name: competency.name, score: null })))
+        .map((metric) => `
+          <div class="ccc-core-score" title="${escapeHTML(metric.name)}">
+            <span>${escapeHTML(metric.code)}　${escapeHTML(metric.name)}</span>
+            <strong>${formatCCCScore(metric.score)}${metric.score === null ? "" : "%"}</strong>
+          </div>
+        `).join("");
+      const saveMeta = submitted
+        ? `已於 ${escapeHTML(formatReadableTime(assessment.cccSubmission.submittedAt))} 正式提交並鎖定`
+        : draft.savedAt ? `上次暫存：${escapeHTML(formatReadableTime(draft.savedAt))}` : "尚未暫存";
+
+      elements.cccEmpty.hidden = true;
+      elements.cccForm.hidden = false;
+      elements.cccForm.classList.toggle("is-submitted", submitted);
+      elements.cccForm.dataset.coreScore = coreScore ?? "";
+      elements.cccForm.innerHTML = `
+        <div class="ccc-form-header">
+          <div>
+            <p class="ccc-form-kicker">放射腫瘤部</p>
+            <h2>CCC 評核表</h2>
+          </div>
+          <span class="ccc-draft-badge">${submitted ? "已提交 · 鎖定" : "編輯中 · 可暫存"}</span>
+        </div>
+
+        <section class="ccc-section">
+          <h3 class="ccc-section-heading"><span class="ccc-section-number">一</span>基本資料</h3>
+          <div class="ccc-section-body ccc-basic-grid">
+            <div class="ccc-readonly-field"><span>姓名</span><strong>${escapeHTML(resident.name || "未命名")}</strong></div>
+            <div class="ccc-readonly-field"><span>年資</span><strong>${escapeHTML(resident.level)}</strong></div>
+            <div class="ccc-readonly-field"><span>評核期間</span><strong>${escapeHTML(period.name)}</strong></div>
+          </div>
+        </section>
+
+        <section class="ccc-section">
+          <h3 class="ccc-section-heading"><span class="ccc-section-number">二</span>臨床綜合評分</h3>
+          <div class="ccc-section-body">
+            <div class="ccc-core-intro">
+              <p>六項百分比沿用綠色六角圖作為能力明細；六大核心原始總分直接沿用前頁 20 個教師評分小項的加總（滿分 100），不再平均六個百分比。</p>
+              <div class="ccc-core-average">六大核心原始總分　${formatCCCScore(coreScore)}${coreScore === null ? "" : " 分"}</div>
+            </div>
+            <div class="ccc-core-grid" aria-label="六大核心能力百分比分數">${coreCards}</div>
+            <div class="ccc-score-list">
+              <div class="ccc-score-row ccc-score-head" aria-hidden="true"><span>評分項目</span><span>佔分</span><span>原始分數</span><span>加權得分</span></div>
+              <div class="ccc-score-row">
+                <label for="cccCoreScore">六大核心考核表</label>
+                <span class="ccc-score-weight">30%</span>
+                <input id="cccCoreScore" class="ccc-score-input" type="text" value="${formatCCCScore(coreScore)}" readonly aria-label="六大核心考核表原始總分">
+                <output id="cccCoreContribution" class="ccc-score-contribution">${formatCCCScore(coreContribution)}</output>
+              </div>
+              <div class="ccc-score-row">
+                <label for="cccTreatmentPlanScore">治療計畫平均分數</label>
+                <span class="ccc-score-weight">25%</span>
+                <input id="cccTreatmentPlanScore" class="ccc-score-input" name="treatmentPlanScore" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${escapeHTML(cccScoreValue(draft.treatmentPlanScore))}" placeholder="0–100" required>
+                <output id="cccTreatmentContribution" class="ccc-score-contribution">${formatCCCScore(treatmentContribution)}</output>
+              </div>
+              <div class="ccc-score-row">
+                <label for="cccJournalMeetingScore">Journal meeting 平均分數</label>
+                <span class="ccc-score-weight">25%</span>
+                <input id="cccJournalMeetingScore" class="ccc-score-input" name="journalMeetingScore" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${escapeHTML(cccScoreValue(draft.journalMeetingScore))}" placeholder="0–100" required>
+                <output id="cccJournalContribution" class="ccc-score-contribution">${formatCCCScore(journalContribution)}</output>
+              </div>
+              <div class="ccc-score-row">
+                <label for="cccAnnualExamScore">學會年度考試分數</label>
+                <span class="ccc-score-weight">20%</span>
+                <input id="cccAnnualExamScore" class="ccc-score-input" name="annualExamScore" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${escapeHTML(cccScoreValue(draft.annualExamScore))}" placeholder="0–100" required>
+                <output id="cccExamContribution" class="ccc-score-contribution">${formatCCCScore(examContribution)}</output>
+              </div>
+            </div>
+            <div class="ccc-total-row"><span>綜合加權總分（四項加總）</span><output id="cccWeightedTotal" aria-live="polite">${weightedTotal === null ? "—" : formatCCCScore(weightedTotal) + " 分"}</output></div>
+            <p class="ccc-threshold"><strong>綜合評分晉升門檻：</strong>R1 → R2：70 分　／　R2 → R3：75 分　／　R3 → R4：80 分</p>
+          </div>
+        </section>
+
+        <section class="ccc-section">
+          <h3 class="ccc-section-heading"><span class="ccc-section-number">三</span>EPA 臨床授權</h3>
+          <div class="ccc-section-body">
+            ${cccChoiceMarkup("epaLevel", CCC_EPA_OPTIONS, draft.epaLevel, true)}
+            <p class="ccc-threshold"><strong>EPA 晉升門檻：</strong>R1：EPA 1–4 達 L4、EPA 5–7 達 L3；R2：EPA 1–7 達 L4、EPA 8 達 L3、EPA 9 達 L2；R3：EPA 1–9 達 L4；R4：EPA 1–9 達 L5。</p>
+          </div>
+        </section>
+
+        <div class="ccc-split">
+          <section class="ccc-section">
+            <h3 class="ccc-section-heading"><span class="ccc-section-number">四</span>教學</h3>
+            <div class="ccc-section-body">
+              ${cccChoiceMarkup("teaching", CCC_BOOLEAN_OPTIONS, draft.teaching, true)}
+              <div class="ccc-subfield"><label for="cccTeachingNote">教學內容簡述</label><textarea id="cccTeachingNote" name="teachingNote" maxlength="500" placeholder="如選擇「有」，請簡述教學內容">${escapeHTML(draft.teachingNote)}</textarea></div>
+            </div>
+          </section>
+          <section class="ccc-section">
+            <h3 class="ccc-section-heading"><span class="ccc-section-number">五</span>研究</h3>
+            <div class="ccc-section-body">
+              ${cccChoiceMarkup("research", CCC_BOOLEAN_OPTIONS, draft.research, true)}
+              <div class="ccc-subfield"><label for="cccResearchNote">研究內容簡述</label><textarea id="cccResearchNote" name="researchNote" maxlength="500" placeholder="如選擇「有」，請簡述研究進度">${escapeHTML(draft.researchNote)}</textarea></div>
+              <p class="ccc-threshold"><strong>晉升門檻：</strong>R1 參與研究；R2 訂研究主題與方法；R3 完成論文。</p>
+            </div>
+          </section>
+        </div>
+
+        <section class="ccc-section">
+          <h3 class="ccc-section-heading"><span class="ccc-section-number">六</span>完成學習護照</h3>
+          <div class="ccc-section-body">${cccChoiceMarkup("passport", CCC_BOOLEAN_OPTIONS, draft.passport, true)}</div>
+        </section>
+
+        <section class="ccc-section">
+          <h3 class="ccc-section-heading"><span class="ccc-section-number">七</span>病人安全與事件</h3>
+          <div class="ccc-section-body">
+            ${cccChoiceMarkup("safety", CCC_BOOLEAN_OPTIONS, draft.safety, true)}
+            <div class="ccc-subfield"><label for="cccSafetyDescription">事件說明</label><textarea id="cccSafetyDescription" name="safetyDescription" maxlength="800" placeholder="如有事件，請說明經過">${escapeHTML(draft.safetyDescription)}</textarea></div>
+            <div class="ccc-subfield"><span class="field-label">嚴重性</span>${cccChoiceMarkup("safetySeverity", CCC_SEVERITY_OPTIONS, draft.safetySeverity)}</div>
+            <div class="ccc-subfield"><label for="cccSafetyImprovement">是否改善／改善情形</label><input id="cccSafetyImprovement" name="safetyImprovement" type="text" maxlength="300" value="${escapeHTML(draft.safetyImprovement)}" placeholder="請輸入改善情形"></div>
+          </div>
+        </section>
+
+        <section class="ccc-section">
+          <h3 class="ccc-section-heading"><span class="ccc-section-number">八</span>CCC 結論</h3>
+          <div class="ccc-section-body">
+            ${cccChoiceMarkup("conclusion", CCC_CONCLUSION_OPTIONS, draft.conclusion, true)}
+            <div class="ccc-subfield"><span class="field-label">追蹤期限</span>${cccChoiceMarkup("followUp", CCC_FOLLOWUP_OPTIONS, draft.followUp)}</div>
+          </div>
+        </section>
+
+        <section class="ccc-section">
+          <h3 class="ccc-section-heading"><span class="ccc-section-number">九</span>CCC 總評語與簽核</h3>
+          <div class="ccc-section-body">
+            <div class="ccc-subfield"><label for="cccComments">CCC 總評語</label><textarea id="cccComments" name="comments" maxlength="2000" placeholder="請輸入整體表現、需持續精進事項與追蹤建議">${escapeHTML(draft.comments)}</textarea></div>
+            <div class="ccc-subfield"><label for="cccLearnerFeedback">學員省思與回饋</label><textarea id="cccLearnerFeedback" name="learnerFeedback" maxlength="1600" placeholder="供學員填寫省思、意見與後續學習計畫">${escapeHTML(draft.learnerFeedback)}</textarea></div>
+            <div class="ccc-subfield"><label for="cccLearnerSignature">學員簽名</label><input id="cccLearnerSignature" name="learnerSignature" type="text" maxlength="30" value="${escapeHTML(draft.learnerSignature)}" placeholder="請輸入學員簽名"></div>
+            <div class="ccc-sign-grid">
+              <div class="ccc-sign-card">
+                <label for="cccMentorName">導師<input id="cccMentorName" name="mentorName" type="text" maxlength="30" value="${escapeHTML(draft.mentorName)}" placeholder="導師姓名" required></label>
+                <label for="cccMentorDate">日期<input id="cccMentorDate" name="mentorDate" type="date" value="${escapeHTML(draft.mentorDate)}"></label>
+              </div>
+              <div class="ccc-sign-card">
+                <label for="cccEducationLeadName">教學負責人<input id="cccEducationLeadName" name="educationLeadName" type="text" maxlength="30" value="${escapeHTML(draft.educationLeadName)}" placeholder="教學負責人"></label>
+                <label for="cccEducationLeadDate">日期<input id="cccEducationLeadDate" name="educationLeadDate" type="date" value="${escapeHTML(draft.educationLeadDate)}"></label>
+              </div>
+              <div class="ccc-sign-card">
+                <label for="cccChiefName">科主任<input id="cccChiefName" name="chiefName" type="text" maxlength="30" value="${escapeHTML(draft.chiefName)}" placeholder="科主任"></label>
+                <label for="cccChiefDate">日期<input id="cccChiefDate" name="chiefDate" type="date" value="${escapeHTML(draft.chiefDate)}"></label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="ccc-form-actions">
+          <span class="ccc-save-meta">${saveMeta}。暫存可繼續編輯；正式提交後會鎖定並留下稽核紀錄。</span>
+          <div class="ccc-action-buttons">
+            <button class="btn btn-secondary" type="button" data-ccc-action="draft"${submitted ? " disabled" : ""}>暫存</button>
+            <button class="btn btn-primary" type="submit"${submitted ? " disabled" : ""}>提交</button>
+            <button class="btn btn-blue" type="button" data-ccc-action="export">匯出 PDF</button>
+          </div>
+        </div>
+      `;
+      if (submitted) {
+        elements.cccForm.querySelectorAll("input, textarea").forEach((control) => { control.disabled = true; });
+      }
+    }
+
+    function updateCCCWeightedTotal() {
+      if (elements.cccForm.hidden) return;
+      const output = elements.cccForm.querySelector("#cccWeightedTotal");
+      const coreScore = elements.cccForm.dataset.coreScore;
+      const treatmentPlanScore = elements.cccForm.elements.treatmentPlanScore?.value;
+      const journalMeetingScore = elements.cccForm.elements.journalMeetingScore?.value;
+      const annualExamScore = elements.cccForm.elements.annualExamScore?.value;
+      [
+        ["#cccCoreContribution", coreScore, 0.3],
+        ["#cccTreatmentContribution", treatmentPlanScore, 0.25],
+        ["#cccJournalContribution", journalMeetingScore, 0.25],
+        ["#cccExamContribution", annualExamScore, 0.2]
+      ].forEach(([selector, score, weight]) => {
+        const contributionOutput = elements.cccForm.querySelector(selector);
+        if (contributionOutput) contributionOutput.textContent = formatCCCScore(cccWeightedContribution(score, weight));
+      });
+      const total = cccWeightedTotal(coreScore, treatmentPlanScore, journalMeetingScore, annualExamScore);
+      if (output) output.textContent = total === null ? "—" : `${formatCCCScore(total)} 分`;
+    }
+
+    function currentCCCContext() {
+      const period = currentPeriod();
+      const resident = residentFor(period, selectedCCCResidentId);
+      const assessment = period?.assessments?.[selectedCCCResidentId];
+      return { period, resident, assessment };
+    }
+
+    function saveCCCDraft() {
+      const { period, resident, assessment } = currentCCCContext();
+      if (!period || !resident || !assessment) {
+        showToast("目前沒有可暫存的 CCC 評核表。");
+        return;
+      }
+      if (assessment.cccSubmission) {
+        showToast("CCC 評核表已正式提交並鎖定。");
+        return;
+      }
+      assessment.cccDraft = {
+        ...readCCCForm(),
+        savedAt: new Date().toISOString()
+      };
+      persist();
+      renderCCCForm(period);
+      showToast(`已暫存 ${resident.level} ${resident.name || "未命名"} 的 CCC 評核表。`);
+    }
+
+    function submitCCCForm(event) {
+      event.preventDefault();
+      const { period, resident, assessment } = currentCCCContext();
+      if (!period || !resident || !assessment || assessment.cccSubmission) {
+        showToast(assessment?.cccSubmission ? "CCC 評核表已正式提交並鎖定。" : "目前沒有可提交的 CCC 評核表。");
+        return;
+      }
+      const metrics = cccCoreMetrics(assessment);
+      if (!metrics) {
+        showToast("請先完成教師評分，產生六大核心能力分數後再提交。");
+        return;
+      }
+      if (!elements.cccForm.reportValidity()) return;
+      const formValues = readCCCForm();
+      const coreScore = cccCoreScore(assessment, metrics);
+      const weightedTotal = cccWeightedTotal(coreScore, formValues.treatmentPlanScore, formValues.journalMeetingScore, formValues.annualExamScore);
+      if (weightedTotal === null) {
+        showToast("請完整填寫三項人工成績後再提交。");
+        return;
+      }
+      if (!window.confirm("正式提交後會鎖定 CCC 評核表並留下稽核紀錄。確定提交嗎？")) return;
+      const submittedAt = new Date().toISOString();
+      const submission = {
+        ...formValues,
+        coreMetrics: metrics.map((metric) => ({ ...metric })),
+        coreScore,
+        weightedTotal,
+        periodName: period.name,
+        residentName: resident.name || "",
+        residentLevel: resident.level,
+        submittedAt
+      };
+      assessment.cccSubmission = submission;
+      delete assessment.cccDraft;
+      addAuditEvent({
+        type: "ccc-submission", period, resident, role: "ccc",
+        teacherName: formValues.mentorName,
+        actorName: formValues.mentorName || "CCC 評核人",
+        cccForm: submission
+      });
+      persist();
+      render();
+      showToast(`已正式提交 ${resident.level} ${resident.name || "未命名"} 的 CCC 評核表。`);
+    }
+
+    function formatCCCPrintDate(value) {
+      if (!value) return "____ 年 __ 月 __ 日";
+      const [year, month, day] = String(value).split("-");
+      return `${year || "____"} 年 ${month || "__"} 月 ${day || "__"} 日`;
+    }
+
+    function cccPrintText(choice, note = "") {
+      if (!choice || choice === "—") return note || "—";
+      return note ? `${choice}；${note}` : choice;
+    }
+
+    function cccPrintReportMarkup(period, resident, record) {
+      const metrics = record.coreMetrics || cccCoreMetrics(period.assessments[resident.id]);
+      const coreScore = record.coreScore ?? record.coreAverage ?? cccCoreScore(period.assessments[resident.id], metrics);
+      const weightedTotal = record.weightedTotal ?? cccWeightedTotal(coreScore, record.treatmentPlanScore, record.journalMeetingScore, record.annualExamScore);
+      const coreContribution = cccWeightedContribution(coreScore, 0.3);
+      const treatmentContribution = cccWeightedContribution(record.treatmentPlanScore, 0.25);
+      const journalContribution = cccWeightedContribution(record.journalMeetingScore, 0.25);
+      const examContribution = cccWeightedContribution(record.annualExamScore, 0.2);
+      const coreBreakdown = metrics
+        ? metrics.map((metric) => `${metric.code} ${formatCCCScore(metric.score)}%`).join("　")
+        : "教師評分尚未完成";
+      const teaching = cccPrintText(cccOptionLabel(CCC_BOOLEAN_OPTIONS, record.teaching), record.teachingNote);
+      const research = cccPrintText(cccOptionLabel(CCC_BOOLEAN_OPTIONS, record.research), record.researchNote);
+      const safetyParts = [
+        cccOptionLabel(CCC_BOOLEAN_OPTIONS, record.safety),
+        record.safetySeverity ? `嚴重性：${cccOptionLabel(CCC_SEVERITY_OPTIONS, record.safetySeverity)}` : "",
+        record.safetyDescription,
+        record.safetyImprovement ? `改善：${record.safetyImprovement}` : ""
+      ].filter(Boolean).join("；");
+      const conclusion = cccPrintText(
+        cccOptionLabel(CCC_CONCLUSION_OPTIONS, record.conclusion),
+        record.followUp ? `追蹤：${cccOptionLabel(CCC_FOLLOWUP_OPTIONS, record.followUp)}` : ""
+      );
+      const status = record.submittedAt ? `正式提交 ${formatReadableTime(record.submittedAt)}` : "草稿預覽";
+      return `
+        <p class="ccc-print-attachment">CCC 評核附件<span class="ccc-print-status">${escapeHTML(status)}</span></p>
+        <h1 class="ccc-print-title">放射腫瘤部 CCC 評核紀錄表</h1>
+        <div class="ccc-print-meta">
+          <span>姓名：<strong>${escapeHTML((record.residentName ?? resident.name) || "未命名")}</strong></span>
+          <span>級職：<strong>${escapeHTML(record.residentLevel ?? resident.level)}</strong></span>
+          <span>評核期別：<strong>${escapeHTML(record.periodName ?? period.name)}</strong></span>
+        </div>
+        <table class="ccc-print-score-table" aria-label="CCC 臨床綜合評分">
+          <thead><tr><th class="item">評分項目</th><th class="weight">佔分</th><th class="raw">原始分數</th><th class="weighted">加權得分</th></tr></thead>
+          <tbody>
+            <tr><td class="item">六大核心考核表<span class="ccc-print-core-breakdown">${escapeHTML(coreBreakdown)}</span></td><td class="weight">30%</td><td class="raw">${formatCCCScore(coreScore)}</td><td class="weighted">${formatCCCScore(coreContribution)}</td></tr>
+            <tr><td class="item">治療計畫平均分數</td><td class="weight">25%</td><td class="raw">${formatCCCScore(record.treatmentPlanScore)}</td><td class="weighted">${formatCCCScore(treatmentContribution)}</td></tr>
+            <tr><td class="item">Journal meeting 平均分數</td><td class="weight">25%</td><td class="raw">${formatCCCScore(record.journalMeetingScore)}</td><td class="weighted">${formatCCCScore(journalContribution)}</td></tr>
+            <tr><td class="item">學會年度考試分數</td><td class="weight">20%</td><td class="raw">${formatCCCScore(record.annualExamScore)}</td><td class="weighted">${formatCCCScore(examContribution)}</td></tr>
+            <tr class="ccc-print-total"><td colspan="3">綜合加權總分</td><td class="weighted">${formatCCCScore(weightedTotal)}</td></tr>
+          </tbody>
+        </table>
+        <table class="ccc-print-summary" aria-label="CCC 綜合結論">
+          <tbody>
+            <tr><th>EPA 臨床授權</th><td>${escapeHTML(cccOptionLabel(CCC_EPA_OPTIONS, record.epaLevel))}</td><th>學習護照</th><td>${escapeHTML(cccOptionLabel(CCC_BOOLEAN_OPTIONS, record.passport))}</td></tr>
+            <tr><th>教學</th><td>${escapeHTML(teaching)}</td><th>研究</th><td>${escapeHTML(research)}</td></tr>
+            <tr><th>病人安全與事件</th><td colspan="3">${escapeHTML(safetyParts || "—")}</td></tr>
+            <tr><th>CCC 結論</th><td colspan="3">${escapeHTML(conclusion)}</td></tr>
+          </tbody>
+        </table>
+        <div class="ccc-print-comments"><strong>CCC<br>總評語</strong><div>${escapeHTML(record.comments || "—")}</div></div>
+        <div class="ccc-print-comments learner"><strong>學員省思<br>與回饋</strong><div>${escapeHTML(record.learnerFeedback || "—")}<p class="ccc-print-learner-sign">學員簽名：${escapeHTML(record.learnerSignature || "________________")}</p></div></div>
+        <table class="ccc-print-signatures" aria-label="CCC 簽核欄">
+          <tbody>
+            <tr><td class="role">導師：</td><td class="name">${escapeHTML(record.mentorName || "")}</td><td class="date">日期：${escapeHTML(formatCCCPrintDate(record.mentorDate))}</td></tr>
+            <tr><td class="role">教學負責人：</td><td class="name">${escapeHTML(record.educationLeadName || "")}</td><td class="date">日期：${escapeHTML(formatCCCPrintDate(record.educationLeadDate))}</td></tr>
+            <tr><td class="role">科主任：</td><td class="name">${escapeHTML(record.chiefName || "")}</td><td class="date">日期：${escapeHTML(formatCCCPrintDate(record.chiefDate))}</td></tr>
+          </tbody>
+        </table>
+        <div class="ccc-print-footer"><span>本表由 CCC 核心能力評分系統產出</span><span>${escapeHTML(status)}</span></div>
+      `;
+    }
+
+    function finishCCCPrint() {
+      if (!document.body.classList.contains("print-ccc")) return;
+      document.body.classList.remove("print-ccc");
+      document.querySelector("#ccc-print-page-style")?.remove();
+      elements.cccPrintReport.setAttribute("aria-hidden", "true");
+      elements.cccPrintReport.innerHTML = "";
+      if (cccPrintOriginalTitle !== null) document.title = cccPrintOriginalTitle;
+      cccPrintOriginalTitle = null;
+    }
+
+    function exportCCCPDF() {
+      const { period, resident, assessment } = currentCCCContext();
+      if (!period || !resident || !assessment) {
+        showToast("目前沒有可匯出的 CCC 評核表。");
+        return;
+      }
+      const liveMetrics = cccCoreMetrics(assessment);
+      const source = assessment.cccSubmission || readCCCForm();
+      const record = {
+        ...source,
+        coreMetrics: source.coreMetrics || liveMetrics,
+        coreScore: source.coreScore ?? source.coreAverage ?? cccCoreScore(assessment, liveMetrics)
+      };
+      record.weightedTotal = source.weightedTotal ?? cccWeightedTotal(record.coreScore, record.treatmentPlanScore, record.journalMeetingScore, record.annualExamScore);
+      elements.cccPrintReport.innerHTML = cccPrintReportMarkup(period, resident, record);
+      elements.cccPrintReport.setAttribute("aria-hidden", "false");
+      document.querySelector("#ccc-print-page-style")?.remove();
+      const pageStyle = document.createElement("style");
+      pageStyle.id = "ccc-print-page-style";
+      pageStyle.textContent = "@page { size: A4 portrait; margin: 7mm; }";
+      document.head.appendChild(pageStyle);
+      cccPrintOriginalTitle = document.title;
+      document.title = `CCC_總評分表_${period.name}_${resident.name || resident.level}`.replace(/[\\/:*?"<>|]/g, "_");
+      document.body.classList.add("print-ccc");
+      requestAnimationFrame(() => window.print());
     }
 
     function legacyScoreGrid(assessment) {
@@ -1246,7 +1892,7 @@
     function residentHasProtectedData(period, residentId) {
       const assessment = period?.assessments?.[residentId];
       return Boolean(
-        assessment?.student || assessment?.teacher || assessment?.teacherDraft ||
+        assessment?.student || assessment?.teacher || assessment?.teacherDraft || assessment?.cccDraft || assessment?.cccSubmission ||
         state.auditLog.some((event) => event.periodId === period?.id && event.residentId === residentId)
       );
     }
@@ -1319,6 +1965,7 @@
           hint.classList.add("show");
           setTimeout(() => hint.classList.remove("show"), 1500);
           renderResidents(period);
+          renderCCCForm(period);
         });
       });
       elements.roster.querySelectorAll("[data-remove-resident]").forEach((button) => {
@@ -1346,6 +1993,9 @@
       if (Array.isArray(legacyScores)) {
         parts.push(`舊版：${legacyScores.map((score, index) => `${COMPETENCIES[index].code} ${score}`).join("、")}`);
       }
+      if (event.cccForm) {
+        parts.push(`CCC：六大核心 ${formatCCCScore(event.cccForm.coreScore ?? event.cccForm.coreAverage)}；綜合總分 ${formatCCCScore(event.cccForm.weightedTotal)}；${cccOptionLabel(CCC_CONCLUSION_OPTIONS, event.cccForm.conclusion)}`);
+      }
       return parts.join(" ／ ") || "—";
     }
 
@@ -1368,10 +2018,10 @@
           <thead><tr><th>事件</th><th>期別</th><th>人員</th><th>評分類型</th><th>教師／操作者</th><th>完成時間</th><th>評核快照</th></tr></thead>
           <tbody>${rows.map((event) => `
             <tr>
-              <td><span class="event-badge event-${event.type === "submission" ? "submit" : event.type === "unlock" ? "unlock" : "modify"}">${EVENT_LABELS[event.type] || event.type}</span></td>
+              <td><span class="event-badge event-${event.type === "submission" || event.type === "ccc-submission" ? "submit" : event.type === "unlock" ? "unlock" : "modify"}">${EVENT_LABELS[event.type] || event.type}</span></td>
               <td>${escapeHTML(event.periodName)}</td>
               <td><strong>${escapeHTML(event.residentLevel)}</strong> ${escapeHTML(event.residentName || "未命名")}</td>
-              <td>${event.role ? `<span class="status ${event.role === "student" ? "student-done" : "teacher-done"}">${ROLE_LABELS[event.role]}</span>` : "整份評分表"}</td>
+              <td>${event.role ? `<span class="status ${event.role === "student" ? "student-done" : "teacher-done"}">${ROLE_LABELS[event.role] || event.role}</span>` : "整份評分表"}</td>
               <td class="teacher-name">${escapeHTML(event.teacherName || event.actorName || "—")}</td>
               <td><span class="time-code">${formatAuditTime(event.occurredAt)}</span><br><small>${escapeHTML(formatReadableTime(event.occurredAt))}</small></td>
               <td class="score-list">${scoreText(event)}</td>
@@ -1699,11 +2349,15 @@
       ];
       const header = [
         "事件", "期別", "級別", "姓名", "評分類型", "教師姓名", "操作者", "完成時間",
+        "CCC 六大核心總分", "CCC 綜合總分", "CCC 結論", "CCC 導師", "CCC 提交時間",
         ...snapshotHeaders, ...snapshotHeaders.map((name) => `修改前 ${name}`)
       ];
       const body = rows.map((event) => [
         EVENT_LABELS[event.type] || event.type, event.periodName, event.residentLevel, event.residentName || "未命名",
         event.role ? ROLE_LABELS[event.role] : "整份評分表", event.teacherName || "", event.actorName || "", formatAuditTime(event.occurredAt),
+        event.cccForm?.coreScore ?? event.cccForm?.coreAverage ?? "", event.cccForm?.weightedTotal ?? "",
+        event.cccForm ? cccOptionLabel(CCC_CONCLUSION_OPTIONS, event.cccForm.conclusion) : "",
+        event.cccForm?.mentorName || "", event.cccForm?.submittedAt || "",
         ...auditCSVSnapshot(event), ...auditCSVSnapshot(event, true)
       ]);
       const csv = `\uFEFF${[header, ...body].map((row) => row.map(csvCell).join(",")).join("\r\n")}`;
@@ -1794,10 +2448,18 @@
       datasets.forEach((dataset) => plot(dataset.scores, dataset.color, dataset.dash || []));
     }
 
+    function selectPeriod(periodId) {
+      state.selectedPeriodId = periodId;
+      selectedCCCResidentId = null;
+      persist();
+      render();
+    }
+
     function switchTab(tabName) {
       elements.tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === tabName));
       elements.panels.forEach((panel) => { panel.hidden = panel.id !== `panel-${tabName}`; });
       if (tabName === "assessment") renderResidents(currentPeriod());
+      if (tabName === "ccc") renderCCCForm(currentPeriod());
       if (tabName === "roster") renderRoster(currentPeriod());
       if (tabName === "audit") renderAudit();
     }
@@ -1810,7 +2472,20 @@
     }
 
     elements.tabs.forEach((tab) => tab.addEventListener("click", () => switchTab(tab.dataset.tab)));
-    elements.periodSelect.addEventListener("change", () => { state.selectedPeriodId = elements.periodSelect.value; persist(); render(); });
+    elements.periodSelect.addEventListener("change", () => selectPeriod(elements.periodSelect.value));
+    elements.cccPeriodSelect.addEventListener("change", () => selectPeriod(elements.cccPeriodSelect.value));
+    elements.cccResidentSelect.addEventListener("change", () => {
+      selectedCCCResidentId = elements.cccResidentSelect.value;
+      renderCCCForm(currentPeriod());
+    });
+    elements.cccForm.addEventListener("input", updateCCCWeightedTotal);
+    elements.cccForm.addEventListener("click", (event) => {
+      const actionButton = event.target.closest("[data-ccc-action]");
+      if (!actionButton) return;
+      if (actionButton.dataset.cccAction === "draft") saveCCCDraft();
+      if (actionButton.dataset.cccAction === "export") exportCCCPDF();
+    });
+    elements.cccForm.addEventListener("submit", submitCCCForm);
     elements.addPeriodButton.addEventListener("click", () => {
       elements.periodName.value = `${new Date().getFullYear()} 年第 ${state.periods.length + 1} 期`;
       elements.periodDialog.showModal();
@@ -1826,6 +2501,7 @@
       if (event.key === "Enter") { event.preventDefault(); unlockModification(); }
     });
     elements.periodForm.addEventListener("submit", createPeriod);
+    window.addEventListener("afterprint", finishCCCPrint);
     document.querySelectorAll("[data-close-dialog]").forEach((button) => {
       button.addEventListener("click", () => document.querySelector(`#${button.dataset.closeDialog}`).close());
     });
