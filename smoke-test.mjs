@@ -16,7 +16,7 @@ assert.match(html, /function exportDataBackup\(\)/, "應提供完整 JSON 備份
 assert.match(html, /async function importDataBackup\(event\)/, "應提供完整 JSON 備份匯入流程");
 assert.match(html, /取代目前瀏覽器內的所有資料/, "匯入取代現有資料前應明確警告使用者");
 assert.match(html, /elements\.importDataInput\.addEventListener\("change", importDataBackup\)/, "選取備份檔後應啟動匯入流程");
-assert.match(html, /const SCHEMA_VERSION = 6/, "CCC 核心總分修正後應使用 schema v6");
+assert.match(html, /const SCHEMA_VERSION = 7/, "期別刪除稽核加入後應使用 schema v7");
 assert.match(html, /const ITEM_MAX_SCORE = 5/, "每個教師分項滿分應為 5 分");
 assert.match(html, /function itemScoreOptions\(selected = null\)/, "教師 0–5 分應由共用下拉選項產生");
 assert.match(html, /<select class="item-score-select"[^>]+required>/, "教師分項應使用 0–5 下拉選單");
@@ -37,6 +37,16 @@ assert.match(html, /assessment\?\.cccSubmission/, "CCC 正式提交存在時不�
 assert.match(html, /type: "unlock"/, "密碼解鎖應建立稽核事件");
 assert.match(html, /type: "modification"/, "分數修改應建立稽核事件");
 assert.match(html, /const ADMIN_PASSWORD = "tsgh123"/, "應設定預設管理密碼");
+assert.match(html, /id="renamePeriodButton"[^>]*>更改期別名稱<\/button>/, "應提供更改目前期別名稱的入口");
+assert.match(html, /id="renamePeriodName"[^>]*type="text"/, "期別重新命名應使用一般文字欄位");
+assert.match(html, /id="deletePeriodButton"[^>]*>刪除目前期別<\/button>/, "應提供刪除目前期別的操作入口");
+assert.match(html, /id="deletePeriodPassword"[^>]*type="password"/, "刪除期別應透過密碼欄位驗證");
+assert.match(html, /type: "period-deletion"/, "刪除期別應建立獨立稽核事件");
+assert.match(html, /periodSummary: periodAuditSummary\(period\)/, "期別刪除稽核應保存刪除當下的資料摘要");
+assert.match(html, /const AUDIT_PASSWORD = "DOC12345"/, "稽核紀錄頁應設定獨立檢視密碼");
+assert.match(html, /id="auditAuthForm"/, "稽核紀錄頁應先顯示密碼驗證表單");
+assert.match(html, /if \(!auditUnlocked\) \{\s*elements\.auditContent\.innerHTML = "";/, "稽核頁未解鎖時不得把紀錄渲染到頁面");
+assert.match(html, /if \(!auditUnlocked\) \{ showToast\("請先輸入稽核檢視密碼。"\); return; \}/, "未解鎖時不得匯出稽核 CSV");
 assert.match(html, /function exportAuditCSV\(\)/, "稽核紀錄應可匯出試算表 CSV");
 assert.match(html, /window\.print\(\)/, "六大核心頁應支援列印為 PDF");
 assert.match(html, /@page \{ size: A4 landscape/, "列印版應使用 A4 橫式");
@@ -156,10 +166,12 @@ function extractFunction(name) {
   return match[0];
 }
 
+assert.doesNotMatch(extractFunction("renamePeriod"), /password|addAuditEvent/, "更改期別名稱不得要求密碼或新增稽核事件");
+
 const backupLogic = new Function(`
   const DATA_BACKUP_APP = "DocCCC";
   const DATA_BACKUP_VERSION = 1;
-  const SCHEMA_VERSION = 6;
+  const SCHEMA_VERSION = 7;
   const RESIDENT_LEVELS = ["R1", "R2", "R3", "R4"];
   const ITEM_MAX_SCORE = 5;
   const COMPETENCIES = Array.from({ length: 6 }, () => ({}));
@@ -171,7 +183,7 @@ const backupLogic = new Function(`
   return { createDataBackup, parseDataBackup };
 `)();
 const backupState = {
-  schemaVersion: 6,
+  schemaVersion: 7,
   periods: [{
     id: "period-1", name: "2026 年第 2 期", residents: [{ id: "r1", level: "R1", name: "測試醫師" }],
     assessments: { r1: { student: { levels: [3, 3, 3, 3, 3, 3], submittedAt: "2026-08-10T07:00:00.000Z" }, teacher: null, cccDraft: { comments: "保留草稿" } } }
@@ -185,9 +197,12 @@ assert.equal(backupPayload.backupVersion, 1, "完整備份應帶有獨立格式�
 assert.equal(backupPayload.exportedAt, "2026-08-10T08:00:00.000Z", "完整備份應記錄匯出時間");
 assert.deepEqual(backupPayload.data, backupState, "完整備份應包含期別、名單、評分、草稿與稽核狀態");
 assert.deepEqual(backupLogic.parseDataBackup(JSON.stringify(backupPayload)), backupState, "有效備份應可在另一個瀏覽器還原完整狀態");
+const deletionAuditBackup = structuredClone(backupPayload);
+deletionAuditBackup.data.auditLog.push({ type: "period-deletion", role: null, periodName: "已刪除期別", occurredAt: "2026-08-10T08:30:00.000Z" });
+assert.equal(backupLogic.parseDataBackup(JSON.stringify(deletionAuditBackup)).auditLog.at(-1).type, "period-deletion", "含期別刪除事件的備份應可還原");
 assert.throws(() => backupLogic.parseDataBackup("{}"), /有效的 DocCCC 備份/, "不得匯入其他 JSON 檔案");
 assert.throws(
-  () => backupLogic.parseDataBackup(JSON.stringify({ ...backupPayload, schemaVersion: 7 })),
+  () => backupLogic.parseDataBackup(JSON.stringify({ ...backupPayload, schemaVersion: 8 })),
   /較新版 DocCCC/,
   "不得用舊版網頁匯入較新 schema 的備份"
 );
@@ -200,6 +215,9 @@ const replacedBackupState = new Function(`
   let selectedCCCResidentId = "old-resident";
   let activeScoreContext = { open: true };
   let activeModifyContext = { open: true };
+  let activeDeletePeriodId = "old-period";
+  let activeRenamePeriodId = "old-period";
+  let auditUnlocked = true;
   let persistCount = 0;
   let renderCount = 0;
   const persist = () => { persistCount += 1; return true; };
@@ -207,7 +225,7 @@ const replacedBackupState = new Function(`
   ${extractFunction("replaceStateFromBackup")}
   const importedState = { marker: "imported" };
   const replaced = replaceStateFromBackup(importedState);
-  return { state, importedState, selectedCCCResidentId, activeScoreContext, activeModifyContext, persistCount, renderCount, replaced };
+  return { state, importedState, selectedCCCResidentId, activeScoreContext, activeModifyContext, activeDeletePeriodId, activeRenamePeriodId, auditUnlocked, persistCount, renderCount, replaced };
 `)();
 assert.equal(replacedBackupState.replaced, true, "有效匯入應回報已完成取代");
 assert.strictEqual(replacedBackupState.state, replacedBackupState.importedState, "匯入應以備份完整取代目前瀏覽器狀態");
@@ -216,6 +234,9 @@ assert.equal(replacedBackupState.renderCount, 1, "匯入完成後應重新渲染
 assert.equal(replacedBackupState.selectedCCCResidentId, null, "匯入後應清除舊瀏覽器的 CCC 人員選取狀態");
 assert.equal(replacedBackupState.activeScoreContext, null, "匯入後應清除舊評分操作狀態");
 assert.equal(replacedBackupState.activeModifyContext, null, "匯入後應清除舊修改操作狀態");
+assert.equal(replacedBackupState.activeDeletePeriodId, null, "匯入後應清除舊期別刪除操作狀態");
+assert.equal(replacedBackupState.activeRenamePeriodId, null, "匯入後應清除舊期別重新命名狀態");
+assert.equal(replacedBackupState.auditUnlocked, false, "匯入後應重新鎖定稽核紀錄頁");
 
 const rejectedBackupReplacement = new Function(`
   let state = { marker: "old" };
@@ -258,6 +279,128 @@ assert.equal(importHandlerResult.importedState.periods.length, 2, "確認匯入�
 assert.match(importHandlerResult.confirmation, /2 個期別、3 筆名單資料/, "匯入確認應顯示即將取代的資料筆數");
 assert.match(importHandlerResult.toast, /已匯入 2 個期別/, "匯入完成後應回報結果");
 assert.equal(importHandlerResult.inputValue, "", "每次匯入後應清空檔案欄位以允許重選同一檔案");
+
+const renamedPeriod = new Function(`
+  let state = {
+    periods: [
+      { id: "p1", name: "2026 年第 1 期", residents: [{ id: "r1" }], assessments: { r1: { student: {} } } },
+      { id: "p2", name: "2026 年第 2 期", residents: [], assessments: {} }
+    ],
+    selectedPeriodId: "p1",
+    auditLog: [{ id: "existing-audit" }]
+  };
+  let activeRenamePeriodId = "p1";
+  let persistCount = 0;
+  let renderCount = 0;
+  const residentsBefore = state.periods[0].residents;
+  const assessmentsBefore = state.periods[0].assessments;
+  const auditBefore = state.auditLog;
+  const elements = {
+    renamePeriodName: { value: "2026 年第 2 期", selectCount: 0, focusCount: 0, select() { this.selectCount += 1; }, focus() { this.focusCount += 1; } },
+    renamePeriodDialog: { closeCount: 0, close() { this.closeCount += 1; } },
+    renamePeriodForm: { resetCount: 0, reset() { this.resetCount += 1; } }
+  };
+  const persist = () => { persistCount += 1; return true; };
+  const render = () => { renderCount += 1; };
+  const showToast = () => {};
+  ${extractFunction("renamePeriod")}
+  renamePeriod({ preventDefault() {} });
+  const afterDuplicate = { name: state.periods[0].name, persistCount, auditCount: state.auditLog.length };
+  elements.renamePeriodName.value = "  2026 年上半年  ";
+  renamePeriod({ preventDefault() {} });
+  return {
+    state, persistCount, renderCount, afterDuplicate,
+    sameResidents: state.periods[0].residents === residentsBefore,
+    sameAssessments: state.periods[0].assessments === assessmentsBefore,
+    sameAuditLog: state.auditLog === auditBefore
+  };
+`)();
+assert.deepEqual(renamedPeriod.afterDuplicate, { name: "2026 年第 1 期", persistCount: 0, auditCount: 1 }, "重新命名不得接受與其他期別重複的名稱");
+assert.equal(renamedPeriod.state.periods[0].name, "2026 年上半年", "重新命名應整理空白並更新目前期別名稱");
+assert.equal(renamedPeriod.state.periods[1].name, "2026 年第 2 期", "重新命名不得影響其他期別");
+assert.equal(renamedPeriod.state.selectedPeriodId, "p1", "重新命名後應維持目前選取期別");
+assert.equal(renamedPeriod.sameResidents, true, "重新命名不得重建或修改名單快照");
+assert.equal(renamedPeriod.sameAssessments, true, "重新命名不得重建或修改評核資料");
+assert.equal(renamedPeriod.sameAuditLog, true, "重新命名不得改寫稽核紀錄陣列");
+assert.equal(renamedPeriod.state.auditLog.length, 1, "重新命名不得新增稽核事件");
+assert.equal(renamedPeriod.persistCount, 1, "有效的新名稱應持久化一次");
+assert.equal(renamedPeriod.renderCount, 1, "重新命名完成後應重新渲染一次");
+
+const deletedPeriod = new Function(`
+  const ADMIN_PASSWORD = "tsgh123";
+  let state = {
+    periods: [
+      {
+        id: "p1", name: "2026 年第 1 期", residents: [{ id: "r1", level: "R1", name: "測試醫師" }],
+        assessments: { r1: { student: {}, teacher: {}, teacherDraft: {}, cccDraft: {}, cccSubmission: {} } }
+      },
+      { id: "p2", name: "2026 年第 2 期", residents: [], assessments: {} }
+    ],
+    selectedPeriodId: "p1",
+    auditLog: [{ id: "existing-audit", type: "submission" }]
+  };
+  let activeDeletePeriodId = "p1";
+  let selectedCCCResidentId = "r1";
+  let persistCount = 0;
+  let renderCount = 0;
+  const toasts = [];
+  const elements = {
+    deletePeriodPassword: { value: "wrong", selectCount: 0, select() { this.selectCount += 1; } },
+    deletePeriodDialog: { closeCount: 0, close() { this.closeCount += 1; } },
+    deletePeriodForm: { resetCount: 0, reset() { this.resetCount += 1; } }
+  };
+  const persist = () => { persistCount += 1; return true; };
+  const render = () => { renderCount += 1; };
+  const showToast = (message) => { toasts.push(message); };
+  ${extractFunction("addAuditEvent")}
+  ${extractFunction("periodAuditSummary")}
+  ${extractFunction("deletePeriod")}
+  deletePeriod({ preventDefault() {} });
+  const afterWrongPassword = { periodCount: state.periods.length, auditCount: state.auditLog.length, persistCount };
+  elements.deletePeriodPassword.value = ADMIN_PASSWORD;
+  deletePeriod({ preventDefault() {} });
+  activeDeletePeriodId = "p2";
+  deletePeriod({ preventDefault() {} });
+  const afterLastPeriodAttempt = { periodCount: state.periods.length, auditCount: state.auditLog.length, persistCount };
+  return { state, selectedCCCResidentId, persistCount, renderCount, elements, toasts, afterWrongPassword, afterLastPeriodAttempt };
+`)();
+assert.deepEqual(deletedPeriod.afterWrongPassword, { periodCount: 2, auditCount: 1, persistCount: 0 }, "錯誤管理密碼不得刪除期別或新增稽核事件");
+assert.deepEqual(deletedPeriod.state.periods.map((period) => period.id), ["p2"], "正確管理密碼應只刪除指定期別");
+assert.equal(deletedPeriod.state.selectedPeriodId, "p2", "刪除目前期別後應選取相鄰期別");
+assert.equal(deletedPeriod.state.auditLog[0].id, "existing-audit", "刪除期別不得覆蓋既有稽核紀錄");
+assert.equal(deletedPeriod.state.auditLog[1].type, "period-deletion", "刪除期別後應附加專屬稽核事件");
+assert.deepEqual(
+  deletedPeriod.state.auditLog[1].periodSummary,
+  { residentCount: 1, studentSubmissionCount: 1, teacherSubmissionCount: 1, teacherDraftCount: 1, cccDraftCount: 1, cccSubmissionCount: 1 },
+  "期別刪除事件應保存刪除前的名單、提交與草稿數量"
+);
+assert.equal(deletedPeriod.selectedCCCResidentId, null, "刪除期別後應清除 CCC 人員選取狀態");
+assert.equal(deletedPeriod.persistCount, 1, "成功刪除應只持久化一次");
+assert.equal(deletedPeriod.renderCount, 1, "成功刪除後應重新渲染一次");
+assert.deepEqual(deletedPeriod.afterLastPeriodAttempt, { periodCount: 1, auditCount: 2, persistCount: 1 }, "不得刪除最後一個期別或誤留刪除事件");
+
+const auditUnlock = new Function(`
+  const AUDIT_PASSWORD = "DOC12345";
+  let auditUnlocked = false;
+  let renderCount = 0;
+  const toasts = [];
+  const elements = {
+    auditPassword: { value: "wrong", selectCount: 0, select() { this.selectCount += 1; } },
+    auditAuthForm: { resetCount: 0, reset() { this.resetCount += 1; } }
+  };
+  const renderAudit = () => { renderCount += 1; };
+  const showToast = (message) => { toasts.push(message); };
+  ${extractFunction("unlockAudit")}
+  unlockAudit({ preventDefault() {} });
+  const wrongPasswordUnlocked = auditUnlocked;
+  elements.auditPassword.value = AUDIT_PASSWORD;
+  unlockAudit({ preventDefault() {} });
+  return { auditUnlocked, wrongPasswordUnlocked, renderCount, elements, toasts };
+`)();
+assert.equal(auditUnlock.wrongPasswordUnlocked, false, "錯誤稽核密碼不得顯示稽核紀錄");
+assert.equal(auditUnlock.auditUnlocked, true, "正確稽核密碼應解鎖稽核紀錄");
+assert.equal(auditUnlock.renderCount, 1, "成功解鎖後才應渲染稽核紀錄");
+assert.equal(auditUnlock.elements.auditAuthForm.resetCount, 1, "成功解鎖後應清除密碼欄位");
 
 const cccMath = new Function(`
   ${extractFunction("cccScoreValue")}

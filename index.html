@@ -286,10 +286,15 @@
     .time-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; color: var(--green); }
     .score-list { color: var(--muted); font-size: 12px; white-space: nowrap; }
     .audit-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+    .audit-auth { max-width: 460px; margin: 36px auto 12px; padding: 24px; border: 1px solid var(--line); border-radius: 18px; background: #fbfbf7; }
+    .audit-auth h3 { margin: 0 0 8px; font-size: 20px; }
+    .audit-auth p { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+    .audit-auth .simple-field { margin-bottom: 14px; }
     .event-badge { display: inline-flex; padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
     .event-submit { color: var(--green); background: #e8f0e9; }
     .event-unlock { color: #76500d; background: #fff2d2; }
     .event-modify { color: #6d2d83; background: #f4e7f8; }
+    .event-delete { color: #a1282d; background: #fff0f0; }
     .teacher-name { color: #124eae; font-weight: 800; }
     .print-header, .print-score-grid, .formal-print-report { display: none; }
 
@@ -646,6 +651,8 @@
         </div>
         <div class="toolbar-group">
           <button id="printButton" class="btn btn-secondary" type="button">匯出 PDF</button>
+          <button id="renamePeriodButton" class="btn btn-secondary" type="button">更改期別名稱</button>
+          <button id="deletePeriodButton" class="btn btn-red" type="button">刪除目前期別</button>
           <button id="addPeriodButton" class="btn btn-primary" type="button">＋ 新增期別</button>
         </div>
       </div>
@@ -681,11 +688,20 @@
       <div class="section-card">
         <div class="audit-heading">
           <div>
-            <h2 class="section-heading">提交稽核紀錄</h2>
-            <p class="section-help">提交、解鎖與修改都會保存完成時間、操作者，以及當次分項分數與 Level 快照。</p>
+            <h2 class="section-heading">操作稽核紀錄</h2>
+            <p class="section-help">評核提交、管理解鎖、分數修改與期別刪除都會保存時間、操作者及當下資料快照。</p>
           </div>
           <button id="exportAuditButton" class="btn btn-primary" type="button">匯出 Excel（CSV）</button>
         </div>
+        <form id="auditAuthForm" class="audit-auth">
+          <h3>稽核紀錄已保護</h3>
+          <p>請輸入稽核檢視密碼後查看與匯出紀錄。重新整理頁面後需再次驗證。</p>
+          <div class="simple-field">
+            <label for="auditPassword">稽核檢視密碼</label>
+            <input id="auditPassword" name="auditPassword" type="password" autocomplete="current-password" required placeholder="輸入稽核檢視密碼">
+          </div>
+          <button class="btn btn-primary" type="submit">驗證並查看</button>
+        </form>
         <div id="auditContent" class="audit-wrap"></div>
       </div>
     </section>
@@ -778,6 +794,51 @@
     </form>
   </dialog>
 
+  <dialog id="deletePeriodDialog">
+    <form id="deletePeriodForm">
+      <div class="dialog-head">
+        <div>
+          <h2>刪除評分期別</h2>
+          <p id="deletePeriodMeta"></p>
+        </div>
+        <button class="icon-button" data-close-dialog="deletePeriodDialog" type="button" aria-label="關閉">×</button>
+      </div>
+      <div class="dialog-body">
+        <div class="simple-field">
+          <label for="deletePeriodPassword">管理密碼</label>
+          <input id="deletePeriodPassword" name="deletePeriodPassword" type="password" autocomplete="current-password" required placeholder="輸入管理密碼">
+        </div>
+        <div class="lock-warning">刪除後無法復原，但這個期別原有的稽核紀錄與本次「期別刪除」事件都會保留。</div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" data-close-dialog="deletePeriodDialog" type="button">取消</button>
+          <button class="btn btn-red" type="submit">確認刪除期別</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="renamePeriodDialog">
+    <form id="renamePeriodForm">
+      <div class="dialog-head">
+        <div>
+          <h2>更改期別名稱</h2>
+          <p id="renamePeriodMeta"></p>
+        </div>
+        <button class="icon-button" data-close-dialog="renamePeriodDialog" type="button" aria-label="關閉">×</button>
+      </div>
+      <div class="dialog-body">
+        <div class="simple-field">
+          <label for="renamePeriodName">新期別名稱</label>
+          <input id="renamePeriodName" name="renamePeriodName" type="text" maxlength="40" required>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" data-close-dialog="renamePeriodDialog" type="button">取消</button>
+          <button class="btn btn-primary" type="submit">儲存名稱</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="scoreDetailDialog" class="assessment-dialog">
     <div class="dialog-head">
       <div>
@@ -793,10 +854,11 @@
 
   <script>
     const STORAGE_KEY = "docccc-assessment-v1";
-    const SCHEMA_VERSION = 6;
+    const SCHEMA_VERSION = 7;
     const DATA_BACKUP_APP = "DocCCC";
     const DATA_BACKUP_VERSION = 1;
     const ADMIN_PASSWORD = "tsgh123";
+    const AUDIT_PASSWORD = "DOC12345";
     const ITEM_MAX_SCORE = 5;
     const COMPETENCIES = [
       {
@@ -860,7 +922,7 @@
     const RESIDENT_LEVELS = ["R1", "R2", "R3", "R4"];
     const ROLE_LABELS = { student: "學生自評", teacher: "教師評分", ccc: "CCC 評核表" };
     const ROLE_COLORS = { student: "#e5484d", teacher: "#1769ff", absolute: "#1d6b50" };
-    const EVENT_LABELS = { submission: "完成提交", "ccc-submission": "CCC 正式提交", unlock: "管理解鎖", modification: "分數修改" };
+    const EVENT_LABELS = { submission: "完成提交", "ccc-submission": "CCC 正式提交", unlock: "管理解鎖", modification: "分數修改", "period-deletion": "期別刪除" };
     const CCC_EPA_OPTIONS = [
       ["L1", "L1：無法安全執行"], ["L2", "L2：需指導"], ["L3", "L3：事後確認"],
       ["L4", "L4：可獨立"], ["L5", "L5：可教學"]
@@ -968,7 +1030,10 @@
     let state = loadState();
     let activeScoreContext = null;
     let activeModifyContext = null;
+    let activeDeletePeriodId = null;
+    let activeRenamePeriodId = null;
     let selectedCCCResidentId = null;
+    let auditUnlocked = false;
     let cccPrintOriginalTitle = null;
     let toastTimer = null;
 
@@ -977,6 +1042,8 @@
       panels: document.querySelectorAll(".panel"),
       periodSelect: document.querySelector("#periodSelect"),
       addPeriodButton: document.querySelector("#addPeriodButton"),
+      renamePeriodButton: document.querySelector("#renamePeriodButton"),
+      deletePeriodButton: document.querySelector("#deletePeriodButton"),
       printButton: document.querySelector("#printButton"),
       printPeriodName: document.querySelector("#printPeriodName"),
       stats: document.querySelector("#stats"),
@@ -990,6 +1057,8 @@
       roster: document.querySelector("#roster"),
       rosterPeriodName: document.querySelector("#rosterPeriodName"),
       auditContent: document.querySelector("#auditContent"),
+      auditAuthForm: document.querySelector("#auditAuthForm"),
+      auditPassword: document.querySelector("#auditPassword"),
       exportAuditButton: document.querySelector("#exportAuditButton"),
       exportDataButton: document.querySelector("#exportDataButton"),
       importDataButton: document.querySelector("#importDataButton"),
@@ -1017,6 +1086,14 @@
       periodDialog: document.querySelector("#periodDialog"),
       periodForm: document.querySelector("#periodForm"),
       periodName: document.querySelector("#periodName"),
+      deletePeriodDialog: document.querySelector("#deletePeriodDialog"),
+      deletePeriodForm: document.querySelector("#deletePeriodForm"),
+      deletePeriodMeta: document.querySelector("#deletePeriodMeta"),
+      deletePeriodPassword: document.querySelector("#deletePeriodPassword"),
+      renamePeriodDialog: document.querySelector("#renamePeriodDialog"),
+      renamePeriodForm: document.querySelector("#renamePeriodForm"),
+      renamePeriodMeta: document.querySelector("#renamePeriodMeta"),
+      renamePeriodName: document.querySelector("#renamePeriodName"),
       scoreDetailDialog: document.querySelector("#scoreDetailDialog"),
       scoreDetailMeta: document.querySelector("#scoreDetailMeta"),
       scoreDetailContent: document.querySelector("#scoreDetailContent"),
@@ -1079,7 +1156,7 @@
         });
       });
       const validAudit = value.auditLog.every((event) => event && typeof event === "object" &&
-        ["submission", "ccc-submission", "unlock", "modification"].includes(event.type) &&
+        ["submission", "ccc-submission", "unlock", "modification", "period-deletion"].includes(event.type) &&
         (event.role === null || event.role === undefined || ["student", "teacher", "ccc"].includes(event.role)) && validDate(event.occurredAt));
       return validPeriods && validAudit;
     }
@@ -1132,6 +1209,9 @@
       selectedCCCResidentId = null;
       activeScoreContext = null;
       activeModifyContext = null;
+      activeDeletePeriodId = null;
+      activeRenamePeriodId = null;
+      auditUnlocked = false;
       render();
       return true;
     }
@@ -1324,19 +1404,15 @@
       }).format(new Date(iso));
     }
 
-    function addAuditEvent({
-      type, period, resident, role = null, scores = null, beforeScores = null,
-      levels = null, beforeLevels = null, itemScores = null, beforeItemScores = null,
-      teacherName = "", actorName = "", cccForm = null
-    }) {
+    function addAuditEvent({ type, period, resident, role = null, scores = null, beforeScores = null, levels = null, beforeLevels = null, itemScores = null, beforeItemScores = null, teacherName = "", actorName = "", cccForm = null, periodSummary = null }) {
       state.auditLog.push({
         id: `audit-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         type,
         periodId: period.id,
         periodName: period.name,
-        residentId: resident.id,
-        residentLevel: resident.level,
-        residentName: resident.name || "",
+        residentId: resident?.id || "",
+        residentLevel: resident?.level || "",
+        residentName: resident?.name || "",
         role,
         teacherName,
         actorName,
@@ -1347,7 +1423,8 @@
         beforeLevels: beforeLevels ? [...beforeLevels] : null,
         itemScores: itemScores ? [...itemScores] : null,
         beforeItemScores: beforeItemScores ? [...beforeItemScores] : null,
-        cccForm: cccForm ? { ...cccForm, coreMetrics: cccForm.coreMetrics?.map((metric) => ({ ...metric })) || null } : null
+        cccForm: cccForm ? { ...cccForm, coreMetrics: cccForm.coreMetrics?.map((metric) => ({ ...metric })) || null } : null,
+        periodSummary: periodSummary ? { ...periodSummary } : null
       });
     }
 
@@ -1371,6 +1448,9 @@
       elements.cccPeriodSelect.innerHTML = options;
       elements.periodSelect.disabled = state.periods.length === 0;
       elements.cccPeriodSelect.disabled = state.periods.length === 0;
+      elements.renamePeriodButton.disabled = state.periods.length === 0;
+      elements.deletePeriodButton.disabled = state.periods.length <= 1;
+      elements.deletePeriodButton.title = state.periods.length <= 1 ? "至少需保留一個期別" : "刪除目前選取的期別";
     }
 
     function renderStats(period) {
@@ -2112,6 +2192,11 @@
       return [...state.auditLog].sort((a, b) => new Date(b.occurredAt) - new Date(a.occurredAt));
     }
 
+    function periodSummaryText(summary) {
+      if (!summary) return "";
+      return `名單 ${summary.residentCount} 位；學生提交 ${summary.studentSubmissionCount}、教師提交 ${summary.teacherSubmissionCount}、教師暫存 ${summary.teacherDraftCount}、CCC 提交 ${summary.cccSubmissionCount}、CCC 暫存 ${summary.cccDraftCount}`;
+    }
+
     function auditSnapshotText(event, before = false) {
       const itemScores = before ? event.beforeItemScores : event.itemScores;
       const levels = before ? event.beforeLevels : event.levels;
@@ -2131,6 +2216,7 @@
       if (event.cccForm) {
         parts.push(`CCC：六大核心 ${formatCCCScore(event.cccForm.coreScore ?? event.cccForm.coreAverage)}；綜合總分 ${formatCCCScore(event.cccForm.weightedTotal)}；${cccOptionLabel(CCC_CONCLUSION_OPTIONS, event.cccForm.conclusion)}`);
       }
+      if (event.periodSummary) parts.push(`刪除期別快照：${periodSummaryText(event.periodSummary)}`);
       return parts.join(" ／ ") || "—";
     }
 
@@ -2142,6 +2228,12 @@
     }
 
     function renderAudit() {
+      elements.auditAuthForm.hidden = auditUnlocked;
+      elements.exportAuditButton.hidden = !auditUnlocked;
+      if (!auditUnlocked) {
+        elements.auditContent.innerHTML = "";
+        return;
+      }
       const rows = getAuditRows();
       elements.exportAuditButton.disabled = rows.length === 0;
       if (rows.length === 0) {
@@ -2153,10 +2245,10 @@
           <thead><tr><th>事件</th><th>期別</th><th>人員</th><th>評分類型</th><th>教師／操作者</th><th>完成時間</th><th>評核快照</th></tr></thead>
           <tbody>${rows.map((event) => `
             <tr>
-              <td><span class="event-badge event-${event.type === "submission" || event.type === "ccc-submission" ? "submit" : event.type === "unlock" ? "unlock" : "modify"}">${EVENT_LABELS[event.type] || event.type}</span></td>
+              <td><span class="event-badge event-${event.type === "submission" || event.type === "ccc-submission" ? "submit" : event.type === "unlock" ? "unlock" : event.type === "period-deletion" ? "delete" : "modify"}">${EVENT_LABELS[event.type] || event.type}</span></td>
               <td>${escapeHTML(event.periodName)}</td>
-              <td><strong>${escapeHTML(event.residentLevel)}</strong> ${escapeHTML(event.residentName || "未命名")}</td>
-              <td>${event.role ? `<span class="status ${event.role === "student" ? "student-done" : "teacher-done"}">${ROLE_LABELS[event.role] || event.role}</span>` : "整份評分表"}</td>
+              <td>${event.residentId ? `<strong>${escapeHTML(event.residentLevel)}</strong> ${escapeHTML(event.residentName || "未命名")}` : "—"}</td>
+              <td>${event.type === "period-deletion" ? "期別" : event.role ? `<span class="status ${event.role === "student" ? "student-done" : "teacher-done"}">${ROLE_LABELS[event.role] || event.role}</span>` : "整份評分表"}</td>
               <td class="teacher-name">${escapeHTML(event.teacherName || event.actorName || "—")}</td>
               <td><span class="time-code">${formatAuditTime(event.occurredAt)}</span><br><small>${escapeHTML(formatReadableTime(event.occurredAt))}</small></td>
               <td class="score-list">${scoreText(event)}</td>
@@ -2164,6 +2256,19 @@
           `).join("")}</tbody>
         </table>
       `;
+    }
+
+    function unlockAudit(event) {
+      event.preventDefault();
+      if (elements.auditPassword.value !== AUDIT_PASSWORD) {
+        showToast("稽核檢視密碼不正確。");
+        elements.auditPassword.select();
+        return;
+      }
+      auditUnlocked = true;
+      elements.auditAuthForm.reset();
+      renderAudit();
+      showToast("稽核紀錄已解鎖。");
     }
 
     function levelOptions(selected = null) {
@@ -2452,6 +2557,102 @@
       showToast(`已建立「${name}」，名單已複製且與舊期別分開。`);
     }
 
+    function openRenamePeriodDialog() {
+      const period = currentPeriod();
+      if (!period) { showToast("目前沒有可更改名稱的期別。"); return; }
+      activeRenamePeriodId = period.id;
+      elements.renamePeriodMeta.textContent = `目前名稱：${period.name}`;
+      elements.renamePeriodName.value = period.name;
+      elements.renamePeriodDialog.showModal();
+      elements.renamePeriodName.select();
+    }
+
+    function renamePeriod(event) {
+      event.preventDefault();
+      const period = state.periods.find((item) => item.id === activeRenamePeriodId);
+      if (!period) { elements.renamePeriodDialog.close(); showToast("找不到要更改名稱的期別。"); return; }
+      const name = elements.renamePeriodName.value.trim();
+      if (!name) { showToast("請輸入期別名稱。"); elements.renamePeriodName.focus(); return; }
+      if (state.periods.some((item) => item.id !== period.id && item.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+        showToast("期別名稱已存在，請使用其他名稱。");
+        elements.renamePeriodName.select();
+        return;
+      }
+      if (name === period.name) { elements.renamePeriodDialog.close(); showToast("期別名稱沒有變動。"); return; }
+
+      const previousName = period.name;
+      period.name = name;
+      if (!persist()) {
+        period.name = previousName;
+        showToast("期別名稱儲存失敗，原名稱仍保留。");
+        return;
+      }
+      elements.renamePeriodDialog.close();
+      elements.renamePeriodForm.reset();
+      activeRenamePeriodId = null;
+      render();
+      showToast(`期別已更名為「${name}」。`);
+    }
+
+    function periodAuditSummary(period) {
+      const assessments = Object.values(period?.assessments || {});
+      return {
+        residentCount: period?.residents?.length || 0,
+        studentSubmissionCount: assessments.filter((assessment) => assessment?.student).length,
+        teacherSubmissionCount: assessments.filter((assessment) => assessment?.teacher).length,
+        teacherDraftCount: assessments.filter((assessment) => assessment?.teacherDraft).length,
+        cccDraftCount: assessments.filter((assessment) => assessment?.cccDraft).length,
+        cccSubmissionCount: assessments.filter((assessment) => assessment?.cccSubmission).length
+      };
+    }
+
+    function openDeletePeriodDialog() {
+      const period = currentPeriod();
+      if (!period) { showToast("目前沒有可刪除的期別。"); return; }
+      if (state.periods.length <= 1) { showToast("至少需保留一個期別，請先新增其他期別。"); return; }
+      activeDeletePeriodId = period.id;
+      elements.deletePeriodMeta.textContent = `即將刪除「${period.name}」及其中所有名單、評分與 CCC 評核表資料。`;
+      elements.deletePeriodForm.reset();
+      elements.deletePeriodDialog.showModal();
+      elements.deletePeriodPassword.focus();
+    }
+
+    function deletePeriod(event) {
+      event.preventDefault();
+      const periodIndex = state.periods.findIndex((period) => period.id === activeDeletePeriodId);
+      const period = state.periods[periodIndex];
+      if (!period) { elements.deletePeriodDialog.close(); showToast("找不到要刪除的期別。"); return; }
+      if (state.periods.length <= 1) { showToast("至少需保留一個期別，無法刪除。"); return; }
+      if (elements.deletePeriodPassword.value !== ADMIN_PASSWORD) {
+        showToast("管理密碼不正確。");
+        elements.deletePeriodPassword.select();
+        return;
+      }
+
+      const previousPeriods = state.periods;
+      const previousSelectedPeriodId = state.selectedPeriodId;
+      const previousAuditLength = state.auditLog.length;
+      addAuditEvent({
+        type: "period-deletion", period, resident: null,
+        actorName: "管理者（密碼驗證）", periodSummary: periodAuditSummary(period)
+      });
+      state.periods = state.periods.filter((item) => item.id !== period.id);
+      state.selectedPeriodId = state.periods[periodIndex]?.id || state.periods[periodIndex - 1]?.id || null;
+      selectedCCCResidentId = null;
+      if (!persist()) {
+        state.periods = previousPeriods;
+        state.selectedPeriodId = previousSelectedPeriodId;
+        state.auditLog.length = previousAuditLength;
+        showToast("期別刪除失敗，原始資料仍保留。");
+        return;
+      }
+      elements.deletePeriodDialog.close();
+      elements.deletePeriodForm.reset();
+      activeDeletePeriodId = null;
+      render();
+      showToast(`已刪除「${period.name}」，稽核紀錄已保留。`);
+    }
+
     function csvCell(value) {
       let text = String(value ?? "");
       if (/^[=+\-@]/.test(text)) text = `'${text}`;
@@ -2473,6 +2674,7 @@
     }
 
     function exportAuditCSV() {
+      if (!auditUnlocked) { showToast("請先輸入稽核檢視密碼。"); return; }
       const rows = getAuditRows();
       if (rows.length === 0) { showToast("目前沒有可匯出的稽核紀錄。"); return; }
       const snapshotHeaders = [
@@ -2484,15 +2686,15 @@
       ];
       const header = [
         "事件", "期別", "級別", "姓名", "評分類型", "教師姓名", "操作者", "完成時間",
-        "CCC 六大核心總分", "CCC 綜合總分", "CCC 結論", "CCC 導師", "CCC 提交時間",
+        "CCC 六大核心總分", "CCC 綜合總分", "CCC 結論", "CCC 導師", "CCC 提交時間", "期別刪除摘要",
         ...snapshotHeaders, ...snapshotHeaders.map((name) => `修改前 ${name}`)
       ];
       const body = rows.map((event) => [
         EVENT_LABELS[event.type] || event.type, event.periodName, event.residentLevel, event.residentName || "未命名",
-        event.role ? ROLE_LABELS[event.role] : "整份評分表", event.teacherName || "", event.actorName || "", formatAuditTime(event.occurredAt),
+        event.type === "period-deletion" ? "期別" : event.role ? ROLE_LABELS[event.role] : "整份評分表", event.teacherName || "", event.actorName || "", formatAuditTime(event.occurredAt),
         event.cccForm?.coreScore ?? event.cccForm?.coreAverage ?? "", event.cccForm?.weightedTotal ?? "",
         event.cccForm ? cccOptionLabel(CCC_CONCLUSION_OPTIONS, event.cccForm.conclusion) : "",
-        event.cccForm?.mentorName || "", event.cccForm?.submittedAt || "",
+        event.cccForm?.mentorName || "", event.cccForm?.submittedAt || "", periodSummaryText(event.periodSummary),
         ...auditCSVSnapshot(event), ...auditCSVSnapshot(event, true)
       ]);
       const csv = `\uFEFF${[header, ...body].map((row) => row.map(csvCell).join(",")).join("\r\n")}`;
@@ -2596,7 +2798,10 @@
       if (tabName === "assessment") renderResidents(currentPeriod());
       if (tabName === "ccc") renderCCCForm(currentPeriod());
       if (tabName === "roster") renderRoster(currentPeriod());
-      if (tabName === "audit") renderAudit();
+      if (tabName === "audit") {
+        renderAudit();
+        if (!auditUnlocked) requestAnimationFrame(() => elements.auditPassword.focus());
+      }
     }
 
     function showToast(message) {
@@ -2621,6 +2826,8 @@
       if (actionButton.dataset.cccAction === "export") exportCCCPDF();
     });
     elements.cccForm.addEventListener("submit", submitCCCForm);
+    elements.renamePeriodButton.addEventListener("click", openRenamePeriodDialog);
+    elements.deletePeriodButton.addEventListener("click", openDeletePeriodDialog);
     elements.addPeriodButton.addEventListener("click", () => {
       elements.periodName.value = `${new Date().getFullYear()} 年第 ${state.periods.length + 1} 期`;
       elements.periodDialog.showModal();
@@ -2633,6 +2840,7 @@
     });
     elements.importDataInput.addEventListener("change", importDataBackup);
     elements.printButton.addEventListener("click", exportPDF);
+    elements.auditAuthForm.addEventListener("submit", unlockAudit);
     elements.exportAuditButton.addEventListener("click", exportAuditCSV);
     elements.scoreForm.addEventListener("submit", submitScores);
     elements.saveDraftButton.addEventListener("click", saveTeacherDraft);
@@ -2642,11 +2850,21 @@
       if (event.key === "Enter") { event.preventDefault(); unlockModification(); }
     });
     elements.periodForm.addEventListener("submit", createPeriod);
+    elements.renamePeriodForm.addEventListener("submit", renamePeriod);
+    elements.renamePeriodDialog.addEventListener("close", () => {
+      activeRenamePeriodId = null;
+      elements.renamePeriodForm.reset();
+    });
+    elements.deletePeriodForm.addEventListener("submit", deletePeriod);
+    elements.deletePeriodDialog.addEventListener("close", () => {
+      activeDeletePeriodId = null;
+      elements.deletePeriodForm.reset();
+    });
     window.addEventListener("afterprint", finishCCCPrint);
     document.querySelectorAll("[data-close-dialog]").forEach((button) => {
       button.addEventListener("click", () => document.querySelector(`#${button.dataset.closeDialog}`).close());
     });
-    [elements.scoreDialog, elements.modifyDialog, elements.periodDialog, elements.scoreDetailDialog].forEach((dialog) => {
+    [elements.scoreDialog, elements.modifyDialog, elements.periodDialog, elements.renamePeriodDialog, elements.deletePeriodDialog, elements.scoreDetailDialog].forEach((dialog) => {
       dialog.addEventListener("click", (event) => {
         const rect = dialog.getBoundingClientRect();
         const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
