@@ -111,9 +111,11 @@
     .shared-file-status[data-state="local"]::before { background: #1769ff; }
     .shared-file-status[data-state="loading"],
     .shared-file-status[data-state="saving"],
+    .shared-file-status[data-state="merging"],
     .shared-file-status[data-state="dirty"] { color: #76500d; border-color: #ead4a3; background: #fff7e3; }
     .shared-file-status[data-state="loading"]::before,
     .shared-file-status[data-state="saving"]::before,
+    .shared-file-status[data-state="merging"]::before,
     .shared-file-status[data-state="dirty"]::before { background: #d3921c; }
     .shared-file-status[data-state="error"],
     .shared-file-status[data-state="conflict"] { color: #a1282d; border-color: rgba(229, 72, 77, 0.28); background: #fff0f0; }
@@ -368,6 +370,31 @@
     .event-modify { color: #6d2d83; background: #f4e7f8; }
     .event-delete { color: #a1282d; background: #fff0f0; }
     .teacher-name { color: #124eae; font-weight: 800; }
+    .milestone-reference-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+    .milestone-reference-header h2 { margin: 0 0 6px; font-size: 25px; }
+    .milestone-reference-header p { max-width: 760px; margin: 0; color: var(--muted); line-height: 1.6; }
+    .milestone-source-badge { flex: none; padding: 7px 10px; border-radius: 999px; color: #0f4ec5; background: #edf3ff; font-size: 12px; font-weight: 850; }
+    .milestone-guide { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 22px; }
+    .milestone-guide div { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #fbfbf7; font-size: 13px; line-height: 1.55; }
+    .milestone-guide strong { color: var(--green); }
+    .milestone-domain + .milestone-domain { margin-top: 24px; }
+    .milestone-domain-heading { display: flex; align-items: baseline; gap: 9px; margin: 0 0 10px; font-size: 20px; }
+    .milestone-domain-code { color: var(--green-2); font-size: 13px; letter-spacing: 0.08em; }
+    .milestone-card { margin-bottom: 9px; overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: white; }
+    .milestone-card summary { display: flex; align-items: center; gap: 10px; padding: 13px 15px; cursor: pointer; font-weight: 850; list-style: none; }
+    .milestone-card summary::-webkit-details-marker { display: none; }
+    .milestone-card summary::before { content: "＋"; display: grid; width: 25px; height: 25px; flex: none; place-items: center; border-radius: 50%; color: var(--green); background: #e8f0e9; }
+    .milestone-card[open] summary::before { content: "－"; }
+    .milestone-card summary small { margin-left: auto; color: var(--muted); font-weight: 650; }
+    .milestone-level-scroll { overflow-x: auto; padding: 0 14px 14px; }
+    .milestone-levels { display: grid; min-width: 980px; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+    .milestone-level { padding: 11px 12px; border-top: 4px solid var(--green-2); border-radius: 10px; background: #f7f8f4; }
+    .milestone-level:nth-child(4) { border-top-color: #1769ff; background: #f2f6ff; }
+    .milestone-level:nth-child(5) { border-top-color: #8d55a8; background: #faf3fd; }
+    .milestone-level h4 { margin: 0 0 7px; font-size: 13px; }
+    .milestone-level ul { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.55; }
+    .milestone-level li + li { margin-top: 5px; }
+    .milestone-footnote { margin-top: 18px; padding: 12px 14px; border-left: 4px solid #d3921c; color: var(--muted); background: #fff8e7; font-size: 12px; line-height: 1.6; }
     .print-header, .print-score-grid, .formal-print-report { display: none; }
 
     dialog {
@@ -404,6 +431,20 @@
     .shared-file-error { margin: 0 0 16px; padding: 11px 13px; border-radius: 11px; color: #a1282d; background: #fff0f0; font-size: 13px; font-weight: 750; }
     .shared-file-error[hidden], .shared-file-dialog [hidden] { display: none; }
     .shared-file-compatibility { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+    dialog.merge-conflict-dialog { width: min(920px, calc(100% - 28px)); }
+    .merge-conflict-summary { margin: 0 0 16px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+    .merge-conflict-list { display: grid; gap: 14px; }
+    .merge-conflict-card { padding: 15px; border: 1px solid #ead4a3; border-radius: 15px; background: #fffaf0; }
+    .merge-conflict-card h3 { margin: 0 0 10px; font-size: 15px; }
+    .merge-conflict-locked { display: inline-flex; margin-left: 8px; padding: 3px 7px; border-radius: 999px; color: #a1282d; background: #fff0f0; font-size: 11px; }
+    .merge-choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .merge-choice { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 9px; align-items: start; padding: 11px; border: 1px solid var(--line); border-radius: 12px; background: white; cursor: pointer; }
+    .merge-choice strong, .merge-choice small { display: block; }
+    .merge-choice small { margin-top: 3px; color: var(--muted); }
+    .merge-choice pre { max-height: 130px; margin: 8px 0 0; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .merge-choice-combine { grid-column: 1 / -1; }
+    .merge-conflict-admin { margin-top: 16px; padding: 14px; border-radius: 12px; background: #fff2d2; }
+    @media (max-width: 680px) { .merge-choice-grid { grid-template-columns: 1fr; } .merge-choice-combine { grid-column: auto; } }
     .dialog-head { display: flex; justify-content: space-between; gap: 18px; padding: 22px 24px 16px; border-bottom: 1px solid var(--line); }
     .dialog-head h2 { margin: 0 0 4px; font-size: 22px; }
     .dialog-head p { margin: 0; color: var(--muted); font-size: 13px; }
@@ -489,6 +530,12 @@
     }
     .ccc-form-kicker { margin: 0; color: var(--green-2); font-size: 12px; font-weight: 900; letter-spacing: 0.1em; }
     .ccc-form-header h2 { margin: 3px 0 0; font-size: 30px; letter-spacing: 0.08em; }
+    .ccc-form-header-tools { display: flex; align-items: flex-start; justify-content: flex-end; gap: 12px; }
+    .ccc-score-lookup { display: flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; }
+    .ccc-score-lookup:hover span { text-decoration: underline; }
+    .ccc-score-lookup svg { width: 74px; height: 74px; flex: none; padding: 3px; border: 1px solid var(--line); border-radius: 8px; color: #07130d; background: white; shape-rendering: crispEdges; }
+    .ccc-score-lookup span { max-width: 150px; font-size: 11px; font-weight: 850; line-height: 1.45; }
+    .ccc-score-lookup small { color: #a1282d; font-size: 10px; font-weight: 900; }
     .ccc-draft-badge { padding: 6px 10px; border-radius: 999px; color: #76500d; background: #fff2d2; font-size: 12px; font-weight: 850; }
     .ccc-section { overflow: hidden; border: 1px solid var(--line); border-radius: 15px; background: #fbfbf7; }
     .ccc-section-heading { display: flex; align-items: center; gap: 9px; margin: 0; padding: 11px 14px; color: white; background: var(--green); font-size: 16px; }
@@ -631,12 +678,17 @@
       .ccc-core-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .ccc-score-row { grid-template-columns: minmax(0, 1fr) 42px 72px 58px; gap: 7px; }
       .ccc-form-header, .ccc-core-intro, .ccc-form-actions { align-items: stretch; flex-direction: column; }
+      .ccc-form-header-tools { justify-content: space-between; }
       .ccc-core-average { flex: auto; }
       .ccc-action-buttons .btn { flex: 1; }
       .core-epa-basic-grid { grid-template-columns: 1fr; }
       .core-epa-guide { grid-template-columns: 1fr; }
       .core-epa-row { grid-template-columns: 1fr; }
       .core-epa-levels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .milestone-reference-header { flex-direction: column; }
+      .milestone-guide { grid-template-columns: 1fr; }
+      .milestone-card summary { align-items: flex-start; flex-wrap: wrap; }
+      .milestone-card summary small { width: 100%; margin-left: 35px; }
     }
 
     @page ccc-report { size: A4 portrait; margin: 7mm; }
@@ -645,7 +697,7 @@
     @media print {
       @page { size: A4 landscape; margin: 7mm; }
       body { background: white; color: #111; }
-      header, .hero, .tabs, .toolbar, .stats, #panel-ccc, #panel-core-epa, #panel-score-summary, #panel-roster, #panel-audit, footer, .toast { display: none !important; }
+      header, .hero, .tabs, .toolbar, .stats, #panel-ccc, #panel-core-epa, #panel-score-summary, #panel-roster, #panel-audit, #panel-milestones, footer, .toast { display: none !important; }
       .shell { width: 100%; margin: 0; }
       main { width: 100%; }
       #panel-assessment { display: block !important; }
@@ -710,6 +762,7 @@
       }
       body.print-ccc #panel-assessment { display: none !important; }
       .ccc-print-title { margin: 0 0 3mm; text-align: center; font-size: 16pt; letter-spacing: 0.12em; }
+      .ccc-print-title-row { padding-top: 2mm; }
       .ccc-print-meta { display: grid; grid-template-columns: 1.2fr 0.65fr 1.15fr; gap: 4mm; margin-bottom: 2.5mm; font-size: 9pt; }
       .ccc-print-meta span { padding-bottom: 1mm; border-bottom: 0.25mm solid #333; }
       .ccc-print-report table { width: 100%; min-width: 0; table-layout: fixed; border-collapse: collapse; }
@@ -774,24 +827,28 @@
   <dialog id="sharedFileDialog" class="shared-file-dialog" aria-labelledby="sharedFileDialogTitle">
     <div class="dialog-head">
       <div>
-        <h2 id="sharedFileDialogTitle">先選取共用資料夾</h2>
-        <p id="sharedFileDialogIntro">每次開啟網頁都必須重新讀取共用資料夾中的最新資料。</p>
+        <h2 id="sharedFileDialogTitle">先連結共用資料</h2>
+        <p id="sharedFileDialogIntro">每次開啟網頁都必須重新讀取最新的共用 JSON。</p>
       </div>
     </div>
     <div class="dialog-body">
-      <p>請選取放有本網頁與下列固定資料檔的共用資料夾：</p>
+      <p>HTML 必須先複製到這台電腦的本機磁碟再開啟；FTP 只保留下列固定資料檔：</p>
       <code class="shared-file-name">DocCCC-data.json</code>
       <ol class="shared-file-steps">
-        <li>在資料夾選擇視窗按「選取資料夾」，一次允許讀取及寫入。</li>
-        <li>載入完成後，暫存、提交與名單修改都會直接回寫同一檔案。</li>
-        <li>右上角顯示「已同步」後即可安全關閉；請避免多台電腦同時編輯。</li>
+        <li>FTP 顯示在 Windows「網路位置」時，按橘色按鈕安全開啟既有 JSON。</li>
+        <li>確認資料後，再按藍色按鈕允許寫入；選取檔案本身不會進入另存或清空流程。</li>
+        <li>載入完成後，暫存、提交與其他正式資料變更都會寫回同一檔案。</li>
+        <li>一般本機或可選取的共享資料夾，仍可使用綠色按鈕自動同步。</li>
+        <li>多人修改不同表單或欄位時會自動取聯集；同一欄位在五分鐘內同時修改才會要求選擇。</li>
       </ol>
-      <p id="sharedFileProgress" class="shared-file-progress" role="status" aria-live="polite">尚未選取共用資料夾。</p>
+      <p id="sharedFileProgress" class="shared-file-progress" role="status" aria-live="polite">尚未連結共用資料。</p>
       <p id="sharedFileError" class="shared-file-error" role="alert" hidden></p>
       <div class="shared-file-actions">
         <button id="closeSharedFileDialogButton" class="btn btn-secondary" type="button" hidden>稍後再連結</button>
         <button id="sharedFileBackupButton" class="btn btn-secondary" type="button">下載目前瀏覽器備份</button>
-        <button id="openSharedFileButton" class="btn btn-primary" type="button" autofocus>選取共用資料夾</button>
+        <button id="openSharedFileButton" class="btn btn-primary" type="button">共用資料夾（自動同步）</button>
+        <button id="openNetworkSharedFileButton" class="btn btn-create" type="button" autofocus>開啟 FTP 共用 JSON</button>
+        <button id="authorizeNetworkSharedFileButton" class="btn btn-export" type="button" hidden>允許寫入並開始使用</button>
         <button id="fallbackSharedFileButton" class="btn btn-secondary" type="button" hidden>相容模式匯入</button>
         <input id="fallbackSharedFileInput" type="file" accept=".json,application/json" hidden>
       </div>
@@ -827,12 +884,13 @@
       </div>
       <aside class="local-note">
         <strong>共用 JSON 儲存</strong>
-        院內以 HTML 檔案開啟時，需先選取放有 <code>DocCCC-data.json</code> 的共用資料夾；公開網址則可直接使用瀏覽器本機資料，並可由右上角「連結 JSON」自願連結。連結後看到「已同步」再關閉網頁，並避免多台電腦同時編輯。
+        院內以 HTML 檔案開啟時，需先選取放有 <code>DocCCC-data.json</code> 的共用資料夾；公開網址則可直接使用瀏覽器本機資料，並可由右上角「連結 JSON」自願連結。連結後看到「已同步」再關閉網頁；不同表單或欄位的多人更新會自動合併。
       </aside>
     </section>
 
     <nav class="tabs" aria-label="主要功能">
       <button class="tab active" data-tab="assessment" type="button">六大核心</button>
+      <button class="tab" data-tab="milestones" type="button">美國RT- Milestones</button>
       <button class="tab" data-tab="core-epa" type="button">Core EPAs</button>
       <button class="tab" data-tab="score-summary" type="button">EPA／六大核心分數統計</button>
       <button class="tab" data-tab="ccc" type="button">CCC 評核表</button>
@@ -944,6 +1002,26 @@
           <button class="btn btn-primary" type="submit">驗證並查看</button>
         </form>
         <div id="auditContent" class="audit-wrap"></div>
+      </div>
+    </section>
+
+    <section id="panel-milestones" class="panel" hidden>
+      <div class="section-card">
+        <div class="milestone-reference-header">
+          <div>
+            <h2>放射腫瘤科 Milestones 中文參考</h2>
+            <p>依據 ACGME Radiation Oncology Milestones, Version 2.2（2021 第二次修訂，2022 年 7 月實施）整理。此頁為院內教育用中文整理，非官方翻譯；若有解釋疑義，以原始 PDF 為準。</p>
+          </div>
+          <span class="milestone-source-badge">21 項次能力 · Level 1–5</span>
+        </div>
+        <div class="milestone-guide">
+          <div><strong>如何判讀：</strong>Level 1 至 Level 5 代表由初學者逐步走向專家；選定某一 Level，表示該層及較低層敘述大致均已展現。</div>
+          <div><strong>不是年資對照：</strong>Level 不直接等同 PGY 年級，也沒有規定必須在哪一年達到哪一級；表現可能因經驗與情境前進或退步。</div>
+          <div><strong>Level 4：</strong>設計為畢業目標，但不是單獨的畢業要件。畢業及獨立執業準備度仍由訓練計畫主持人綜合判斷。</div>
+          <div><strong>Level 5：</strong>代表該次能力表現超出一般住院醫師期待；Milestones 主要用於形成性回饋與持續改善，不應單獨作為高風險決策依據。</div>
+        </div>
+        <div id="milestoneReferenceContent"></div>
+        <p class="milestone-footnote">「獨立執行」仍須符合 ACGME、院方及訓練計畫的監督規範。原表另提供「尚未完成 Level 1」與「目前無法評量」選項；Professionalism 3 評估的是辨識福祉風險、求助與運用資源的能力，不是直接評斷住院醫師本人的身心福祉。</p>
       </div>
     </section>
   </main>
@@ -1142,15 +1220,43 @@
     <div id="scoreDetailContent" class="dialog-body"></div>
   </dialog>
 
+  <dialog id="mergeConflictDialog" class="merge-conflict-dialog" aria-labelledby="mergeConflictTitle">
+    <form id="mergeConflictForm">
+      <div class="dialog-head">
+        <div>
+          <h2 id="mergeConflictTitle">選擇同欄位的最終內容</h2>
+          <p>本機與 FTP 在五分鐘內修改了同一欄位，系統無法安全判斷先後。</p>
+        </div>
+      </div>
+      <div class="dialog-body">
+        <p id="mergeConflictSummary" class="merge-conflict-summary"></p>
+        <div id="mergeConflictList" class="merge-conflict-list"></div>
+        <div id="mergeConflictAdminField" class="simple-field merge-conflict-admin" hidden>
+          <label for="mergeConflictPassword">管理密碼（包含已提交／鎖定資料）</label>
+          <input id="mergeConflictPassword" name="mergeConflictPassword" type="password" autocomplete="current-password" placeholder="輸入管理密碼後才能套用">
+          <small>套用後會新增不可覆蓋的「合併衝突處理」稽核事件。</small>
+        </div>
+        <div class="dialog-actions">
+          <button id="cancelMergeConflictButton" class="btn btn-secondary" type="button">取消這次儲存</button>
+          <button class="btn btn-amber" type="submit">套用選擇並合併</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
     const STORAGE_KEY = "docccc-assessment-v1";
-    const SCHEMA_VERSION = 10;
+    const SCHEMA_VERSION = 11;
     const DATA_BACKUP_APP = "DocCCC";
     const DATA_BACKUP_VERSION = 1;
     const SHARED_DATA_FILENAME = "DocCCC-data.json";
+    const CCC_SCORE_LOOKUP_URL = "https://rt-linebot.onrender.com/r-rating";
+    const CCC_SCORE_LOOKUP_QR_PATH = "M4 4h7v1H4zM14 4h3v1H14zM18 4h1v1H18zM20 4h1v1H20zM22 4h3v1H22zM26 4h7v1H26zM4 5h1v1H4zM10 5h1v1H10zM13 5h2v1H13zM18 5h3v1H18zM26 5h1v1H26zM32 5h1v1H32zM4 6h1v1H4zM6 6h3v1H6zM10 6h1v1H10zM12 6h4v1H12zM19 6h1v1H19zM23 6h1v1H23zM26 6h1v1H26zM28 6h3v1H28zM32 6h1v1H32zM4 7h1v1H4zM6 7h3v1H6zM10 7h1v1H10zM12 7h2v1H12zM15 7h1v1H15zM17 7h3v1H17zM21 7h1v1H21zM24 7h1v1H24zM26 7h1v1H26zM28 7h3v1H28zM32 7h1v1H32zM4 8h1v1H4zM6 8h3v1H6zM10 8h1v1H10zM12 8h1v1H12zM14 8h1v1H14zM16 8h2v1H16zM20 8h5v1H20zM26 8h1v1H26zM28 8h3v1H28zM32 8h1v1H32zM4 9h1v1H4zM10 9h1v1H10zM12 9h1v1H12zM15 9h1v1H15zM19 9h1v1H19zM21 9h1v1H21zM26 9h1v1H26zM32 9h1v1H32zM4 10h7v1H4zM12 10h1v1H12zM14 10h1v1H14zM16 10h1v1H16zM18 10h1v1H18zM20 10h1v1H20zM22 10h1v1H22zM24 10h1v1H24zM26 10h7v1H26zM12 11h1v1H12zM16 11h1v1H16zM18 11h1v1H18zM22 11h3v1H22zM4 12h1v1H4zM6 12h5v1H6zM13 12h3v1H13zM17 12h5v1H17zM23 12h1v1H23zM26 12h5v1H26zM4 13h6v1H4zM12 13h1v1H12zM14 13h1v1H14zM16 13h2v1H16zM20 13h1v1H20zM22 13h7v1H22zM32 13h1v1H32zM6 14h1v1H6zM8 14h1v1H8zM10 14h3v1H10zM15 14h1v1H15zM17 14h4v1H17zM24 14h3v1H24zM28 14h1v1H28zM4 15h4v1H4zM14 15h2v1H14zM19 15h2v1H19zM22 15h3v1H22zM27 15h1v1H27zM29 15h1v1H29zM31 15h1v1H31zM6 16h1v1H6zM8 16h3v1H8zM12 16h1v1H12zM17 16h2v1H17zM21 16h1v1H21zM23 16h1v1H23zM29 16h2v1H29zM7 17h1v1H7zM9 17h1v1H9zM11 17h1v1H11zM13 17h4v1H13zM22 17h7v1H22zM32 17h1v1H32zM8 18h5v1H8zM14 18h1v1H14zM17 18h3v1H17zM26 18h5v1H26zM4 19h4v1H4zM11 19h2v1H11zM15 19h1v1H15zM18 19h1v1H18zM23 19h5v1H23zM31 19h1v1H31zM6 20h1v1H6zM8 20h6v1H8zM16 20h1v1H16zM19 20h3v1H19zM23 20h1v1H23zM29 20h2v1H29zM4 21h1v1H4zM6 21h4v1H6zM11 21h1v1H11zM15 21h1v1H15zM17 21h1v1H17zM20 21h1v1H20zM23 21h1v1H23zM25 21h2v1H25zM28 21h1v1H28zM30 21h1v1H30zM32 21h1v1H32zM4 22h1v1H4zM6 22h1v1H6zM8 22h1v1H8zM10 22h1v1H10zM16 22h7v1H16zM28 22h1v1H28zM30 22h1v1H30zM4 23h1v1H4zM6 23h4v1H6zM11 23h1v1H11zM14 23h1v1H14zM17 23h1v1H17zM20 23h1v1H20zM22 23h1v1H22zM24 23h1v1H24zM27 23h2v1H27zM31 23h1v1H31zM4 24h1v1H4zM7 24h1v1H7zM10 24h1v1H10zM12 24h5v1H12zM18 24h1v1H18zM21 24h2v1H21zM24 24h5v1H24zM30 24h3v1H30zM12 25h5v1H12zM21 25h4v1H21zM28 25h5v1H28zM4 26h7v1H4zM13 26h2v1H13zM16 26h1v1H16zM19 26h3v1H19zM23 26h2v1H23zM26 26h1v1H26zM28 26h3v1H28zM4 27h1v1H4zM10 27h1v1H10zM12 27h2v1H12zM15 27h2v1H15zM18 27h3v1H18zM22 27h3v1H22zM28 27h1v1H28zM31 27h1v1H31zM4 28h1v1H4zM6 28h3v1H6zM10 28h1v1H10zM12 28h3v1H12zM21 28h1v1H21zM24 28h5v1H24zM30 28h3v1H30zM4 29h1v1H4zM6 29h3v1H6zM10 29h1v1H10zM12 29h1v1H12zM14 29h1v1H14zM18 29h1v1H18zM20 29h1v1H20zM22 29h3v1H22zM27 29h1v1H27zM29 29h4v1H29zM4 30h1v1H4zM6 30h3v1H6zM10 30h1v1H10zM12 30h1v1H12zM14 30h3v1H14zM19 30h13v1H19zM4 31h1v1H4zM10 31h1v1H10zM14 31h1v1H14zM16 31h1v1H16zM18 31h1v1H18zM20 31h1v1H20zM24 31h2v1H24zM29 31h1v1H29zM31 31h1v1H31zM4 32h7v1H4zM12 32h1v1H12zM17 32h2v1H17zM21 32h1v1H21zM23 32h1v1H23zM25 32h2v1H25zM28 32h3v1H28z";
     const MAX_DATA_FILE_BYTES = 20 * 1024 * 1024;
+    const MERGE_AMBIGUITY_MS = 5 * 60 * 1000;
+    const MAX_MERGE_WRITE_ATTEMPTS = 3;
     const ADMIN_PASSWORD = "tsgh123";
     const AUDIT_PASSWORD = "DOC12345";
     const ITEM_MAX_SCORE = 5;
@@ -1216,7 +1322,7 @@
     const RESIDENT_LEVELS = ["R1", "R2", "R3", "R4"];
     const ROLE_LABELS = { student: "學生自評", teacher: "教師評分", ccc: "CCC 評核表" };
     const ROLE_COLORS = { student: "#e5484d", teacher: "#1769ff", absolute: "#1d6b50" };
-    const EVENT_LABELS = { submission: "完成提交", "ccc-submission": "CCC 正式提交", unlock: "管理解鎖", modification: "分數修改", "period-deletion": "期別刪除" };
+    const EVENT_LABELS = { submission: "完成提交", "ccc-submission": "CCC 正式提交", unlock: "管理解鎖", modification: "分數修改", "period-deletion": "期別刪除", "merge-resolution": "合併衝突處理" };
     const CCC_EPA_OPTIONS = [
       ["L1", "L1：無法安全執行"], ["L2", "L2：需指導"], ["L3", "L3：事後確認"],
       ["L4", "L4：可獨立"], ["L5", "L5：可教學"]
@@ -1248,6 +1354,221 @@
       "第二年住院醫師 EPA1–6 需達 Level 4，EPA7–11 需達 Level 3。",
       "第三年住院醫師 EPA1–11 需達 Level 4。", "第四年住院醫師 EPA1–11 需達 Level 5。"
     ];
+    const MILESTONE_REFERENCE_GROUPS = [
+      {
+        code: "PC", name: "病人照護（Patient Care）", items: [
+          {
+            code: "PC1", title: "初診與會診（Consult）", sourcePage: 1, levels: [
+              ["取得基本病史並完成一般理學檢查", "列出知情同意流程的基本要素"],
+              ["取得疾病部位導向病史並完成基本局部理學檢查", "列出治療選項；回答治療計畫問題，必要時主動尋求指導"],
+              ["完成完整的部位導向病史及進階理學檢查", "為常見臨床情境選擇治療並擬定多專業照護計畫", "說明常見治療的風險與效益並取得知情同意"],
+              ["完成複雜臨床情境的病史與理學檢查", "為複雜情境選擇治療並協調多專業照護", "說明複雜治療的風險與效益並取得知情同意"],
+              ["領導多專業照護團隊"]
+            ]
+          },
+          {
+            code: "PC2", title: "模擬定位（Simulation）", sourcePage: 2, levels: [
+              ["辨識參與模擬定位的跨專業團隊成員", "說明放射腫瘤科醫師在定位流程中的角色", "列出定位參數"],
+              ["監督模擬定位流程，確認既定參數均達成"],
+              ["針對常見情境選擇兼顧腫瘤涵蓋與病人舒適度的定位參數", "辨識常見定位掃描問題並與團隊合作排除"],
+              ["針對少見情境選擇適當定位參數", "辨識少見定位問題並與團隊合作排除"],
+              ["發展新的模擬定位固定技術"]
+            ]
+          },
+          {
+            code: "PC3", title: "輪廓勾畫與靶區界定（Contouring and Target Delineation）", sourcePage: 3, levels: [
+              ["辨識相關危急器官（OAR）", "辨識有助靶區界定的診斷影像工具", "列出靶體積定義"],
+              ["勾畫常見危急器官", "選擇適當診斷影像以提升靶區界定品質", "勾畫簡單靶體積"],
+              ["勾畫複雜危急器官", "確認融合影像與計畫影像配準的正確性", "勾畫中度複雜靶體積"],
+              ["辨識危急器官勾畫錯誤", "處理解剖影像配準錯誤", "勾畫複雜靶體積"],
+              ["預見治療計畫困難，並主動調整靶體積"]
+            ]
+          },
+          {
+            code: "PC4", title: "治療計畫與計畫評估（Treatment Planning and Plan Evaluation）", sourcePage: 4, levels: [
+              ["說明放射腫瘤科醫師在治療計畫中的角色", "辨識不同治療計畫技術", "理解靶區涵蓋必須與危急器官劑量取得平衡"],
+              ["評估簡單放療計畫並辨識是否需修正", "辨識基礎計畫技術", "了解傳統分次下串聯與平行器官的一般耐受劑量"],
+              ["評估中度複雜計畫並辨識是否需修正", "提出運用簡單計畫技術的修正建議", "了解非傳統分次下危急器官的一般耐受劑量"],
+              ["評估複雜計畫並辨識是否需修正", "提出運用複雜計畫技術的修正建議", "運用 BED 或等效劑量計算，獨立評估再照射計畫"],
+              ["持續預見劑量師在計畫設計上的困難，主動提供最大化靶區涵蓋並降低危急器官劑量的建議"]
+            ]
+          },
+          {
+            code: "PC5", title: "治療執行（Treatment Delivery）", sourcePage: 5, levels: [
+              ["說明治療中訪視及症狀詢問的目的", "說明線上／離線影像審查的重要性", "理解合併治療期間持續協調照護的重要性"],
+              ["預期並詢問常見急性治療毒性", "以線上及離線影像評估基本擺位", "辨識需跨專業討論的治療中問題"],
+              ["處理常見急性治療毒性", "以線上及離線影像評估複雜擺位", "協調接受合併治療病人的多專業照護"],
+              ["處理複雜或高等級急性治療毒性", "獨立決定重新定位並啟動適應性放療", "處理需偏離原治療療程的多專業照護，例如治療中斷"],
+              ["設計創新的病人擺位策略"]
+            ]
+          },
+          {
+            code: "PC6", title: "治療後追蹤（Follow-Up）", sourcePage: 6, levels: [
+              ["參與癌症治療後監測", "說明追蹤訪視、監測及放射相關症狀詢問的目的"],
+              ["在常規情境提出適當癌症監測建議", "辨識並詢問常見放射線晚期毒性"],
+              ["在複雜或罕見情境提出適當癌症監測建議", "處理常見放射線晚期毒性"],
+              ["擬定並協調完整的癌症存活者照護計畫", "處理複雜或高等級放射線晚期毒性"],
+              ["示範完整癌症存活者照護計畫之擬定與協調的最佳實務"]
+            ]
+          },
+          {
+            code: "PC7", title: "近接治療（Brachytherapy）", sourcePage: 7, levels: [
+              ["辨識近接治療施源器", "辨識近接治療的靶區與危急器官", "參與近接治療計畫審查"],
+              ["植入過程中放置簡單腔內施源器並參與周術期照護", "勾畫常見近接治療靶區與危急器官", "評估常見近接治療計畫"],
+              ["執行常見腔內／組織間植入並處理周術期照護及常見併發症", "勾畫中度複雜靶區與危急器官", "評估中度複雜近接治療計畫"],
+              ["執行複雜腔內／組織間植入並處理困難周術期併發症", "勾畫複雜靶區與危急器官", "持續展現評估複雜近接治療計畫的能力"],
+              ["示範近接治療的最佳實務"]
+            ]
+          },
+          {
+            code: "PC8", title: "立體定位放射手術與體部放療（SRS／SBRT）", sourcePage: 8, levels: [
+              ["參與 SRS／SBRT 適應症討論", "辨識靶區與危急器官", "辨認 SRS／SBRT 治療計畫"],
+              ["了解 SRS／SBRT 適應症", "勾畫簡單靶區與危急器官", "評估簡單 SRS／SBRT 計畫"],
+              ["對簡單 SRS／SBRT 提出建議", "勾畫並評估中度複雜 SRS／SBRT 靶區、危急器官與計畫"],
+              ["對複雜 SRS／SBRT 提出建議", "勾畫複雜靶區與危急器官並評估複雜計畫"],
+              ["示範複雜 SRS／SBRT 的最佳實務"]
+            ]
+          }
+        ]
+      },
+      {
+        code: "MK", name: "醫學知識（Medical Knowledge）", items: [
+          {
+            code: "MK1", title: "應用科學：放射物理、放射與癌症生物、統計、試驗設計及腫瘤解剖", sourcePage: 9, levels: [
+              ["具備正常構造的基礎影像解剖知識", "理解醫學物理與放射／癌症生物學在放射腫瘤科的重要性"],
+              ["辨識腫瘤異常構造的基礎影像解剖並應用於分期", "說明醫學物理與放射／癌症生物學的基礎概念"],
+              ["在常見情境整合病理解剖與靶區指引，例如乳癌或頭頸部淋巴解剖", "將物理與放射／癌症生物概念應用於常見情境"],
+              ["依複雜情境整合病理解剖及指引", "將物理與放射／癌症生物概念應用於複雜情境"],
+              ["在臨床展現解剖與影像、醫學物理、放射／癌症生物學應用的卓越知識"]
+            ]
+          },
+          {
+            code: "MK2", title: "放射腫瘤學實證基礎（Evidence-Based Foundations）", sourcePage: 10, levels: [
+              ["理解實證醫學在放射腫瘤科的重要性"],
+              ["摘要一篇已發表研究", "整理支持常見病人情境治療決策的實證資料"],
+              ["評讀基礎研究並將試驗資料應用於常見臨床情境", "整理支持少見病人情境治療決策的實證資料"],
+              ["評讀複雜研究並應用於較少見情境", "比較、對照並批判支持治療決策的實證資料"],
+              ["評讀複雜研究並應用於罕見情境，展現卓越的研究評讀能力"]
+            ]
+          }
+        ]
+      },
+      {
+        code: "SBP", name: "制度下之臨床工作（Systems-Based Practice）", items: [
+          {
+            code: "SBP1", title: "病人安全與品質改善", sourcePage: 11, levels: [
+              ["了解常見的身體、心理與財務病安事件", "了解病安事件通報方式", "了解基礎品質改善方法與指標"],
+              ["辨識導致病安事件的系統因素", "透過院內系統通報模擬或實際事件", "說明本地品質改善方案"],
+              ["參與病安事件分析與向病人／家屬揭露事件", "參與本地品質改善方案"],
+              ["分析病安事件並提出預防策略", "向病人與家屬揭露事件", "具備辨識、發展、執行及分析品質改善專案所需技能"],
+              ["帶領團隊修改系統以預防病安事件", "示範或指導事件揭露", "在機構或社區層級建立、執行並評估品質改善方案"]
+            ]
+          },
+          {
+            code: "SBP2", title: "以病人為中心的系統導航", sourcePage: 12, levels: [
+              ["了解照護協調", "辨識安全有效轉銜與交班的關鍵要素", "了解族群與社區健康需求"],
+              ["運用跨專業角色協調常規照護", "在常規情境安全有效交班", "辨識在地族群與社區的特定健康需求"],
+              ["協調複雜臨床照護並完成安全交班", "有效運用在地資源滿足病人族群與社區需求"],
+              ["示範跨專業、跨科別的病人中心照護協調", "倡議醫療體系內外安全有效的轉銜", "參與調整臨床作法以回應特定族群需求"],
+              ["分析並領導照護協調改善", "改善跨體系轉銜品質以最佳化結果", "領導創新並倡議具特殊醫療需求的族群與社區"]
+            ]
+          },
+          {
+            code: "SBP3", title: "醫師在醫療體系中的角色", sourcePage: 13, levels: [
+              ["辨識複雜醫療體系的主要構成", "說明基本支付制度及執業模式", "辨識資訊、法律、申報編碼、財務與人事等轉銜執業知識領域"],
+              ["說明醫療體系各構成如何互相影響病人照護", "考量病人支付限制提供照護", "說明合約、醫責保險、法規與遵循等核心行政知識"],
+              ["討論個人執業對住院天數、再入院及效率等整體系統的影響", "將病人支付限制納入共享決策", "運用電子病歷、文件與申報編碼等執業資訊科技"],
+              ["管理複雜醫療體系各環節，提供有效率且有效的照護與轉銜", "在支付限制下倡議病人所需資源", "分析個人執業型態與專業要求，準備進入獨立執業"],
+              ["倡議或領導高價值且有效率的系統變革", "參與健康政策倡議", "教育他人準備轉銜至獨立執業"]
+            ]
+          }
+        ]
+      },
+      {
+        code: "PBLI", name: "從工作中學習與改善（Practice-Based Learning and Improvement）", items: [
+          {
+            code: "PBLI1", title: "實證與知情的臨床實務", sourcePage: 14, levels: [
+              ["示範取得與運用可用實證，並納入病人偏好與價值以照護常規病人"],
+              ["提出明確臨床問題並探詢病人偏好與價值，以引導實證照護"],
+              ["找到並運用最佳可用實證，整合病人偏好照護複雜病人"],
+              ["即使面對不確定或互相衝突的證據，仍能批判評讀並依個別病人情境應用"],
+              ["指導他人為複雜病人批判評讀並運用實證"]
+            ]
+          },
+          {
+            code: "PBLI2", title: "反思實務與個人成長承諾", sourcePage: 15, levels: [
+              ["設定目標並為個人及專業發展負責", "辨識期待與實際表現落差的因素", "主動尋找改善機會"],
+              ["開放接受回饋與其他表現資料以設定目標", "分析並反思表現落差因素", "在提示下設計並執行學習計畫"],
+              ["以適應力與謙遜態度定期尋求表現資料", "反思後採取行為改變縮小落差", "獨立建立並執行學習計畫"],
+              ["持續且有意識地尋求表現資料", "挑戰假設並考慮替代方案", "用表現資料評估學習計畫成效並適時改善"],
+              ["示範以適應力與謙遜態度持續尋求回饋", "指導他人反思實務", "協助他人設計與執行學習計畫"]
+            ]
+          }
+        ]
+      },
+      {
+        code: "PROF", name: "專業素養（Professionalism）", items: [
+          {
+            code: "PROF1", title: "專業行為與倫理原則", sourcePage: 16, levels: [
+              ["辨識並說明可能引發專業失誤的因素", "說明何時及如何通報專業失誤與克服常見障礙", "了解知情同意、代理決策、預立意願、保密、錯誤揭露及有限資源管理等倫理原則"],
+              ["在常規情境展現專業行為", "為自己的專業失誤負責", "運用倫理原則分析單純情境"],
+              ["在複雜或高壓情境展現專業行為", "辨識何時需尋求協助處理複雜倫理情境", "運用倫理原則分析複雜情境"],
+              ["辨識可能觸發專業失誤的情境並預防自己與他人失誤", "需要時運用倫理諮詢、文獻、風險管理或法律資源處理倫理兩難"],
+              ["當他人行為未達專業期待時予以指導", "透過結構化品質改善處理造成或加劇倫理問題的系統因素"]
+            ]
+          },
+          {
+            code: "PROF2", title: "責任感與謹慎（Accountability／Conscientiousness）", sourcePage: 17, levels: [
+              ["為未完成工作與責任負責，辨識可能因素並提出未來準時完成的策略"],
+              ["在常規情境準時且注意細節地完成工作與責任"],
+              ["在複雜或高壓情境準時且注意細節地完成工作與責任"],
+              ["辨識可能影響他人準時完成工作與責任的情境"],
+              ["對系統整體結果承擔責任"]
+            ]
+          },
+          {
+            code: "PROF3", title: "自我覺察與尋求協助（Self-Awareness and Help-Seeking）", sourcePage: 18, levels: [
+              ["辨識福祉構成要素，說明自己或同儕倦怠與憂鬱的風險因子、徵象及症狀"],
+              ["在協助下辨識自己或同儕的福祉狀態及適應不良風險"],
+              ["獨立辨識自己或同儕的福祉狀態，並向適當人員反映疑慮"],
+              ["擬定並執行改善自己或同儕福祉的計畫，包括運用院內或外部資源"],
+              ["建議並促成執業場所或機構層級的系統改變以促進福祉"]
+            ]
+          }
+        ]
+      },
+      {
+        code: "ICS", name: "人際與溝通技巧（Interpersonal and Communication Skills）", items: [
+          {
+            code: "ICS1", title: "以病人與家庭為中心的溝通", sourcePage: 19, levels: [
+              ["以語言與非語言行為表達尊重並建立關係", "辨識語言、身心障礙等常見溝通障礙，並清楚說明自己在醫療體系中的角色", "辨識需依病人／家庭期待與理解調整溝通策略"],
+              ["在單純互動中運用主動聆聽與清楚語言建立治療關係", "辨識健康識能等複雜障礙", "組織並啟動溝通：介紹參與者、設定議程、澄清期待並確認理解"],
+              ["在困難互動中建立治療關係", "在提示下反思偏見並降低溝通障礙", "在指導下以敏感及同理方式傳遞醫療資訊、探詢價值與目標並承認不確定與衝突"],
+              ["不論複雜度均能自然建立兼顧病人／家庭脈絡的治療關係", "獨立辨識偏見並主動降低障礙", "以共享決策整合價值、目標、偏好與治療選項，形成個人化照護計畫"],
+              ["指導他人運用情境覺察與批判反思建立良好治療關係", "示範自我覺察及降低溝通障礙", "示範高度不確定或衝突情境中的共享決策"]
+            ]
+          },
+          {
+            code: "ICS2", title: "跨專業與團隊溝通", sourcePage: 20, levels: [
+              ["有禮地提出會診需求", "使用重視所有醫療團隊成員的語言", "參與結構化回饋"],
+              ["清楚簡潔地提出會診需求", "有效向所有團隊成員傳達資訊", "主動徵詢自己作為團隊成員的表現回饋"],
+              ["確認自己對會診建議的理解", "主動聆聽並依團隊需要調整溝通方式", "向同儕與學習者提出疑慮及回饋"],
+              ["整合不同團隊成員的建議以最佳化病人照護", "依總結性回饋持續展現有效團隊溝通", "向上級提供回饋與建設性批評"],
+              ["示範重視所有成員意見且能處理衝突的彈性溝通", "發展或領導跨專業溝通訓練", "在複雜情境或新科技下促進定期團隊回饋"]
+            ]
+          },
+          {
+            code: "ICS3", title: "醫療體系內的溝通", sourcePage: 21, levels: [
+              ["在病歷中正確記錄資訊", "保護病人個人健康資訊", "依院內政策使用適當管道溝通，例如病安通報、手機或呼叫器"],
+              ["透過病歷紀錄呈現有組織的診斷與治療推理", "依院內格式及時完成必要資料", "以尊重方式反映系統問題"],
+              ["在病歷中簡潔呈現診斷與治療推理", "依情境選擇電話／面談等直接溝通或病歷／訊息等間接溝通", "使用適當管道提出清楚且具建設性的系統改善建議"],
+              ["以清楚、簡潔、及時且有組織的書面方式溝通並提供預期指引", "書面或口頭溝通可作為他人範例", "主動與適當利害關係人進行困難對話，改善系統資料完整性與友善度"],
+              ["示範如何回饋以改善他人書面溝通", "引導部門或機構政策與程序的溝通", "促成機構、醫療體系及專業領域等更大社群就系統問題展開對話"]
+            ]
+          }
+        ]
+      }
+    ];
 
     function defaultResidents() {
       return RESIDENT_LEVELS.map((level, index) => ({ id: `r${index + 1}`, level, name: "" }));
@@ -1262,7 +1583,12 @@
     }
 
     function copyResidents(residents) {
-      return residents.map(({ id, level, name }) => ({ id, level, name: name || "" }));
+      return residents.map(({ id, level, name, updatedAt }) => ({
+        id,
+        level,
+        name: name || "",
+        ...(typeof updatedAt === "string" && !Number.isNaN(Date.parse(updatedAt)) ? { updatedAt } : {})
+      }));
     }
 
     function localDateValue(date = new Date()) {
@@ -1393,6 +1719,7 @@
         assessmentDate,
         createdAt: timestamp,
         savedAt: typeof form.savedAt === "string" && !Number.isNaN(Date.parse(form.savedAt)) ? form.savedAt : null,
+        ...(typeof form.updatedAt === "string" && !Number.isNaN(Date.parse(form.updatedAt)) ? { updatedAt: form.updatedAt } : {}),
         levels: CORE_EPA_ITEMS.map((_, itemIndex) => String(form.levels?.[itemIndex] ?? "")),
         learnerAdvice: String(form.learnerAdvice || ""),
         mentorAdvice: String(form.mentorAdvice || ""),
@@ -1485,11 +1812,16 @@
     let toastTimer = null;
     let sharedFileHandle = null;
     let sharedFileBaselineText = "";
+    let sharedFileBaselineState = null;
     let sharedFileMode = "locked";
     let sharedFileDirty = false;
     let sharedFileConflict = false;
     let sharedFileWriteError = false;
     let sharedFileWritePromise = null;
+    let pendingNetworkFileHandle = null;
+    let pendingNetworkFileText = "";
+    let pendingNetworkFileState = null;
+    let pendingMergeConflictResolution = null;
 
     const elements = {
       tabs: document.querySelectorAll(".tab"),
@@ -1526,6 +1858,7 @@
       auditAuthForm: document.querySelector("#auditAuthForm"),
       auditPassword: document.querySelector("#auditPassword"),
       exportAuditButton: document.querySelector("#exportAuditButton"),
+      milestoneReferenceContent: document.querySelector("#milestoneReferenceContent"),
       exportDataButton: document.querySelector("#exportDataButton"),
       importDataButton: document.querySelector("#importDataButton"),
       importDataInput: document.querySelector("#importDataInput"),
@@ -1537,12 +1870,21 @@
       sharedFileProgress: document.querySelector("#sharedFileProgress"),
       sharedFileCompatibility: document.querySelector("#sharedFileCompatibility"),
       openSharedFileButton: document.querySelector("#openSharedFileButton"),
+      openNetworkSharedFileButton: document.querySelector("#openNetworkSharedFileButton"),
+      authorizeNetworkSharedFileButton: document.querySelector("#authorizeNetworkSharedFileButton"),
       fallbackSharedFileButton: document.querySelector("#fallbackSharedFileButton"),
       fallbackSharedFileInput: document.querySelector("#fallbackSharedFileInput"),
       sharedFileBackupButton: document.querySelector("#sharedFileBackupButton"),
       sharedFileStatus: document.querySelector("#sharedFileStatus"),
       sharedFileStatusText: document.querySelector("#sharedFileStatusText"),
       syncSharedFileButton: document.querySelector("#syncSharedFileButton"),
+      mergeConflictDialog: document.querySelector("#mergeConflictDialog"),
+      mergeConflictForm: document.querySelector("#mergeConflictForm"),
+      mergeConflictSummary: document.querySelector("#mergeConflictSummary"),
+      mergeConflictList: document.querySelector("#mergeConflictList"),
+      mergeConflictAdminField: document.querySelector("#mergeConflictAdminField"),
+      mergeConflictPassword: document.querySelector("#mergeConflictPassword"),
+      cancelMergeConflictButton: document.querySelector("#cancelMergeConflictButton"),
       sixCoreFormDialog: document.querySelector("#sixCoreFormDialog"),
       sixCoreFormForm: document.querySelector("#sixCoreFormForm"),
       sixCoreFormMeta: document.querySelector("#sixCoreFormMeta"),
@@ -1589,10 +1931,10 @@
       toast: document.querySelector("#toast")
     };
 
-    function persist({ syncSharedFile = true } = {}) {
+    function persist({ syncSharedFile = true, explicitSharedFileSave = true } = {}) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        if (syncSharedFile) scheduleSharedFileWrite();
+        if (syncSharedFile) scheduleSharedFileWrite({ explicit: explicitSharedFileSave });
         return true;
       } catch (error) {
         showToast("瀏覽器無法保存資料，請檢查隱私設定。");
@@ -1686,8 +2028,10 @@
         });
       });
       const validAudit = value.auditLog.every((event) => event && typeof event === "object" &&
-        ["submission", "ccc-submission", "unlock", "modification", "period-deletion"].includes(event.type) &&
-        (event.role === null || event.role === undefined || ["student", "teacher", "ccc"].includes(event.role)) && validDate(event.occurredAt));
+        ["submission", "ccc-submission", "unlock", "modification", "period-deletion", "merge-resolution"].includes(event.type) &&
+        (event.role === null || event.role === undefined || ["student", "teacher", "ccc"].includes(event.role)) && validDate(event.occurredAt) &&
+        (event.mergeConflicts === null || event.mergeConflicts === undefined || (Array.isArray(event.mergeConflicts) && event.mergeConflicts.length <= 100 && event.mergeConflicts.every((conflict) =>
+          isRecord(conflict) && typeof conflict.path === "string" && conflict.path.length <= 1000 && ["local", "shared", "combine"].includes(conflict.choice)))));
       return validPeriods && validAudit;
     }
 
@@ -1768,13 +2112,476 @@
       }
     }
 
+    // MERGE_CORE_START
+    function cloneMergeValue(value) {
+      return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+    }
+
+    function mergeValuesEqual(left, right) {
+      if (left === right) return true;
+      if (left === null || right === null || typeof left !== typeof right) return false;
+      if (Array.isArray(left) || Array.isArray(right)) {
+        return Array.isArray(left) && Array.isArray(right) && left.length === right.length &&
+          left.every((value, index) => mergeValuesEqual(value, right[index]));
+      }
+      if (typeof left !== "object") return false;
+      const leftKeys = Object.keys(left).sort();
+      const rightKeys = Object.keys(right).sort();
+      return leftKeys.length === rightKeys.length && leftKeys.every((key, index) =>
+        key === rightKeys[index] && mergeValuesEqual(left[key], right[key]));
+    }
+
+    function mergePathPart(value) {
+      return encodeURIComponent(String(value));
+    }
+
+    function mergeChildPath(path, value, keyed = false) {
+      return `${path}/${keyed ? "@" : ""}${mergePathPart(value)}`;
+    }
+
+    function mergeArrayUsesIds(...arrays) {
+      let hasItems = false;
+      for (const array of arrays) {
+        const ids = new Set();
+        for (const item of array) {
+          if (!item || typeof item !== "object" || Array.isArray(item) || typeof item.id !== "string" || !item.id || ids.has(item.id)) return false;
+          ids.add(item.id);
+          hasItems = true;
+        }
+      }
+      return hasItems;
+    }
+
+    function mergeOwnTimestamp(value, inherited = null) {
+      if (!value || typeof value !== "object" || Array.isArray(value)) return inherited;
+      const timestamps = [value.updatedAt, value.savedAt, value.submittedAt, value.createdAt]
+        .filter((timestamp) => typeof timestamp === "string" && !Number.isNaN(Date.parse(timestamp)))
+        .sort((left, right) => Date.parse(right) - Date.parse(left));
+      return timestamps[0] || inherited;
+    }
+
+    function mergeTimestampRelation(localTimestamp, sharedTimestamp) {
+      const localTime = Date.parse(localTimestamp || "");
+      const sharedTime = Date.parse(sharedTimestamp || "");
+      if (!Number.isFinite(localTime) || !Number.isFinite(sharedTime)) return { kind: "unknown", choice: null };
+      if (Math.abs(localTime - sharedTime) <= MERGE_AMBIGUITY_MS) return { kind: "ambiguous", choice: null };
+      return { kind: "newer", choice: localTime > sharedTime ? "local" : "shared" };
+    }
+
+    function mergeValueIsEmpty(value) {
+      return value === undefined || value === null || value === "";
+    }
+
+    function mergeDirectLockedPath(path) {
+      return /\/sixCoreForms\/@[^/]+\/(?:student|teacher)$/.test(path) || /\/cccSubmission$/.test(path);
+    }
+
+    function mergeValueContainsLockedData(value) {
+      if (!value || typeof value !== "object") return false;
+      if (!Array.isArray(value) && typeof value.submittedAt === "string" &&
+          (Array.isArray(value.levels) || Array.isArray(value.itemScores) || Object.hasOwn(value, "weightedTotal"))) return true;
+      if (Array.isArray(value)) return value.some(mergeValueContainsLockedData);
+      return Object.values(value).some(mergeValueContainsLockedData);
+    }
+
+    function mergeConflictIsLocked(path, baseValue, localValue, sharedValue) {
+      return mergeDirectLockedPath(path) || [baseValue, localValue, sharedValue].some(mergeValueContainsLockedData);
+    }
+
+    function mergeResolveChangedValue(baseValue, localValue, sharedValue, path, context, localTimestamp, sharedTimestamp) {
+      const locked = mergeConflictIsLocked(path, baseValue, localValue, sharedValue);
+      if (Object.hasOwn(context.resolutions, path)) {
+        const choice = context.resolutions[path];
+        if (choice === "combine" && typeof localValue === "string" && typeof sharedValue === "string") {
+          return `${localValue.trim()}\n\n${sharedValue.trim()}`.trim();
+        }
+        return cloneMergeValue(choice === "shared" ? sharedValue : localValue);
+      }
+
+      const relation = mergeTimestampRelation(localTimestamp, sharedTimestamp);
+      if (!locked && relation.kind === "newer") {
+        context.autoResolvedCount += 1;
+        return cloneMergeValue(relation.choice === "local" ? localValue : sharedValue);
+      }
+      if (!locked && relation.kind === "unknown" && mergeValueIsEmpty(localValue) !== mergeValueIsEmpty(sharedValue)) {
+        context.autoResolvedCount += 1;
+        return cloneMergeValue(mergeValueIsEmpty(localValue) ? sharedValue : localValue);
+      }
+
+      if (!context.conflictPaths.has(path)) {
+        context.conflictPaths.add(path);
+        context.conflicts.push({
+          path,
+          baseValue: cloneMergeValue(baseValue),
+          localValue: cloneMergeValue(localValue),
+          sharedValue: cloneMergeValue(sharedValue),
+          localTimestamp: localTimestamp || null,
+          sharedTimestamp: sharedTimestamp || null,
+          locked,
+          canCombine: !locked && typeof localValue === "string" && typeof sharedValue === "string" && Boolean(localValue.trim()) && Boolean(sharedValue.trim())
+        });
+      }
+      return cloneMergeValue(localValue);
+    }
+
+    function mergeAuditLogs(baseValue, localValue, sharedValue, path, context) {
+      const events = new Map();
+      const eventKey = (event) => typeof event?.id === "string" && event.id
+        ? event.id
+        : `legacy:${event?.type || "event"}:${event?.occurredAt || ""}:${event?.periodId || ""}:${event?.residentId || ""}:${event?.role || ""}`;
+      [...(baseValue || []), ...(sharedValue || []), ...(localValue || [])].forEach((event) => {
+        const key = eventKey(event);
+        const existing = events.get(key);
+        if (existing && !mergeValuesEqual(existing, event)) {
+          if (!context.fatalPaths.has(`${path}/${mergePathPart(key)}`)) {
+            context.fatalPaths.add(`${path}/${mergePathPart(key)}`);
+            context.fatalConflicts.push({ path: `${path}/${mergePathPart(key)}`, reason: "同一筆稽核事件內容不一致" });
+          }
+          return;
+        }
+        if (!existing) events.set(key, cloneMergeValue(event));
+      });
+      return [...events.values()].sort((left, right) => {
+        const timeDifference = Date.parse(left?.occurredAt || "") - Date.parse(right?.occurredAt || "");
+        return Number.isFinite(timeDifference) && timeDifference !== 0 ? timeDifference : eventKey(left).localeCompare(eventKey(right));
+      });
+    }
+
+    function mergeStateNode(baseValue, localValue, sharedValue, path, context, inheritedLocalTimestamp = null, inheritedSharedTimestamp = null) {
+      if (path === "/schemaVersion") return SCHEMA_VERSION;
+      if (path === "/selectedPeriodId") return cloneMergeValue(localValue ?? sharedValue ?? baseValue);
+      if (path === "/auditLog") return mergeAuditLogs(baseValue, localValue, sharedValue, path, context);
+      if (mergeValuesEqual(localValue, sharedValue)) return cloneMergeValue(localValue);
+      if (mergeValuesEqual(localValue, baseValue)) return cloneMergeValue(sharedValue);
+      if (mergeValuesEqual(sharedValue, baseValue)) return cloneMergeValue(localValue);
+
+      const localTimestamp = mergeOwnTimestamp(localValue, inheritedLocalTimestamp);
+      const sharedTimestamp = mergeOwnTimestamp(sharedValue, inheritedSharedTimestamp);
+      if (/\/(?:savedAt|updatedAt)$/.test(path)) {
+        const localTime = Date.parse(localValue || "");
+        const sharedTime = Date.parse(sharedValue || "");
+        if (Number.isFinite(localTime) || Number.isFinite(sharedTime)) return cloneMergeValue(localTime >= sharedTime ? localValue : sharedValue);
+      }
+      if (mergeDirectLockedPath(path)) {
+        return mergeResolveChangedValue(baseValue, localValue, sharedValue, path, context, localTimestamp, sharedTimestamp);
+      }
+
+      if (Array.isArray(localValue) && Array.isArray(sharedValue) && (Array.isArray(baseValue) || baseValue === undefined)) {
+        const baseArray = Array.isArray(baseValue) ? baseValue : [];
+        if (mergeArrayUsesIds(baseArray, localValue, sharedValue)) {
+          const baseById = new Map(baseArray.map((item) => [item.id, item]));
+          const localById = new Map(localValue.map((item) => [item.id, item]));
+          const sharedById = new Map(sharedValue.map((item) => [item.id, item]));
+          const ids = [];
+          [...sharedValue, ...localValue, ...baseArray].forEach((item) => { if (!ids.includes(item.id)) ids.push(item.id); });
+          return ids.flatMap((id) => {
+            const merged = mergeStateNode(
+              baseById.get(id), localById.get(id), sharedById.get(id), mergeChildPath(path, id, true), context,
+              inheritedLocalTimestamp, inheritedSharedTimestamp
+            );
+            return merged === undefined ? [] : [merged];
+          });
+        }
+        const length = Math.max(baseArray.length, localValue.length, sharedValue.length);
+        const merged = [];
+        for (let index = 0; index < length; index += 1) {
+          const value = mergeStateNode(
+            baseArray[index], localValue[index], sharedValue[index], mergeChildPath(path, index), context,
+            localTimestamp, sharedTimestamp
+          );
+          if (value !== undefined) merged[index] = value;
+        }
+        return merged;
+      }
+
+      const localRecord = localValue && typeof localValue === "object" && !Array.isArray(localValue);
+      const sharedRecord = sharedValue && typeof sharedValue === "object" && !Array.isArray(sharedValue);
+      const baseRecord = baseValue && typeof baseValue === "object" && !Array.isArray(baseValue);
+      if (localRecord && sharedRecord && (baseRecord || baseValue === undefined)) {
+        const result = {};
+        const unsafeKeys = new Set(["__proto__", "constructor", "prototype"]);
+        const keys = [...new Set([...Object.keys(baseValue || {}), ...Object.keys(sharedValue), ...Object.keys(localValue)])]
+          .filter((key) => !unsafeKeys.has(key)).sort();
+        keys.forEach((key) => {
+          const value = mergeStateNode(
+            baseValue?.[key], localValue[key], sharedValue[key], mergeChildPath(path, key), context,
+            localTimestamp, sharedTimestamp
+          );
+          if (value !== undefined) result[key] = value;
+        });
+        return result;
+      }
+
+      return mergeResolveChangedValue(baseValue, localValue, sharedValue, path || "/", context, localTimestamp, sharedTimestamp);
+    }
+
+    function mergeSharedStates(baseState, localState, sharedState, resolutions = {}) {
+      const context = {
+        resolutions,
+        conflicts: [],
+        conflictPaths: new Set(),
+        fatalConflicts: [],
+        fatalPaths: new Set(),
+        autoResolvedCount: 0
+      };
+      const mergedState = mergeStateNode(baseState, localState, sharedState, "", context);
+      return {
+        state: mergedState,
+        conflicts: context.conflicts,
+        fatalConflicts: context.fatalConflicts,
+        autoResolvedCount: context.autoResolvedCount
+      };
+    }
+    // MERGE_CORE_END
+
+    function mergeDecodedSegments(path) {
+      return path.split("/").slice(1).map((part) => ({ keyed: part.startsWith("@"), value: decodeURIComponent(part.startsWith("@") ? part.slice(1) : part) }));
+    }
+
+    function mergeConflictLabel(path, localState, sharedState) {
+      const segments = mergeDecodedSegments(path);
+      const valueAfter = (name) => {
+        const index = segments.findIndex((segment) => segment.value === name);
+        return index >= 0 ? segments[index + 1]?.value : null;
+      };
+      const periodId = valueAfter("periods");
+      const residentId = valueAfter("assessments") || valueAfter("residents");
+      const formId = valueAfter("sixCoreForms") || valueAfter("coreEpaForms");
+      const sources = [localState, sharedState];
+      const period = sources.map((source) => source?.periods?.find((item) => item.id === periodId)).find(Boolean);
+      const resident = sources.map((source) => source?.periods?.find((item) => item.id === periodId)?.residents?.find((item) => item.id === residentId)).find(Boolean);
+      const assessment = sources.map((source) => source?.periods?.find((item) => item.id === periodId)?.assessments?.[residentId]).find(Boolean);
+      const sixCoreForm = assessment?.sixCoreForms?.find((item) => item.id === formId);
+      const coreEpaForm = assessment?.coreEpaForms?.find((item) => item.id === formId);
+      const last = segments.at(-1)?.value || "資料";
+      const previous = segments.at(-2)?.value || "";
+      const fieldLabels = {
+        name: residentId ? "住院醫師姓名" : "期別名稱",
+        level: "住院醫師年級",
+        assessmentDate: "評核日期",
+        teacherName: "教師姓名",
+        learnerAdvice: "對學員的建議事項",
+        mentorAdvice: "對導師的建議事項",
+        programAdvice: "對訓練計畫的建議事項",
+        coreDateFrom: "六大核心納入起日",
+        coreDateTo: "六大核心納入迄日",
+        treatmentPlanScore: "Contouring 分數",
+        journalMeetingScore: "Journal 分數",
+        annualExamScore: "年度考試分數",
+        conclusion: "CCC 決議",
+        mentorName: "CCC 導師",
+        teacherDraft: "教師暫存內容",
+        cccDraft: "CCC 暫存內容",
+        cccSubmission: "CCC 已提交內容",
+        student: "學生已提交評分",
+        teacher: "教師已提交評分"
+      };
+      let field = fieldLabels[last] || last;
+      if (previous === "levels" && /^\d+$/.test(last)) {
+        const index = Number(last);
+        field = coreEpaForm ? `${CORE_EPA_ITEMS[index]?.code || `EPA ${index + 1}`} Level` : `${COMPETENCIES[index]?.code || `能力 ${index + 1}`} Level`;
+      }
+      if (previous === "itemScores" && /^\d+$/.test(last)) field = `${ASSESSMENT_ITEMS[Number(last)]?.code || `分項 ${Number(last) + 1}`} 分數`;
+      if (last.startsWith("six-core-") || last.startsWith("core-epa-")) field = "整張表單";
+      return [
+        period?.name,
+        resident ? `${resident.level} ${resident.name || "未命名"}` : null,
+        sixCoreForm?.assessmentDate || coreEpaForm?.assessmentDate,
+        field
+      ].filter(Boolean).join(" · ");
+    }
+
+    function mergeDisplayTimestamp(timestamp) {
+      return typeof timestamp === "string" && !Number.isNaN(Date.parse(timestamp)) ? formatReadableTime(timestamp) : "修改時間未記錄";
+    }
+
+    function mergeDisplayValue(value) {
+      if (value === undefined) return "（此版本已刪除／不存在）";
+      if (value === null || value === "") return "（空白）";
+      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return String(value);
+      const text = JSON.stringify(value, null, 2);
+      return text.length > 1600 ? `${text.slice(0, 1600)}\n…（內容已截短顯示）` : text;
+    }
+
+    function requestMergeConflictChoices(conflicts, localState, sharedState) {
+      const hasLockedConflict = conflicts.some((conflict) => conflict.locked);
+      elements.mergeConflictForm.reset();
+      elements.mergeConflictSummary.textContent = `已自動合併其他表單與不同欄位；以下 ${conflicts.length} 個同欄位修改相隔不超過五分鐘，請逐項選擇最終內容。`;
+      elements.mergeConflictList.innerHTML = conflicts.map((conflict, index) => {
+        const name = `merge-conflict-${index}`;
+        const lockedBadge = conflict.locked ? `<span class="merge-conflict-locked">已提交／鎖定</span>` : "";
+        const combineChoice = conflict.canCombine ? `
+          <label class="merge-choice merge-choice-combine">
+            <input type="radio" name="${name}" value="combine">
+            <span><strong>合併兩邊文字</strong><small>依序保留本機與 FTP 的文字內容</small></span>
+          </label>` : "";
+        return `
+          <section class="merge-conflict-card">
+            <h3>${escapeHTML(mergeConflictLabel(conflict.path, localState, sharedState))}${lockedBadge}</h3>
+            <div class="merge-choice-grid">
+              <label class="merge-choice">
+                <input type="radio" name="${name}" value="local" required>
+                <span><strong>保留本機版本</strong><small>${escapeHTML(mergeDisplayTimestamp(conflict.localTimestamp))}</small><pre>${escapeHTML(mergeDisplayValue(conflict.localValue))}</pre></span>
+              </label>
+              <label class="merge-choice">
+                <input type="radio" name="${name}" value="shared" required>
+                <span><strong>保留 FTP 版本</strong><small>${escapeHTML(mergeDisplayTimestamp(conflict.sharedTimestamp))}</small><pre>${escapeHTML(mergeDisplayValue(conflict.sharedValue))}</pre></span>
+              </label>
+              ${combineChoice}
+            </div>
+          </section>`;
+      }).join("");
+      elements.mergeConflictAdminField.hidden = !hasLockedConflict;
+      elements.mergeConflictPassword.required = hasLockedConflict;
+      elements.mergeConflictPassword.value = "";
+      return new Promise((resolve) => {
+        pendingMergeConflictResolution = { conflicts, resolve };
+        elements.mergeConflictDialog.showModal();
+      });
+    }
+
+    function finishMergeConflictChoices(resolutions) {
+      const pending = pendingMergeConflictResolution;
+      if (!pending) return;
+      pendingMergeConflictResolution = null;
+      if (elements.mergeConflictDialog.open) elements.mergeConflictDialog.close();
+      pending.resolve(resolutions);
+    }
+
+    function submitMergeConflictChoices(event) {
+      event.preventDefault();
+      const pending = pendingMergeConflictResolution;
+      if (!pending) return;
+      const hasLockedConflict = pending.conflicts.some((conflict) => conflict.locked);
+      if (hasLockedConflict && elements.mergeConflictPassword.value !== ADMIN_PASSWORD) {
+        showToast("管理密碼不正確，尚未套用合併選擇。");
+        elements.mergeConflictPassword.select();
+        return;
+      }
+      const formData = new FormData(elements.mergeConflictForm);
+      const resolutions = {};
+      pending.conflicts.forEach((conflict, index) => { resolutions[conflict.path] = String(formData.get(`merge-conflict-${index}`) || ""); });
+      if (Object.values(resolutions).some((choice) => !["local", "shared", "combine"].includes(choice))) {
+        showToast("請替每一個衝突欄位選擇要保留的內容。");
+        return;
+      }
+      finishMergeConflictChoices(resolutions);
+    }
+
+    function touchMergeResolutionPath(targetState, path, timestamp) {
+      let current = targetState;
+      const records = [];
+      for (const segment of mergeDecodedSegments(path)) {
+        if (current && typeof current === "object" && !Array.isArray(current)) records.push(current);
+        if (segment.keyed) {
+          if (!Array.isArray(current)) break;
+          current = current.find((item) => item?.id === segment.value);
+        } else if (Array.isArray(current) && /^\d+$/.test(segment.value)) {
+          current = current[Number(segment.value)];
+        } else {
+          current = current?.[segment.value];
+        }
+      }
+      if (current && typeof current === "object" && !Array.isArray(current)) records.push(current);
+      const record = [...records].reverse().find((item) =>
+        Object.hasOwn(item, "savedAt") || Object.hasOwn(item, "submittedAt") || Object.hasOwn(item, "createdAt") ||
+        Object.hasOwn(item, "updatedAt") || typeof item.id === "string");
+      if (record) record.updatedAt = timestamp;
+    }
+
+    function addMergeResolutionAudit(conflicts, resolutions) {
+      const lockedConflicts = conflicts.filter((conflict) => conflict.locked);
+      if (lockedConflicts.length === 0) return;
+      state.auditLog.push({
+        id: `audit-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        type: "merge-resolution",
+        periodId: "",
+        periodName: "多人資料合併",
+        residentId: "",
+        residentLevel: "",
+        residentName: "",
+        sixCoreFormId: "",
+        assessmentDate: "",
+        role: null,
+        teacherName: "",
+        actorName: "管理者（密碼驗證）",
+        occurredAt: new Date().toISOString(),
+        mergeConflicts: lockedConflicts.slice(0, 100).map((conflict) => ({
+          path: conflict.path,
+          choice: resolutions[conflict.path],
+          localValue: cloneMergeValue(conflict.localValue),
+          sharedValue: cloneMergeValue(conflict.sharedValue)
+        }))
+      });
+    }
+
+    async function reconcileSharedFileChanges(currentText) {
+      const sharedState = parseDataBackup(currentText);
+      const baseState = sharedFileBaselineState || (sharedFileBaselineText ? parseDataBackup(sharedFileBaselineText) : cloneMergeValue(sharedState));
+      const localState = cloneMergeValue(state);
+      let result = mergeSharedStates(baseState, localState, sharedState);
+      if (result.fatalConflicts.length > 0) {
+        sharedFileConflict = true;
+        setSharedFileStatus("conflict", "稽核資料衝突");
+        showSharedFileGate("同一筆不可覆蓋的稽核事件出現不同內容，可能是檔案損壞或遭修改。系統不會自動合併，請下載目前瀏覽器備份並交由管理者確認。");
+        return { merged: false, cancelled: true };
+      }
+
+      let resolutions = {};
+      let promptedConflicts = [];
+      if (result.conflicts.length > 0) {
+        promptedConflicts = result.conflicts;
+        setSharedFileStatus("merging", "等待選擇衝突欄位");
+        resolutions = await requestMergeConflictChoices(promptedConflicts, localState, sharedState);
+        if (!resolutions) {
+          sharedFileConflict = true;
+          setSharedFileStatus("conflict", "已取消合併");
+          showSharedFileGate("已取消同欄位衝突選擇，FTP JSON 未被覆蓋。本機資料仍保留；可先下載備份，再重新連結最新 JSON。 ");
+          return { merged: false, cancelled: true };
+        }
+        result = mergeSharedStates(baseState, localState, sharedState, resolutions);
+        if (result.conflicts.length > 0 || result.fatalConflicts.length > 0) throw new Error("仍有無法安全處理的資料衝突。");
+      }
+
+      const previousState = state;
+      const mergedState = migrateState(result.state);
+      if (!mergedState) throw new Error("合併後的資料無法轉換成目前格式。");
+      state = mergedState;
+      const resolutionTime = new Date().toISOString();
+      Object.keys(resolutions).forEach((path) => touchMergeResolutionPath(state, path, resolutionTime));
+      addMergeResolutionAudit(promptedConflicts, resolutions);
+      if (!validDataBackupState(state) || !persist({ syncSharedFile: false })) {
+        state = previousState;
+        throw new Error("合併後的資料未通過完整性檢查，本機與 FTP 均未覆蓋。");
+      }
+      sharedFileBaselineText = currentText;
+      sharedFileBaselineState = cloneMergeValue(sharedState);
+      sharedFileConflict = false;
+      render();
+      return { merged: true, cancelled: false, autoResolvedCount: result.autoResolvedCount, resolvedCount: Object.keys(resolutions).length };
+    }
+
+    function isRemoteHTMLLaunch() {
+      if (window.location.protocol === "ftp:") return true;
+      return window.location.protocol === "file:" && Boolean(window.location.hostname);
+    }
+
+    function canUseDirectoryAccess() {
+      return window.isSecureContext && window.self === window.top && !isRemoteHTMLLaunch() && typeof window.showDirectoryPicker === "function";
+    }
+
+    function canUseNetworkFileAccess() {
+      return window.isSecureContext && window.self === window.top && !isRemoteHTMLLaunch() && typeof window.showOpenFilePicker === "function";
+    }
+
     function setSharedFileStatus(status, message) {
       elements.sharedFileStatus.dataset.state = status;
       elements.sharedFileStatusText.textContent = message;
       elements.sharedFileStatus.title = `${SHARED_DATA_FILENAME}：${message}`;
-      const busy = status === "loading" || status === "saving";
+      const busy = status === "loading" || status === "saving" || status === "merging";
       const canConnectFromPreview = sharedFileMode === "preview";
-      elements.syncSharedFileButton.disabled = (sharedFileMode !== "direct" && !canConnectFromPreview) || busy;
+      const canSaveDirectly = sharedFileMode === "direct" || sharedFileMode === "network-file";
+      elements.syncSharedFileButton.disabled = (!canSaveDirectly && !canConnectFromPreview) || busy;
       elements.syncSharedFileButton.textContent = sharedFileConflict ? "重新載入 JSON" : canConnectFromPreview ? "連結 JSON" : "儲存 JSON";
     }
 
@@ -1791,6 +2598,14 @@
     function showSharedFileGate(message = "") {
       setSharedFileDialogError(message);
       if (!elements.sharedFileDialog.open) elements.sharedFileDialog.showModal();
+    }
+
+    function clearPendingNetworkFile() {
+      pendingNetworkFileHandle = null;
+      pendingNetworkFileText = "";
+      pendingNetworkFileState = null;
+      elements.authorizeNetworkSharedFileButton.hidden = true;
+      elements.openNetworkSharedFileButton.hidden = !canUseNetworkFileAccess();
     }
 
     async function readSharedDataFile(handle) {
@@ -1819,19 +2634,23 @@
       if (!replaceStateFromBackup(importedState, { syncSharedFile: false })) return false;
       sharedFileHandle = handle;
       sharedFileBaselineText = sourceText;
+      sharedFileBaselineState = cloneMergeValue(importedState);
       sharedFileMode = mode;
       sharedFileDirty = false;
       sharedFileConflict = false;
       sharedFileWriteError = false;
+      clearPendingNetworkFile();
       elements.closeSharedFileDialogButton.hidden = true;
       if (elements.sharedFileDialog.open) elements.sharedFileDialog.close();
-      setSharedFileStatus(mode === "direct" ? "saved" : "dirty", mode === "direct" ? "已同步" : "手動匯出模式");
+      const directlyWritable = mode === "direct" || mode === "network-file";
+      setSharedFileStatus(directlyWritable ? "saved" : "dirty", mode === "network-file" ? "FTP JSON 已連結" : mode === "direct" ? "已同步" : "手動匯出模式");
       return true;
     }
 
     async function openSharedDataFile() {
       if (sharedFileDirty && !window.confirm("目前有尚未同步的本機變更。重新讀取共用 JSON 會取代這些內容；請先下載備份。確定繼續嗎？")) return;
       const previousMode = sharedFileMode;
+      clearPendingNetworkFile();
       elements.openSharedFileButton.disabled = true;
       elements.openSharedFileButton.textContent = "選取中…";
       setSharedFileDialogError("");
@@ -1872,7 +2691,8 @@
             setSharedFileStatus("local", "瀏覽器本機模式");
             if (elements.sharedFileDialog.open) elements.sharedFileDialog.close();
           } else {
-            setSharedFileStatus(previousMode === "direct" ? (sharedFileConflict ? "conflict" : "saved") : "locked", previousMode === "direct" ? (sharedFileConflict ? "資料衝突" : "已同步") : "待連結 JSON");
+            const connectedMode = previousMode === "direct" || previousMode === "network-file";
+            setSharedFileStatus(connectedMode ? (sharedFileConflict ? "conflict" : "saved") : "locked", connectedMode ? (sharedFileConflict ? "資料衝突" : previousMode === "network-file" ? "FTP JSON 已連結" : "已同步") : "待連結 JSON");
           }
         } else {
           console.error(error);
@@ -1891,7 +2711,109 @@
         }
       } finally {
         elements.openSharedFileButton.disabled = false;
-        elements.openSharedFileButton.textContent = "選取共用資料夾";
+        elements.openSharedFileButton.textContent = "共用資料夾（自動同步）";
+      }
+    }
+
+    async function openNetworkSharedDataFile() {
+      if (sharedFileDirty && !window.confirm("目前有尚未同步的本機變更。重新讀取共用 JSON 會取代這些內容；請先下載備份。確定繼續嗎？")) return;
+      const previousMode = sharedFileMode;
+      clearPendingNetworkFile();
+      elements.openNetworkSharedFileButton.disabled = true;
+      elements.openNetworkSharedFileButton.textContent = "開啟中…";
+      setSharedFileDialogError("");
+      setSharedFileDialogProgress(`請從 Windows「網路位置」開啟既有的 ${SHARED_DATA_FILENAME}；這不是另存對話框。`, "working");
+      setSharedFileStatus("loading", "正在讀取 FTP JSON");
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          id: "docccc-network-json",
+          multiple: false,
+          types: [{
+            description: "DocCCC 共用資料",
+            accept: { "application/json": [".json"] }
+          }]
+        });
+        if (handle.name !== SHARED_DATA_FILENAME) throw new Error(`只能選取固定檔名「${SHARED_DATA_FILENAME}」。`);
+        const sourceText = await withSharedFileTimeout(
+          readSharedDataFile(handle),
+          `已選取 ${SHARED_DATA_FILENAME}，但從 FTP 網路位置讀取逾時。`
+        );
+        const importedState = parseDataBackup(sourceText);
+        pendingNetworkFileHandle = handle;
+        pendingNetworkFileText = sourceText;
+        pendingNetworkFileState = importedState;
+        elements.authorizeNetworkSharedFileButton.hidden = false;
+        elements.openNetworkSharedFileButton.hidden = true;
+        setSharedFileDialogProgress(`已安全讀取 ${SHARED_DATA_FILENAME}，尚未寫入。請按「允許寫入並開始使用」完成連結。`, "working");
+        setSharedFileStatus("loading", "等待寫入授權");
+      } catch (error) {
+        clearPendingNetworkFile();
+        if (error?.name === "AbortError") {
+          setSharedFileDialogProgress("已取消開啟 FTP JSON，未進行任何寫入。", "idle");
+          if (previousMode === "preview") {
+            setSharedFileStatus("local", "瀏覽器本機模式");
+            if (elements.sharedFileDialog.open) elements.sharedFileDialog.close();
+          } else {
+            const connectedMode = previousMode === "direct" || previousMode === "network-file";
+            setSharedFileStatus(connectedMode ? (sharedFileConflict ? "conflict" : "saved") : "locked", connectedMode ? (sharedFileConflict ? "資料衝突" : previousMode === "network-file" ? "FTP JSON 已連結" : "已同步") : "待連結 JSON");
+          }
+        } else {
+          console.error(error);
+          const message = error?.name === "SecurityError" || error?.name === "NotAllowedError"
+            ? "瀏覽器拒絕開啟檔案。請確認 index.html 已複製到本機磁碟，並直接以 Edge／Chrome 最上層分頁開啟。"
+            : error instanceof Error ? error.message : "無法開啟 FTP 共用 JSON。";
+          setSharedFileDialogError(message);
+          setSharedFileDialogProgress(`FTP JSON 開啟失敗（${error?.name || "未知錯誤"}）。`, "error");
+          setSharedFileStatus(sharedFileConflict ? "conflict" : "error", sharedFileConflict ? "資料衝突" : "開啟失敗");
+        }
+      } finally {
+        elements.openNetworkSharedFileButton.disabled = false;
+        elements.openNetworkSharedFileButton.textContent = "開啟 FTP 共用 JSON";
+      }
+    }
+
+    async function authorizeNetworkSharedDataFile() {
+      const handle = pendingNetworkFileHandle;
+      const sourceText = pendingNetworkFileText;
+      const importedState = pendingNetworkFileState;
+      if (!handle || !sourceText || !importedState) {
+        setSharedFileDialogError("請先安全開啟 FTP 網路位置中的 DocCCC-data.json。");
+        return;
+      }
+      if (typeof handle.requestPermission !== "function") {
+        setSharedFileDialogError("此瀏覽器未提供既有檔案的寫入授權，請使用最新版 Edge／Chrome。");
+        return;
+      }
+
+      let permissionPromise;
+      try {
+        permissionPromise = handle.requestPermission({ mode: "readwrite" });
+      } catch (error) {
+        setSharedFileDialogError(error instanceof Error ? error.message : "無法啟動寫入授權。");
+        return;
+      }
+      elements.authorizeNetworkSharedFileButton.disabled = true;
+      try {
+        const permission = await permissionPromise;
+        if (permission !== "granted") throw new Error("未取得 FTP JSON 寫入權限，正式頁面仍保持鎖定。");
+        setSharedFileDialogProgress("已取得寫入權限，正在確認 FTP JSON 未被其他電腦更新…", "working");
+        const latestText = await withSharedFileTimeout(
+          readSharedDataFile(handle),
+          "取得權限後重新讀取 FTP JSON 逾時。"
+        );
+        if (latestText !== sourceText) throw new Error("FTP JSON 在授權期間已被其他電腦更新，請重新開啟最新檔案。");
+        if (!replaceStateFromSharedFile(importedState, sourceText, "network-file", handle)) throw new Error("瀏覽器無法保存載入的資料。");
+        showToast(`已安全載入並連結 FTP 網路位置中的 ${SHARED_DATA_FILENAME}。`);
+      } catch (error) {
+        console.error(error);
+        const message = error?.name === "NotAllowedError"
+          ? "請直接再按一次「允許寫入並開始使用」；若仍失敗，請確認 HTML 是從本機磁碟開啟，而不是直接從 FTP／UNC 開啟。"
+          : error instanceof Error ? error.message : "無法取得 FTP JSON 寫入權限。";
+        setSharedFileDialogError(message);
+        setSharedFileDialogProgress("尚未完成寫入授權；未改動 FTP JSON。", "error");
+        setSharedFileStatus("error", "寫入授權失敗");
+      } finally {
+        elements.authorizeNetworkSharedFileButton.disabled = false;
       }
     }
 
@@ -1917,10 +2839,10 @@
       return new Intl.DateTimeFormat("zh-TW", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date());
     }
 
-    function scheduleSharedFileWrite() {
+    function scheduleSharedFileWrite({ explicit = false } = {}) {
       if (sharedFileMode === "locked" || sharedFileMode === "preview") return;
       sharedFileDirty = true;
-      if (sharedFileMode !== "direct") {
+      if (sharedFileMode !== "direct" && sharedFileMode !== "network-file") {
         setSharedFileStatus("dirty", "待手動匯出");
         return;
       }
@@ -1929,12 +2851,17 @@
         return;
       }
       sharedFileWriteError = false;
-      setSharedFileStatus("dirty", "等待同步");
+      if (sharedFileMode === "network-file" && !explicit) {
+        setSharedFileStatus("dirty", "待儲存 JSON");
+        return;
+      }
+      setSharedFileStatus("dirty", sharedFileMode === "network-file" ? "等待儲存" : "等待同步");
       startSharedFileWrite();
     }
 
     function startSharedFileWrite() {
-      if (sharedFileWritePromise || sharedFileMode !== "direct" || sharedFileConflict) return sharedFileWritePromise;
+      const directlyWritable = sharedFileMode === "direct" || sharedFileMode === "network-file";
+      if (sharedFileWritePromise || !directlyWritable || sharedFileConflict) return sharedFileWritePromise;
       sharedFileWritePromise = flushSharedFileWrites().finally(() => {
         sharedFileWritePromise = null;
         if (sharedFileDirty && !sharedFileConflict && !sharedFileWriteError) startSharedFileWrite();
@@ -1944,33 +2871,63 @@
 
     async function flushSharedFileWrites() {
       try {
+        let mergeAttempts = 0;
+        let mergedOtherChanges = false;
         while (sharedFileDirty && !sharedFileConflict) {
           sharedFileDirty = false;
           setSharedFileStatus("saving", "正在同步");
           const currentText = await readSharedDataFile(sharedFileHandle);
           if (currentText !== sharedFileBaselineText) {
-            sharedFileDirty = true;
-            sharedFileConflict = true;
-            setSharedFileStatus("conflict", "資料衝突");
-            showSharedFileGate("共用 JSON 已由另一台電腦更新，系統已停止覆寫。請先下載目前瀏覽器備份，再重新選取最新的 DocCCC-data.json；不要直接強制覆蓋。");
-            return false;
+            mergeAttempts += 1;
+            if (mergeAttempts > MAX_MERGE_WRITE_ATTEMPTS) {
+              sharedFileDirty = true;
+              sharedFileConflict = true;
+              setSharedFileStatus("conflict", "多人持續寫入");
+              showSharedFileGate("合併期間共用 JSON 持續被其他電腦改寫，已超過三次安全重試。FTP JSON 未再覆蓋；請稍後重新連結，或先下載本機備份。");
+              return false;
+            }
+            setSharedFileStatus("merging", "正在合併其他電腦更新");
+            const reconciliation = await reconcileSharedFileChanges(currentText);
+            if (!reconciliation.merged) {
+              sharedFileDirty = true;
+              return false;
+            }
+            mergedOtherChanges = true;
           }
           const nextText = JSON.stringify(createDataBackup(state), null, 2);
-          const writable = await sharedFileHandle.createWritable();
-          await writable.write(nextText);
-          await writable.close();
-          const verifiedText = await readSharedDataFile(sharedFileHandle);
+          let writable = null;
+          try {
+            writable = await sharedFileHandle.createWritable();
+            await writable.write(nextText);
+            await writable.close();
+            writable = null;
+          } catch (error) {
+            if (writable && typeof writable.abort === "function") {
+              try { await writable.abort(); } catch (_) { /* 保留原始寫入錯誤 */ }
+            }
+            throw error;
+          }
+          let verifiedText = await readSharedDataFile(sharedFileHandle);
           if (verifiedText !== nextText) {
             sharedFileDirty = true;
-            sharedFileConflict = true;
-            setSharedFileStatus("conflict", "寫入遭到取代");
-            showSharedFileGate("寫入後的共用 JSON 與目前資料不一致，可能有另一台電腦同時儲存。請先下載目前瀏覽器備份，再重新載入最新檔案。");
-            return false;
+            setSharedFileStatus("merging", "偵測到同時寫入，準備重試合併");
+            continue;
+          }
+          if (sharedFileMode === "network-file") {
+            await new Promise((resolve) => window.setTimeout(resolve, 750));
+            verifiedText = await readSharedDataFile(sharedFileHandle);
+            if (verifiedText !== nextText) {
+              sharedFileDirty = true;
+              setSharedFileStatus("merging", "FTP 出現後續更新，準備重試合併");
+              continue;
+            }
           }
           sharedFileBaselineText = verifiedText;
+          sharedFileBaselineState = cloneMergeValue(state);
         }
         sharedFileWriteError = false;
         setSharedFileStatus("saved", `已同步 ${sharedFileSyncTime()}`);
+        if (mergedOtherChanges) showToast("已合併其他電腦的更新並同步到共用 JSON。");
         return true;
       } catch (error) {
         console.error(error);
@@ -1978,7 +2935,7 @@
         sharedFileWriteError = true;
         setSharedFileStatus("error", "同步失敗");
         const message = error instanceof Error ? error.message : "請檢查共用資料夾。";
-        showSharedFileGate(`共用 JSON 同步失敗：${message} 請重新選取同一個共用資料夾；系統不會改寫其他檔案。`);
+        showSharedFileGate(`共用 JSON 同步失敗：${message} 請重新連結同一個 JSON；系統不會改寫其他檔案。`);
         showToast(`共用 JSON 同步失敗：${message}`);
         return false;
       }
@@ -1993,17 +2950,20 @@
         showSharedFileGate();
         return;
       }
-      if (sharedFileMode !== "direct" || !sharedFileHandle) {
+      if ((sharedFileMode !== "direct" && sharedFileMode !== "network-file") || !sharedFileHandle) {
         showToast("請先開啟共用 JSON 資料檔。");
         showSharedFileGate();
         return;
       }
       if (!sharedFileDirty) {
         try {
-          if (await readSharedDataFile(sharedFileHandle) !== sharedFileBaselineText) {
-            sharedFileConflict = true;
-            setSharedFileStatus("conflict", "資料衝突");
-            showSharedFileGate("共用 JSON 已由另一台電腦更新。請重新載入最新檔案後再繼續。");
+          const currentText = await readSharedDataFile(sharedFileHandle);
+          if (currentText !== sharedFileBaselineText) {
+            setSharedFileStatus("merging", "正在載入其他電腦更新");
+            const reconciliation = await reconcileSharedFileChanges(currentText);
+            if (!reconciliation.merged) return;
+            setSharedFileStatus("saved", `已同步 ${sharedFileSyncTime()}`);
+            showToast("已載入並合併其他電腦的最新更新。");
             return;
           }
           showToast("共用 JSON 已是最新版本。");
@@ -2023,14 +2983,18 @@
     function initializeSharedDataGate() {
       const isTopLevelPage = window.self === window.top;
       const isHostedPreview = window.location.protocol === "http:" || window.location.protocol === "https:";
-      const directFileAccess = window.isSecureContext && isTopLevelPage && typeof window.showDirectoryPicker === "function";
-      elements.openSharedFileButton.hidden = !directFileAccess;
+      const directoryAccess = canUseDirectoryAccess();
+      const networkFileAccess = canUseNetworkFileAccess();
+      const directFileAccess = directoryAccess || networkFileAccess;
+      elements.openSharedFileButton.hidden = !directoryAccess;
+      elements.openNetworkSharedFileButton.hidden = !networkFileAccess;
+      elements.authorizeNetworkSharedFileButton.hidden = true;
       elements.fallbackSharedFileButton.hidden = directFileAccess;
       elements.sharedFileCompatibility.hidden = directFileAccess;
-      setSharedFileDialogProgress("尚未選取共用資料夾。", "idle");
+      setSharedFileDialogProgress("尚未連結共用資料。", "idle");
       if (isHostedPreview) {
         sharedFileMode = "preview";
-        elements.sharedFileDialogTitle.textContent = "連結共用資料夾（選用）";
+        elements.sharedFileDialogTitle.textContent = "連結共用資料（選用）";
         elements.sharedFileDialogIntro.textContent = "公開預覽可直接使用瀏覽器本機資料；只有需要讀寫共用 JSON 時才需連結。";
         elements.closeSharedFileDialogButton.hidden = false;
         setSharedFileStatus("local", "瀏覽器本機模式");
@@ -2038,13 +3002,22 @@
         return;
       }
       sharedFileMode = "locked";
-      elements.sharedFileDialogTitle.textContent = "先選取共用資料夾";
-      elements.sharedFileDialogIntro.textContent = "每次開啟網頁都必須重新讀取共用資料夾中的最新資料。";
+      elements.sharedFileDialogTitle.textContent = isRemoteHTMLLaunch() ? "請先把 HTML 複製到本機" : "先連結共用資料";
+      elements.sharedFileDialogIntro.textContent = isRemoteHTMLLaunch()
+        ? "目前 index.html 是從 FTP、UNC 或其他網路位置直接啟動，瀏覽器不允許可靠寫入。"
+        : "每次開啟網頁都必須重新讀取 FTP 或共用資料夾中的最新 JSON。";
       elements.closeSharedFileDialogButton.hidden = true;
       setSharedFileStatus("locked", "待連結 JSON");
-      const unsupportedMessage = !isTopLevelPage
+      const unsupportedMessage = isRemoteHTMLLaunch()
+        ? "請關閉此頁，先把 index.html 複製到 C:\\Users\\USER\\Downloads\\CCC 等本機資料夾，再從本機檔案開啟；FTP 只保留 DocCCC-data.json 作為共用資料。"
+        : !isTopLevelPage
         ? "目前網頁開在預覽框或嵌入頁面中，瀏覽器不允許取得資料夾寫入權限。請將 index.html 直接以 Edge 或 Chrome 的新分頁開啟。"
         : "目前的瀏覽器或開啟方式不支援直接覆寫檔案，請使用最新版 Edge 或 Chrome。";
+      if (isRemoteHTMLLaunch()) {
+        elements.fallbackSharedFileButton.hidden = true;
+        elements.sharedFileCompatibility.hidden = false;
+        elements.sharedFileCompatibility.textContent = "FTP 可以保存最新版 index.html 供下載或複製，但不可直接從 FTP／UNC 執行；每台電腦都必須先複製一份到本機磁碟。";
+      }
       showSharedFileGate(directFileAccess ? "" : unsupportedMessage);
     }
 
@@ -2061,6 +3034,14 @@
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+    }
+
+    function cccScoreLookupMarkup() {
+      return `
+        <a class="ccc-score-lookup" href="${CCC_SCORE_LOOKUP_URL}" target="_blank" rel="noopener noreferrer" data-qr-value="${CCC_SCORE_LOOKUP_URL}" aria-label="開啟 Conturing 與 Journal 分數查詢">
+          <svg viewBox="0 0 37 37" role="img" aria-label="分數查詢 QR Code"><rect width="37" height="37" fill="#fff"></rect><path d="${CCC_SCORE_LOOKUP_QR_PATH}" fill="currentColor"></path></svg>
+          <span>conturing/journal分數查詢<br><small>密碼artd12345!</small></span>
+        </a>`;
     }
 
     function currentPeriod() {
@@ -2482,7 +3463,10 @@
             <p class="ccc-form-kicker">放射腫瘤部</p>
             <h2>CCC 評核表</h2>
           </div>
-          <span class="ccc-draft-badge">${submitted ? "已提交 · 鎖定" : "編輯中 · 可暫存"}</span>
+          <div class="ccc-form-header-tools">
+            ${cccScoreLookupMarkup()}
+            <span class="ccc-draft-badge">${submitted ? "已提交 · 鎖定" : "編輯中 · 可暫存"}</span>
+          </div>
         </div>
 
         <section class="ccc-section">
@@ -2846,9 +3830,13 @@
       }
       if (!window.confirm(`確定刪除 ${form.assessmentDate} 的空白 Core EPA 評量表嗎？`)) return;
       const formIndex = assessment.coreEpaForms.findIndex((item) => item.id === form.id);
+      const previousUpdatedAt = assessment.updatedAt;
       assessment.coreEpaForms.splice(formIndex, 1);
+      assessment.updatedAt = new Date().toISOString();
       if (!persist()) {
         assessment.coreEpaForms.splice(formIndex, 0, form);
+        if (previousUpdatedAt === undefined) delete assessment.updatedAt;
+        else assessment.updatedAt = previousUpdatedAt;
         return;
       }
       selectedCoreEPAFormId = assessment.coreEpaForms[formIndex]?.id || assessment.coreEpaForms[formIndex - 1]?.id || null;
@@ -2945,7 +3933,9 @@
         record.followUp ? `追蹤：${cccOptionLabel(CCC_FOLLOWUP_OPTIONS, record.followUp)}` : ""
       );
       return `
-        <h1 class="ccc-print-title">住院醫師核心能力適任性評核表</h1>
+        <div class="ccc-print-title-row">
+          <h1 class="ccc-print-title">住院醫師核心能力適任性評核表</h1>
+        </div>
         <div class="ccc-print-meta">
           <span>姓名：<strong>${escapeHTML((record.residentName ?? resident.name) || "未命名")}</strong></span>
           <span>級職：<strong>${escapeHTML(record.residentLevel ?? resident.level)}</strong></span>
@@ -3375,6 +4365,7 @@
       period.residents.splice(insertAt === -1 ? period.residents.length : insertAt, 0, resident);
       period.assessments ||= {};
       period.assessments[resident.id] = makeResidentAssessment();
+      period.updatedAt = new Date().toISOString();
       persist();
       render();
       requestAnimationFrame(() => elements.roster.querySelector(`[data-resident-name="${resident.id}"]`)?.focus());
@@ -3393,6 +4384,7 @@
       if (!window.confirm(`確定要從本期名單移除「${label}」嗎？`)) return;
       period.residents = period.residents.filter((item) => item.id !== residentId);
       delete period.assessments[residentId];
+      period.updatedAt = new Date().toISOString();
       persist();
       render();
       showToast(`已移除「${label}」，評分表已同步更新。`);
@@ -3428,6 +4420,7 @@
           const resident = residentFor(period, input.dataset.residentName);
           if (!resident) return;
           resident.name = input.value.trim();
+          resident.updatedAt = new Date().toISOString();
           input.value = resident.name;
           persist();
           const hint = elements.roster.querySelector(`[data-saved-hint="${resident.id}"]`);
@@ -3453,6 +4446,12 @@
       return `名單 ${summary.residentCount} 位；六大核心表單 ${summary.sixCoreFormCount || 0} 張、學生提交 ${summary.studentSubmissionCount}、教師提交 ${summary.teacherSubmissionCount}、教師暫存 ${summary.teacherDraftCount}、CCC 提交 ${summary.cccSubmissionCount}、CCC 暫存 ${summary.cccDraftCount}、Core EPA 表單 ${summary.coreEpaFormCount ?? summary.coreEpaDraftCount ?? 0} 張`;
     }
 
+    function mergeResolutionAuditText(event) {
+      if (!Array.isArray(event?.mergeConflicts) || event.mergeConflicts.length === 0) return "";
+      const labels = { local: "保留本機", shared: "保留 FTP", combine: "合併文字" };
+      return event.mergeConflicts.map((conflict) => `${conflict.path}：${labels[conflict.choice] || conflict.choice}`).join("；");
+    }
+
     function auditSnapshotText(event, before = false) {
       const itemScores = before ? event.beforeItemScores : event.itemScores;
       const levels = before ? event.beforeLevels : event.levels;
@@ -3475,6 +4474,7 @@
         parts.push(`CCC：六大核心 ${formatCCCScore(event.cccForm.coreScore ?? event.cccForm.coreAverage)}（${range}${count ? `，${count} 張` : ""}）；綜合總分 ${formatCCCScore(event.cccForm.weightedTotal)}；${cccOptionLabel(CCC_CONCLUSION_OPTIONS, event.cccForm.conclusion)}`);
       }
       if (event.periodSummary) parts.push(`刪除期別快照：${periodSummaryText(event.periodSummary)}`);
+      if (event.mergeConflicts) parts.push(`衝突處理：${mergeResolutionAuditText(event)}`);
       return parts.join(" ／ ") || "—";
     }
 
@@ -3514,6 +4514,31 @@
           `).join("")}</tbody>
         </table>
       `;
+    }
+
+    function renderMilestoneReference() {
+      if (elements.milestoneReferenceContent.dataset.rendered === "true") return;
+      elements.milestoneReferenceContent.innerHTML = MILESTONE_REFERENCE_GROUPS.map((group) => `
+        <section class="milestone-domain" id="milestone-domain-${escapeHTML(group.code.toLowerCase())}">
+          <h3 class="milestone-domain-heading"><span class="milestone-domain-code">${escapeHTML(group.code)}</span>${escapeHTML(group.name)}</h3>
+          ${group.items.map((item, itemIndex) => `
+            <details class="milestone-card" ${group.code === "PC" && itemIndex === 0 ? "open" : ""}>
+              <summary><span>${escapeHTML(item.code)}　${escapeHTML(item.title)}</span><small>原表第 ${item.sourcePage} 頁</small></summary>
+              <div class="milestone-level-scroll">
+                <div class="milestone-levels" aria-label="${escapeHTML(item.code)} Level 1 至 Level 5 中文參考">
+                  ${item.levels.map((statements, levelIndex) => `
+                    <article class="milestone-level">
+                      <h4>Level ${levelIndex + 1}</h4>
+                      <ul>${statements.map((statement) => `<li>${escapeHTML(statement)}</li>`).join("")}</ul>
+                    </article>
+                  `).join("")}
+                </div>
+              </div>
+            </details>
+          `).join("")}
+        </section>
+      `).join("");
+      elements.milestoneReferenceContent.dataset.rendered = "true";
     }
 
     function unlockAudit(event) {
@@ -3647,9 +4672,13 @@
       if (!period || !resident || !assessment) { showToast("找不到要建立的評核資料。"); return; }
       if (!/^\d{4}-\d{2}-\d{2}$/.test(assessmentDate)) { showToast("請選擇有效的評核日期。"); return; }
       const form = makeSixCoreForm(assessmentDate);
+      const previousUpdatedAt = assessment.updatedAt;
       assessment.sixCoreForms.push(form);
+      assessment.updatedAt = new Date().toISOString();
       if (!persist()) {
         assessment.sixCoreForms.pop();
+        if (previousUpdatedAt === undefined) delete assessment.updatedAt;
+        else assessment.updatedAt = previousUpdatedAt;
         return;
       }
       elements.sixCoreFormDialog.close();
@@ -3679,9 +4708,13 @@
       if (!period || !resident || !assessment) { showToast("找不到要建立的 Core EPA 評量資料。"); return; }
       if (!/^\d{4}-\d{2}-\d{2}$/.test(assessmentDate)) { showToast("請選擇有效的評量日期。"); return; }
       const form = makeCoreEPAForm(assessmentDate);
+      const previousUpdatedAt = assessment.updatedAt;
       assessment.coreEpaForms.push(form);
+      assessment.updatedAt = new Date().toISOString();
       if (!persist()) {
         assessment.coreEpaForms.pop();
+        if (previousUpdatedAt === undefined) delete assessment.updatedAt;
+        else assessment.updatedAt = previousUpdatedAt;
         return;
       }
       selectedCoreEPAFormId = form.id;
@@ -3701,9 +4734,13 @@
       if (form.student || form.teacher || form.teacherDraft) { showToast("已有評核內容的表單不可刪除。"); return; }
       if (!window.confirm(`確定刪除 ${form.assessmentDate} 的空白六大核心表單嗎？`)) return;
       const index = assessment.sixCoreForms.findIndex((item) => item.id === formId);
+      const previousUpdatedAt = assessment.updatedAt;
       assessment.sixCoreForms.splice(index, 1);
+      assessment.updatedAt = new Date().toISOString();
       if (!persist()) {
         assessment.sixCoreForms.splice(index, 0, form);
+        if (previousUpdatedAt === undefined) delete assessment.updatedAt;
+        else assessment.updatedAt = previousUpdatedAt;
         return;
       }
       render();
@@ -3937,9 +4974,13 @@
       if (name === period.name) { elements.renamePeriodDialog.close(); showToast("期別名稱沒有變動。"); return; }
 
       const previousName = period.name;
+      const previousUpdatedAt = period.updatedAt;
       period.name = name;
+      period.updatedAt = new Date().toISOString();
       if (!persist()) {
         period.name = previousName;
+        if (previousUpdatedAt === undefined) delete period.updatedAt;
+        else period.updatedAt = previousUpdatedAt;
         showToast("期別名稱儲存失敗，原名稱仍保留。");
         return;
       }
@@ -4047,7 +5088,7 @@
       ];
       const header = [
         "事件", "期別", "級別", "姓名", "六大核心表單 ID", "評核日期", "評分類型", "教師姓名", "操作者", "完成時間",
-        "CCC 納入起日", "CCC 納入迄日", "CCC 納入張數", "CCC 六大核心平均", "CCC 綜合總分", "CCC 結論", "CCC 導師", "CCC 提交時間", "期別刪除摘要",
+        "CCC 納入起日", "CCC 納入迄日", "CCC 納入張數", "CCC 六大核心平均", "CCC 綜合總分", "CCC 結論", "CCC 導師", "CCC 提交時間", "期別刪除摘要", "合併衝突摘要",
         ...snapshotHeaders, ...snapshotHeaders.map((name) => `修改前 ${name}`)
       ];
       const body = rows.map((event) => [
@@ -4057,7 +5098,7 @@
         event.cccForm?.coreDateFrom || "", event.cccForm?.coreDateTo || "", event.cccForm?.coreSourceForms?.length || "",
         event.cccForm?.coreScore ?? event.cccForm?.coreAverage ?? "", event.cccForm?.weightedTotal ?? "",
         event.cccForm ? cccOptionLabel(CCC_CONCLUSION_OPTIONS, event.cccForm.conclusion) : "",
-        event.cccForm?.mentorName || "", event.cccForm?.submittedAt || "", periodSummaryText(event.periodSummary),
+        event.cccForm?.mentorName || "", event.cccForm?.submittedAt || "", periodSummaryText(event.periodSummary), mergeResolutionAuditText(event),
         ...auditCSVSnapshot(event), ...auditCSVSnapshot(event, true)
       ]);
       const csv = `\uFEFF${[header, ...body].map((row) => row.map(csvCell).join(",")).join("\r\n")}`;
@@ -4169,6 +5210,7 @@
         renderAudit();
         if (!auditUnlocked) requestAnimationFrame(() => elements.auditPassword.focus());
       }
+      if (tabName === "milestones") renderMilestoneReference();
     }
 
     function showToast(message) {
@@ -4229,6 +5271,8 @@
     });
     elements.importDataInput.addEventListener("change", importDataBackup);
     elements.openSharedFileButton.addEventListener("click", openSharedDataFile);
+    elements.openNetworkSharedFileButton.addEventListener("click", openNetworkSharedDataFile);
+    elements.authorizeNetworkSharedFileButton.addEventListener("click", authorizeNetworkSharedDataFile);
     elements.fallbackSharedFileButton.addEventListener("click", () => {
       elements.fallbackSharedFileInput.value = "";
       elements.fallbackSharedFileInput.click();
@@ -4242,6 +5286,12 @@
     elements.sharedFileDialog.addEventListener("cancel", (event) => {
       if (sharedFileMode === "preview") elements.sharedFileDialog.close();
       else event.preventDefault();
+    });
+    elements.mergeConflictForm.addEventListener("submit", submitMergeConflictChoices);
+    elements.cancelMergeConflictButton.addEventListener("click", () => finishMergeConflictChoices(null));
+    elements.mergeConflictDialog.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      finishMergeConflictChoices(null);
     });
     elements.sixCoreFormForm.addEventListener("submit", createSixCoreForm);
     elements.addSixCoreFormButton.addEventListener("click", () => openSixCoreFormDialog());

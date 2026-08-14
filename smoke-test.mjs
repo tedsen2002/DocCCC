@@ -9,10 +9,13 @@ assert.match(html, /data-tab="ccc"/, "應有獨立 CCC 評核表分頁");
 assert.match(html, /id="panel-ccc"/, "CCC 評核表應有獨立頁面容器");
 assert.match(html, /data-tab="core-epa"/, "應有獨立 Core EPAs 評量表分頁");
 assert.match(html, /id="panel-core-epa"/, "Core EPAs 評量表應有獨立頁面容器");
-assert.match(html, /data-tab="assessment"[\s\S]*data-tab="core-epa"[\s\S]*data-tab="score-summary"[\s\S]*data-tab="ccc"/, "頁籤應依六大核心、Core EPAs、分數統計、CCC 排列");
+assert.match(html, /data-tab="assessment"[\s\S]*data-tab="milestones"[\s\S]*data-tab="core-epa"[\s\S]*data-tab="score-summary"[\s\S]*data-tab="ccc"/, "頁籤應依六大核心、美國 RT Milestones、Core EPAs、分數統計、CCC 排列");
 assert.match(html, /id="panel-score-summary"/, "應有獨立 EPA／六大核心分數統計頁");
 assert.match(html, /data-tab="roster"/, "應有名單設定分頁");
 assert.match(html, /data-tab="audit"/, "應有稽核紀錄分頁");
+assert.match(html, /data-tab="assessment"[\s\S]*data-tab="milestones"[\s\S]*data-tab="core-epa"/, "Milestones 中文參考分頁應排列在六大核心與 Core EPAs 之間");
+assert.match(html, /data-tab="milestones"[^>]*>美國RT- Milestones<\/button>/, "最後一個頁籤應命名為美國RT- Milestones");
+assert.match(html, /id="panel-milestones"/, "應有獨立的 Milestones 中文唯讀參考頁");
 assert.match(html, /id="exportDataButton"[^>]*>匯出資料<\/button>/, "右上角應提供完整資料匯出按鈕");
 assert.match(html, /id="importDataButton"[^>]*>匯入資料<\/button>/, "右上角應提供完整資料匯入按鈕");
 assert.match(html, /id="sharedFileDialog"/, "開啟網頁時應有強制連結共用 JSON 的阻擋畫面");
@@ -20,14 +23,25 @@ assert.match(html, /const SHARED_DATA_FILENAME = "DocCCC-data\.json"/, "共用�
 assert.match(html, /directoryHandle\.getFileHandle\(SHARED_DATA_FILENAME, \{ create: false \}\)/, "直接模式應只讀取共用資料夾內的固定 JSON 且不得建立其他檔案");
 assert.match(html, /if \(file\.name !== SHARED_DATA_FILENAME\)/, "相容匯入時也應拒絕其他 JSON 檔名");
 assert.match(html, /window\.showDirectoryPicker\(\{[\s\S]*?mode: "readwrite"/, "支援的 Edge 或 Chrome 應在選取共用資料夾時直接要求讀寫模式");
-assert.doesNotMatch(html, /requestPermission/, "本機或嵌入情境不得再另外呼叫會被瀏覽器拒絕的 requestPermission");
+assert.match(html, /id="openNetworkSharedFileButton" class="btn btn-create"[^>]*>開啟 FTP 共用 JSON<\/button>/, "本機 HTML 應提供醒目的 FTP JSON 安全開啟按鈕");
+assert.match(html, /id="authorizeNetworkSharedFileButton" class="btn btn-export"[^>]*hidden>允許寫入並開始使用<\/button>/, "FTP JSON 應以第二個明確按鈕要求寫入權限");
+assert.match(html, /window\.showOpenFilePicker\(\{[\s\S]*?id: "docccc-network-json"/, "FTP JSON 應使用開啟既有檔案的選擇器");
+assert.doesNotMatch(html, /showSaveFilePicker|openSharedJsonFileButton/, "不得用儲存選擇器連結既有共用 JSON，以免確認儲存時先將原檔截成 0 KB");
+assert.match(html, /permissionPromise = handle\.requestPermission\(\{ mode: "readwrite" \}\)/, "FTP JSON 寫入權限只能由第二次明確點擊要求");
 assert.doesNotMatch(html, /queryPermission/, "選取資料夾後不得再以額外權限查詢阻塞遠端檔案載入");
 assert.match(html, /id="sharedFileProgress"[^>]*aria-live="polite"/, "選取資料夾後應持續顯示目前讀取階段");
 assert.match(html, /withSharedFileTimeout\([\s\S]*?getFileHandle/, "遠端資料夾讀取卡住時應有逾時回饋");
 assert.match(html, /const isTopLevelPage = window\.self === window\.top/, "嵌入或預覽框開啟時應停用直接寫入並提示改用最上層分頁");
+assert.match(html, /function isRemoteHTMLLaunch\(\)[\s\S]*window\.location\.protocol === "ftp:"[\s\S]*window\.location\.hostname/, "HTML 從 FTP 或 UNC 網路位置啟動時應可辨識並阻擋");
+assert.match(html, /FTP 可以保存最新版 index\.html[\s\S]*不可直接從 FTP／UNC 執行/, "網路位置直接啟動 HTML 時應明確提示複製至本機");
 assert.match(html, /sharedFileHandle\.createWritable\(\)/, "資料變更後應直接覆寫已授權的同一個 JSON");
-assert.match(html, /const verifiedText = await readSharedDataFile\(sharedFileHandle\)/, "共用 JSON 寫入後應重新讀取驗證");
-assert.match(html, /currentText !== sharedFileBaselineText/, "覆寫前應阻擋已被其他電腦更新的共用 JSON");
+assert.match(html, /let verifiedText = await readSharedDataFile\(sharedFileHandle\)/, "共用 JSON 寫入後應重新讀取驗證");
+assert.match(html, /currentText !== sharedFileBaselineText/, "覆寫前應辨識已被其他電腦更新的共用 JSON");
+assert.match(html, /reconcileSharedFileChanges\(currentText\)/, "共用 JSON 更新時應先執行三方合併而非直接覆蓋");
+assert.match(html, /const MERGE_AMBIGUITY_MS = 5 \* 60 \* 1000/, "同欄位修改相差五分鐘內應視為需要人工選擇");
+assert.match(html, /id="mergeConflictDialog"/, "無法安全判斷的同欄位修改應提供選擇視窗");
+assert.match(html, /id="mergeConflictPassword"[^>]*type="password"/, "已提交或鎖定內容的合併應要求管理密碼");
+assert.match(html, /type: "merge-resolution"/, "鎖定內容的合併選擇應建立不可覆蓋的稽核事件");
 assert.match(html, /window\.addEventListener\("beforeunload", warnIfSharedFileUnsynced\)/, "尚未同步時關閉頁面應觸發離開警告");
 assert.match(html, /initializeSharedDataGate\(\);/, "頁面初始化後應依開啟模式設定共用 JSON 流程");
 assert.match(html, /const isHostedPreview = window\.location\.protocol === "http:" \|\| window\.location\.protocol === "https:"/, "HTTP(S) 公開版本應辨識為免強制連結模式");
@@ -38,8 +52,12 @@ assert.match(html, /id="importDataInput" type="file" accept="\.json,application\
 assert.match(html, /function exportDataBackup\(\)/, "應提供完整 JSON 備份匯出流程");
 assert.match(html, /async function importDataBackup\(event\)/, "應提供完整 JSON 備份匯入流程");
 assert.match(html, /取代目前瀏覽器內的所有資料/, "匯入取代現有資料前應明確警告使用者");
+assert.match(html, /const CCC_SCORE_LOOKUP_URL = "https:\/\/rt-linebot\.onrender\.com\/r-rating"/, "CCC 表頭 QR Code 應指向指定的分數查詢網址");
+assert.match(html, /data-qr-value="\$\{CCC_SCORE_LOOKUP_URL\}"/, "QR Code 應保留可測試的原始網址標記");
+assert.match(html, /conturing\/journal分數查詢<br><small>密碼artd12345!<\/small>/, "CCC 表頭應顯示指定的查詢說明與密碼");
+assert.match(html, /<svg viewBox="0 0 37 37"[^>]*>[\s\S]*CCC_SCORE_LOOKUP_QR_PATH/, "分數查詢 QR Code 應完整內嵌，不得依賴外網圖片服務");
 assert.match(html, /elements\.importDataInput\.addEventListener\("change", importDataBackup\)/, "選取備份檔後應啟動匯入流程");
-assert.match(html, /const SCHEMA_VERSION = 10/, "Core EPA 多表單加入後應使用 schema v10");
+assert.match(html, /const SCHEMA_VERSION = 11/, "多人三方合併與衝突稽核加入後應使用 schema v11");
 assert.match(html, /const ITEM_MAX_SCORE = 5/, "每個教師分項滿分應為 5 分");
 assert.match(html, /function itemScoreOptions\(selected = null\)/, "教師 0–5 分應由共用下拉選項產生");
 assert.match(html, /<select class="item-score-select"[^>]+required>/, "教師分項應使用 0–5 下拉選單");
@@ -127,7 +145,7 @@ assert.match(html, /itemScores: itemScores \? \[\.\.\.itemScores\]/, "稽核事�
 assert.match(html, /levels: levels \? \[\.\.\.levels\]/, "稽核事件應保存 Level 快照");
 assert.match(html, /ASSESSMENT_ITEMS\.map\(\(item\) => `\$\{item\.code\} 分項`\)/, "CSV 應匯出 20 個分項");
 assert.match(html, /localStorage\.setItem/, "公開預覽版應在瀏覽器保存資料");
-assert.match(html, /載入完成後，暫存、提交與名單修改都會直接回寫同一檔案/, "頁面應清楚說明共用 JSON 的直接儲存行為");
+assert.match(html, /載入完成後，暫存、提交與其他正式資料變更都會寫回同一檔案/, "頁面應清楚說明共用 JSON 的直接儲存行為");
 
 assert.match(html, /function renderCCCForm\(period\)/, "CCC 評核表應依目前期別名單產生表單");
 assert.match(html, /period\?\.residents \|\| \[\]/, "CCC 評核表學生選項應來自該期名單快照");
@@ -212,10 +230,121 @@ assert.deepEqual(
   ["EPA1", "EPA2", "EPA3", "EPA4", "EPA5", "EPA6", "EPA7", "EPA8", "EPA9", "EPA10", "EPA11"],
   "Core EPAs 分頁應完整保留原始 Word 的 11 個評量項目"
 );
+assert.match(html, /typeof form\.updatedAt === "string"[\s\S]*?\{ updatedAt: form\.updatedAt \}/, "Core EPA 人工解決衝突後的修改時間應可跨重開保留");
+
+const milestoneReference = html.match(/const MILESTONE_REFERENCE_GROUPS = \[([\s\S]*?)\n    \];/);
+assert.ok(milestoneReference, "應內嵌 PDF 整理後的中文 Milestones 參考資料");
+assert.equal((milestoneReference[1].match(/sourcePage:/g) || []).length, 21, "中文參考頁應完整涵蓋原 PDF 的 21 項次能力");
+const milestoneGroups = new Function(`return [${milestoneReference[1]}];`)();
+const milestoneItems = milestoneGroups.flatMap((group) => group.items);
+assert.equal(milestoneGroups.length, 6, "中文參考頁應依原表分成六個能力領域");
+assert.equal(milestoneItems.length, 21, "中文參考頁應有 21 項次能力");
+assert.ok(milestoneItems.every((item) => item.levels.length === 5 && item.levels.every((level) =>
+  Array.isArray(level) && level.length > 0 && level.every((statement) => typeof statement === "string" && statement.trim()))),
+"每項次能力都應完整提供 Level 1–5 的中文敘述");
+for (const domainCode of ["PC", "MK", "SBP", "PBLI", "PROF", "ICS"]) {
+  assert.match(milestoneReference[1], new RegExp(`code: "${domainCode}"`), `中文參考頁應包含 ${domainCode} 能力領域`);
+}
+assert.match(html, /Level 4：[\s\S]*設計為畢業目標，但不是單獨的畢業要件/, "參考頁應保留 Level 4 並非單獨畢業要件的重要限制");
+assert.match(html, /非官方翻譯；若有解釋疑義，以原始 PDF 為準/, "中文整理應明確標示非官方翻譯及原始來源優先");
+assert.match(html, /if \(tabName === "milestones"\) renderMilestoneReference\(\)/, "切換到參考分頁時應渲染中文 Milestones 內容");
 
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 assert.equal(scripts.length, 1, "應只有一段應用程式腳本");
 new Function(scripts[0][1]);
+
+const mergeCoreMatch = scripts[0][1].match(/\/\/ MERGE_CORE_START([\s\S]*?)\/\/ MERGE_CORE_END/);
+assert.ok(mergeCoreMatch, "應可抽取三方合併核心做實際邏輯驗證");
+const mergeCore = new Function("SCHEMA_VERSION", "MERGE_AMBIGUITY_MS", `${mergeCoreMatch[1]}; return { mergeSharedStates };`)(11, 5 * 60 * 1000);
+const cloned = (value) => JSON.parse(JSON.stringify(value));
+const mergeState = (form, auditLog = []) => ({
+  schemaVersion: 11,
+  selectedPeriodId: "p1",
+  periods: [{
+    id: "p1", name: "第一期", createdAt: "2026-08-14T00:00:00.000Z",
+    residents: [{ id: "r1", level: "R1", name: "王醫師" }],
+    assessments: { r1: { sixCoreForms: [], coreEpaForms: form ? [form] : [] } }
+  }],
+  auditLog
+});
+const coreForm = {
+  id: "core-epa-1", assessmentDate: "2026-08-14", createdAt: "2026-08-14T00:00:00.000Z",
+  savedAt: "2026-08-14T09:00:00.000Z", levels: Array(11).fill(""), learnerAdvice: "原始學員建議", mentorAdvice: "原始導師建議", programAdvice: ""
+};
+
+const nonOverlappingBase = mergeState(coreForm);
+const nonOverlappingLocal = cloned(nonOverlappingBase);
+nonOverlappingLocal.periods[0].assessments.r1.coreEpaForms[0].learnerAdvice = "本機更新學員建議";
+nonOverlappingLocal.periods[0].assessments.r1.coreEpaForms[0].savedAt = "2026-08-14T10:01:00.000Z";
+const nonOverlappingShared = cloned(nonOverlappingBase);
+nonOverlappingShared.periods[0].assessments.r1.coreEpaForms[0].mentorAdvice = "FTP 更新導師建議";
+nonOverlappingShared.periods[0].assessments.r1.coreEpaForms[0].savedAt = "2026-08-14T10:02:00.000Z";
+const nonOverlappingMerge = mergeCore.mergeSharedStates(nonOverlappingBase, nonOverlappingLocal, nonOverlappingShared);
+assert.equal(nonOverlappingMerge.conflicts.length, 0, "不同欄位即使在五分鐘內修改也應自動合併");
+assert.equal(nonOverlappingMerge.state.periods[0].assessments.r1.coreEpaForms[0].learnerAdvice, "本機更新學員建議", "應保留本機修改的不同欄位");
+assert.equal(nonOverlappingMerge.state.periods[0].assessments.r1.coreEpaForms[0].mentorAdvice, "FTP 更新導師建議", "應保留 FTP 修改的不同欄位");
+
+const unionBase = mergeState(null);
+const unionLocal = cloned(unionBase);
+unionLocal.periods[0].assessments.r1.coreEpaForms.push({ ...coreForm, id: "local-form" });
+const unionShared = cloned(unionBase);
+unionShared.periods[0].assessments.r1.coreEpaForms.push({ ...coreForm, id: "shared-form" });
+const unionMerge = mergeCore.mergeSharedStates(unionBase, unionLocal, unionShared);
+assert.deepEqual(unionMerge.state.periods[0].assessments.r1.coreEpaForms.map((form) => form.id).sort(), ["local-form", "shared-form"], "兩台電腦新增的不同表單應依 ID 取聯集");
+
+const newerBase = mergeState(coreForm);
+const newerLocal = cloned(newerBase);
+newerLocal.periods[0].assessments.r1.coreEpaForms[0].learnerAdvice = "較舊本機值";
+newerLocal.periods[0].assessments.r1.coreEpaForms[0].savedAt = "2026-08-14T10:00:00.000Z";
+const newerShared = cloned(newerBase);
+newerShared.periods[0].assessments.r1.coreEpaForms[0].learnerAdvice = "較新 FTP 值";
+newerShared.periods[0].assessments.r1.coreEpaForms[0].savedAt = "2026-08-14T10:06:00.001Z";
+const newerMerge = mergeCore.mergeSharedStates(newerBase, newerLocal, newerShared);
+assert.equal(newerMerge.conflicts.length, 0, "同欄位修改相差超過五分鐘時應自動採較新版本");
+assert.equal(newerMerge.state.periods[0].assessments.r1.coreEpaForms[0].learnerAdvice, "較新 FTP 值", "超過五分鐘應採時間較新的 FTP 欄位");
+
+const closeShared = cloned(newerShared);
+closeShared.periods[0].assessments.r1.coreEpaForms[0].savedAt = "2026-08-14T10:05:00.000Z";
+const closeMerge = mergeCore.mergeSharedStates(newerBase, newerLocal, closeShared);
+assert.equal(closeMerge.conflicts.length, 1, "同欄位修改剛好相差五分鐘仍應要求人工選擇");
+assert.match(closeMerge.conflicts[0].path, /learnerAdvice$/, "衝突應精確定位到同一個實際欄位");
+const resolvedCloseMerge = mergeCore.mergeSharedStates(newerBase, newerLocal, closeShared, { [closeMerge.conflicts[0].path]: "local" });
+assert.equal(resolvedCloseMerge.conflicts.length, 0, "人工選擇後應可完成合併");
+assert.equal(resolvedCloseMerge.state.periods[0].assessments.r1.coreEpaForms[0].learnerAdvice, "較舊本機值", "應套用使用者選擇的本機欄位");
+
+const clearLocal = cloned(newerBase);
+clearLocal.periods[0].assessments.r1.coreEpaForms[0].learnerAdvice = "";
+clearLocal.periods[0].assessments.r1.coreEpaForms[0].savedAt = "2026-08-14T10:10:00.000Z";
+const clearShared = cloned(newerBase);
+clearShared.periods[0].assessments.r1.coreEpaForms[0].learnerAdvice = "FTP 非空值";
+clearShared.periods[0].assessments.r1.coreEpaForms[0].savedAt = "2026-08-14T10:01:00.000Z";
+const clearMerge = mergeCore.mergeSharedStates(newerBase, clearLocal, clearShared);
+assert.equal(clearMerge.state.periods[0].assessments.r1.coreEpaForms[0].learnerAdvice, "", "明確清空且時間較新超過五分鐘時應允許空值勝出");
+
+const lockedBase = mergeState(null);
+lockedBase.periods[0].assessments.r1.sixCoreForms = [{
+  id: "six-core-1", assessmentDate: "2026-08-14", createdAt: "2026-08-14T08:00:00.000Z",
+  student: { levels: [1, 1, 1, 1, 1, 1], submittedAt: "2026-08-14T08:30:00.000Z" },
+  teacher: null
+}];
+const lockedLocal = cloned(lockedBase);
+lockedLocal.periods[0].assessments.r1.sixCoreForms[0].student.levels[0] = 2;
+lockedLocal.periods[0].assessments.r1.sixCoreForms[0].student.updatedAt = "2026-08-14T09:00:00.000Z";
+const lockedShared = cloned(lockedBase);
+lockedShared.periods[0].assessments.r1.sixCoreForms[0].student.levels[0] = 3;
+lockedShared.periods[0].assessments.r1.sixCoreForms[0].student.updatedAt = "2026-08-14T11:00:00.000Z";
+const lockedMerge = mergeCore.mergeSharedStates(lockedBase, lockedLocal, lockedShared);
+assert.equal(lockedMerge.conflicts.length, 1, "已提交評分即使修改時間相差超過五分鐘也不得靜默覆蓋");
+assert.equal(lockedMerge.conflicts[0].locked, true, "已提交評分的衝突應標記為需要管理密碼");
+
+const originalAudit = { id: "audit-original", type: "submission", occurredAt: "2026-08-14T08:30:00.000Z" };
+const localAudit = { id: "audit-local", type: "unlock", occurredAt: "2026-08-14T09:00:00.000Z" };
+const sharedAudit = { id: "audit-shared", type: "submission", occurredAt: "2026-08-14T09:01:00.000Z" };
+const auditBase = mergeState(null, [originalAudit]);
+const auditLocal = mergeState(null, [localAudit]);
+const auditShared = mergeState(null, [originalAudit, sharedAudit]);
+const auditMerge = mergeCore.mergeSharedStates(auditBase, auditLocal, auditShared);
+assert.deepEqual(auditMerge.state.auditLog.map((event) => event.id), ["audit-original", "audit-local", "audit-shared"], "稽核事件應採不可刪除的聯集合併");
 
 function extractFunction(name) {
   const match = scripts[0][1].match(new RegExp(`    (?:async )?function ${name}\\([\\s\\S]*?\\n    \\}`));
@@ -223,7 +352,38 @@ function extractFunction(name) {
   return match[0];
 }
 
+const migratedCoreEPATimestamp = new Function(`
+  const CORE_EPA_ITEMS = Array.from({ length: 11 });
+  const localDateValue = () => "2026-08-14";
+  ${extractFunction("migrateCoreEPAForm")}
+  return migrateCoreEPAForm({
+    id: "core-epa-test", assessmentDate: "2026-08-14",
+    createdAt: "2026-08-14T08:00:00.000Z", savedAt: "2026-08-14T09:00:00.000Z",
+    updatedAt: "2026-08-14T10:04:00.000Z", levels: Array(11).fill(""),
+    learnerAdvice: "", mentorAdvice: "", programAdvice: ""
+  }, { id: "p1", createdAt: "2026-08-14T08:00:00.000Z" }, { id: "r1" }, 0).updatedAt;
+`)();
+assert.equal(migratedCoreEPATimestamp, "2026-08-14T10:04:00.000Z", "Core EPA 合併選擇的修改時間在重新載入後仍應保留");
+
 assert.doesNotMatch(extractFunction("renamePeriod"), /password|addAuditEvent/, "更改期別名稱不得要求密碼或新增稽核事件");
+assert.doesNotMatch(extractFunction("openSharedDataFile"), /requestPermission/, "共用資料夾流程不得額外要求會失去使用者手勢的權限");
+assert.match(extractFunction("authorizeNetworkSharedDataFile"), /requestPermission\(\{ mode: "readwrite" \}\)/, "只有 FTP JSON 的第二步授權可要求 readwrite 權限");
+
+const persistSignal = new Function(`
+  const state = { marker: "changed" };
+  let scheduledOptions = null;
+  const localStorage = { setItem() {} };
+  const scheduleSharedFileWrite = (options) => { scheduledOptions = options; };
+  const showToast = () => {};
+  const console = { error() {} };
+  const STORAGE_KEY = "test";
+  ${extractFunction("persist")}
+  const saved = persist();
+  return { saved, scheduledOptions };
+`)();
+assert.deepEqual(persistSignal, {
+  saved: true, scheduledOptions: { explicit: true }
+}, "表單暫存、提交及名單變更的 persist 應把 FTP JSON 視為明確存檔動作");
 
 const sharedGateModes = new Function(`
   let sharedFileMode = "locked";
@@ -231,14 +391,17 @@ const sharedGateModes = new Function(`
   const statuses = [];
   const progress = [];
   const window = {
-    location: { protocol: "https:" },
+    location: { protocol: "https:", hostname: "" },
     isSecureContext: true,
-    showDirectoryPicker() {}
+    showDirectoryPicker() {},
+    showOpenFilePicker() {}
   };
   window.self = window;
   window.top = window;
   const elements = {
     openSharedFileButton: { hidden: false },
+    openNetworkSharedFileButton: { hidden: false },
+    authorizeNetworkSharedFileButton: { hidden: false },
     fallbackSharedFileButton: { hidden: false },
     sharedFileCompatibility: { hidden: false },
     sharedFileDialogTitle: { textContent: "" },
@@ -248,7 +411,11 @@ const sharedGateModes = new Function(`
   };
   const setSharedFileDialogProgress = (message, state) => progress.push({ message, state });
   const setSharedFileStatus = (status, message) => statuses.push({ status, message });
-  const showSharedFileGate = () => { gateCount += 1; };
+  let gateMessage = "";
+  const showSharedFileGate = (message = "") => { gateCount += 1; gateMessage = message; };
+  ${extractFunction("isRemoteHTMLLaunch")}
+  ${extractFunction("canUseDirectoryAccess")}
+  ${extractFunction("canUseNetworkFileAccess")}
   ${extractFunction("initializeSharedDataGate")}
   initializeSharedDataGate();
   const hosted = { sharedFileMode, gateCount, status: statuses.at(-1), closeHidden: elements.closeSharedFileDialogButton.hidden };
@@ -257,7 +424,12 @@ const sharedGateModes = new Function(`
   gateCount = 0;
   initializeSharedDataGate();
   const localFile = { sharedFileMode, gateCount, status: statuses.at(-1), closeHidden: elements.closeSharedFileDialogButton.hidden };
-  return { hosted, localFile };
+  window.location.hostname = "10.200.1.34";
+  gateCount = 0;
+  gateMessage = "";
+  initializeSharedDataGate();
+  const remoteFile = { sharedFileMode, gateCount, title: elements.sharedFileDialogTitle.textContent, gateMessage };
+  return { hosted, localFile, remoteFile };
 `)();
 assert.deepEqual(sharedGateModes.hosted, {
   sharedFileMode: "preview", gateCount: 0, status: { status: "local", message: "瀏覽器本機模式" }, closeHidden: false
@@ -265,11 +437,15 @@ assert.deepEqual(sharedGateModes.hosted, {
 assert.deepEqual(sharedGateModes.localFile, {
   sharedFileMode: "locked", gateCount: 1, status: { status: "locked", message: "待連結 JSON" }, closeHidden: true
 }, "file:// 院內版本仍應強制連結共用 JSON");
+assert.equal(sharedGateModes.remoteFile.sharedFileMode, "locked", "FTP／UNC 上的 HTML 必須保持鎖定");
+assert.equal(sharedGateModes.remoteFile.gateCount, 1, "FTP／UNC 上的 HTML 應顯示阻擋畫面");
+assert.match(sharedGateModes.remoteFile.title, /複製到本機/, "FTP／UNC 上的 HTML 應以標題提示複製本機");
+assert.match(sharedGateModes.remoteFile.gateMessage, /本機資料夾/, "FTP／UNC 上的 HTML 應說明可使用的本機路徑");
 
 const backupLogic = new Function(`
   const DATA_BACKUP_APP = "DocCCC";
   const DATA_BACKUP_VERSION = 1;
-  const SCHEMA_VERSION = 10;
+  const SCHEMA_VERSION = 11;
   const RESIDENT_LEVELS = ["R1", "R2", "R3", "R4"];
   const ITEM_MAX_SCORE = 5;
   const COMPETENCIES = Array.from({ length: 6 }, () => ({}));
@@ -283,7 +459,7 @@ const backupLogic = new Function(`
   return { createDataBackup, parseDataBackup };
 `)();
 const backupState = {
-  schemaVersion: 10,
+  schemaVersion: 11,
   periods: [{
     id: "period-1", name: "2026 年第 2 期", residents: [{ id: "r1", level: "R1", name: "測試醫師" }],
     assessments: { r1: {
@@ -317,13 +493,13 @@ const preCoreEpaBackup = structuredClone(backupPayload);
 preCoreEpaBackup.schemaVersion = 7;
 preCoreEpaBackup.data.schemaVersion = 7;
 delete preCoreEpaBackup.data.periods[0].assessments.r1.coreEpaForms;
-assert.equal(backupLogic.parseDataBackup(JSON.stringify(preCoreEpaBackup)).schemaVersion, 10, "舊備份應可遷移到目前 schema v10");
+assert.equal(backupLogic.parseDataBackup(JSON.stringify(preCoreEpaBackup)).schemaVersion, 11, "舊備份應可遷移到目前 schema v11");
 const deletionAuditBackup = structuredClone(backupPayload);
 deletionAuditBackup.data.auditLog.push({ type: "period-deletion", role: null, periodName: "已刪除期別", occurredAt: "2026-08-10T08:30:00.000Z" });
 assert.equal(backupLogic.parseDataBackup(JSON.stringify(deletionAuditBackup)).auditLog.at(-1).type, "period-deletion", "含期別刪除事件的備份應可還原");
 assert.throws(() => backupLogic.parseDataBackup("{}"), /有效的 DocCCC 備份/, "不得匯入其他 JSON 檔案");
 assert.throws(
-  () => backupLogic.parseDataBackup(JSON.stringify({ ...backupPayload, schemaVersion: 11 })),
+  () => backupLogic.parseDataBackup(JSON.stringify({ ...backupPayload, schemaVersion: 12 })),
   /較新版 DocCCC/,
   "不得用舊版網頁匯入較新 schema 的備份"
 );
@@ -335,7 +511,7 @@ invalidCoreEpaBackup.data.periods[0].assessments.r1.coreEpaForms[0].levels[0] = 
 assert.throws(() => backupLogic.parseDataBackup(JSON.stringify(invalidCoreEpaBackup)), /格式不正確/, "匯入時應拒絕超出 1–5 的 Core EPA 信賴程度");
 
 const migratedLegacyAssessment = new Function(`
-  const SCHEMA_VERSION = 10;
+  const SCHEMA_VERSION = 11;
   const RESIDENT_LEVELS = ["R1", "R2", "R3", "R4"];
   const defaultResidents = () => [];
   const legacyAuditEvents = () => [];
@@ -369,7 +545,7 @@ const migratedLegacyAssessment = new Function(`
   return migrateState(saved);
 `)();
 const migratedR1 = migratedLegacyAssessment.periods[0].assessments.r1;
-assert.equal(migratedLegacyAssessment.schemaVersion, 10, "schema v8 應遷移至 v10");
+assert.equal(migratedLegacyAssessment.schemaVersion, 11, "schema v8 應遷移至 v11");
 assert.equal(migratedR1.sixCoreForms.length, 1, "舊版每人單張評核應轉成一張六大核心表單");
 assert.equal(migratedR1.sixCoreForms[0].assessmentDate, "2026-01-11", "舊評核日期應優先取教師提交日期");
 assert.equal("student" in migratedR1, false, "遷移後不得保留會造成雙重來源的頂層學生資料");
@@ -468,9 +644,11 @@ const sharedWriteResult = await new Function(`
   let pendingText = "";
   let writeCount = 0;
   let sharedFileBaselineText = fileText;
+  let sharedFileBaselineState = null;
   let sharedFileDirty = true;
   let sharedFileConflict = false;
   let sharedFileWriteError = false;
+  let sharedFileMode = "direct";
   const sharedFileHandle = {
     async queryPermission() { return "granted"; },
     async getFile() { return { size: fileText.length, async text() { return fileText; } }; },
@@ -487,6 +665,9 @@ const sharedWriteResult = await new Function(`
   const showToast = (message) => { toast = message; };
   const sharedFileSyncTime = () => "12:34:56";
   const createDataBackup = (sourceState) => ({ app: "DocCCC", data: sourceState });
+  const cloneMergeValue = (value) => JSON.parse(JSON.stringify(value));
+  const MAX_MERGE_WRITE_ATTEMPTS = 3;
+  const reconcileSharedFileChanges = async () => ({ merged: true });
   const console = { error() {} };
   ${extractFunction("readSharedDataFile")}
   ${extractFunction("flushSharedFileWrites")}
@@ -505,17 +686,23 @@ assert.equal(sharedWriteResult.statuses.at(-1).status, "saved", "成功寫入後
 
 const sharedConflictResult = await new Function(`
   const MAX_DATA_FILE_BYTES = 20 * 1024 * 1024;
-  const state = { marker: "local-change" };
+  let state = { marker: "local-change" };
   let fileText = '{"marker":"other-computer-change"}';
+  let pendingText = "";
   let writeCount = 0;
   let sharedFileBaselineText = '{"marker":"original"}';
+  let sharedFileBaselineState = { marker: "original" };
   let sharedFileDirty = true;
   let sharedFileConflict = false;
   let sharedFileWriteError = false;
+  let sharedFileMode = "direct";
   const sharedFileHandle = {
     async queryPermission() { return "granted"; },
     async getFile() { return { size: fileText.length, async text() { return fileText; } }; },
-    async createWritable() { writeCount += 1; throw new Error("不應寫入"); }
+    async createWritable() {
+      writeCount += 1;
+      return { async write(value) { pendingText = value; }, async close() { fileText = pendingText; } };
+    }
   };
   const statuses = [];
   let gateMessage = "";
@@ -524,17 +711,50 @@ const sharedConflictResult = await new Function(`
   const showToast = () => {};
   const sharedFileSyncTime = () => "12:34:56";
   const createDataBackup = (sourceState) => ({ app: "DocCCC", data: sourceState });
+  const cloneMergeValue = (value) => JSON.parse(JSON.stringify(value));
+  const MAX_MERGE_WRITE_ATTEMPTS = 3;
+  const reconcileSharedFileChanges = async (currentText) => {
+    state = { marker: "merged-local-and-shared" };
+    sharedFileBaselineText = currentText;
+    sharedFileBaselineState = { marker: "other-computer-change" };
+    return { merged: true };
+  };
   const console = { error() {} };
   ${extractFunction("readSharedDataFile")}
   ${extractFunction("flushSharedFileWrites")}
-  return flushSharedFileWrites().then((saved) => ({ saved, fileText, writeCount, sharedFileDirty, sharedFileConflict, statuses, gateMessage }));
+  return flushSharedFileWrites().then((saved) => ({ saved, fileText, writeCount, sharedFileDirty, sharedFileConflict, statuses, gateMessage, state }));
 `)();
-assert.equal(sharedConflictResult.saved, false, "共用檔案已被其他電腦更新時應中止本次儲存");
-assert.equal(sharedConflictResult.writeCount, 0, "偵測到版本衝突後不得開啟寫入串流");
-assert.equal(sharedConflictResult.sharedFileDirty, true, "衝突時應保留本機未同步標記");
-assert.equal(sharedConflictResult.sharedFileConflict, true, "衝突時應鎖定後續自動覆寫");
-assert.equal(sharedConflictResult.statuses.at(-1).status, "conflict", "衝突時右上角應顯示資料衝突");
-assert.match(sharedConflictResult.gateMessage, /另一台電腦更新/, "衝突時應要求重新載入最新共用 JSON");
+assert.equal(sharedConflictResult.saved, true, "共用檔案已被其他電腦更新時應先合併再完成儲存");
+assert.equal(sharedConflictResult.writeCount, 1, "三方合併完成後應寫入一次合併結果");
+assert.equal(sharedConflictResult.sharedFileDirty, false, "合併並寫回成功後不應保留未同步標記");
+assert.equal(sharedConflictResult.sharedFileConflict, false, "可安全合併的更新不應鎖成資料衝突");
+assert.equal(sharedConflictResult.statuses.at(-1).status, "saved", "合併成功後右上角應回到已同步");
+assert.equal(sharedConflictResult.state.marker, "merged-local-and-shared", "寫回前應套用合併後的本機狀態");
+
+const sharedWriteScheduling = new Function(`
+  let sharedFileMode = "network-file";
+  let sharedFileDirty = false;
+  let sharedFileConflict = false;
+  let sharedFileWriteError = false;
+  let startCount = 0;
+  const statuses = [];
+  const setSharedFileStatus = (status, message) => statuses.push({ status, message });
+  const startSharedFileWrite = () => { startCount += 1; };
+  ${extractFunction("scheduleSharedFileWrite")}
+  scheduleSharedFileWrite();
+  const networkImplicit = { startCount, dirty: sharedFileDirty, status: statuses.at(-1) };
+  scheduleSharedFileWrite({ explicit: true });
+  const networkExplicit = { startCount, dirty: sharedFileDirty, status: statuses.at(-1) };
+  sharedFileMode = "direct";
+  scheduleSharedFileWrite();
+  const folderAutomatic = { startCount, dirty: sharedFileDirty, status: statuses.at(-1) };
+  return { networkImplicit, networkExplicit, folderAutomatic };
+`)();
+assert.deepEqual(sharedWriteScheduling.networkImplicit, {
+  startCount: 0, dirty: true, status: { status: "dirty", message: "待儲存 JSON" }
+}, "FTP JSON 的非正式狀態變更只應標記待儲存，不得自行覆寫");
+assert.equal(sharedWriteScheduling.networkExplicit.startCount, 1, "FTP JSON 的暫存、提交或明確儲存應啟動寫回");
+assert.equal(sharedWriteScheduling.folderAutomatic.startCount, 2, "共用資料夾模式仍應自動同步");
 
 const beforeUnloadResult = new Function(`
   let sharedFileDirty = true;
@@ -728,6 +948,8 @@ const renderedCCC = new Function(`
   const CCC_SEVERITY_OPTIONS = [["mild", "輕微"], ["moderate", "中等"], ["severe", "嚴重"]];
   const CCC_CONCLUSION_OPTIONS = [["promotion", "可晉升"]];
   const CCC_FOLLOWUP_OPTIONS = [["next-ccc", "下次適任性評核"]];
+  const CCC_SCORE_LOOKUP_URL = "https://rt-linebot.onrender.com/r-rating";
+  const CCC_SCORE_LOOKUP_QR_PATH = "M4 4h7v1H4z";
   let selectedCCCResidentId = null;
   const elements = {
     cccResidentSelect: { innerHTML: "", disabled: false },
@@ -738,6 +960,7 @@ const renderedCCC = new Function(`
   const residentFor = (period, residentId) => period.residents.find((resident) => resident.id === residentId);
   const formatReadableTime = (value) => value;
   ${extractFunction("escapeHTML")}
+  ${extractFunction("cccScoreLookupMarkup")}
   ${extractFunction("sixCoreFormsFor")}
   ${extractFunction("validItemScores")}
   ${extractFunction("teacherDomainMetrics")}
@@ -776,6 +999,7 @@ assert.match(renderedCCC.cccForm.innerHTML, /六大核心平均　71 分（1 張
 assert.match(renderedCCC.cccForm.innerHTML, /納入 1 張：<\/strong>2026-01-10/, "CCC 初稿應預覽實際納入的表單日期");
 assert.match(renderedCCC.cccForm.innerHTML, /81\.3 分/, "CCC 初稿應使用 71 分核心總分計算綜合加權總分");
 assert.match(renderedCCC.cccForm.innerHTML, /id="cccCoreContribution"[^>]*>21\.3<\/output>/, "CCC 表單應顯示 71 分核心總分的 30% 加權得分");
+assert.match(renderedCCC.cccForm.innerHTML, /https:\/\/rt-linebot\.onrender\.com\/r-rating/, "CCC 表頭應實際渲染分數查詢 QR Code 連結");
 
 const savedCCC = new Function(`
   const selectedCCCResidentId = "r1";
@@ -904,6 +1128,7 @@ const cccPDFMarkup = new Function(`
   return cccPrintReportMarkup(period, resident, record);
 `)();
 assert.match(cccPDFMarkup, /住院醫師核心能力適任性評核表/, "評核 PDF 應產生指定的正式標題");
+assert.doesNotMatch(cccPDFMarkup, /ccc-score-lookup|rt-linebot|conturing\/journal|artd12345|<svg/i, "CCC PDF 不得包含網頁版 QR Code、查詢網址或密碼");
 assert.doesNotMatch(cccPDFMarkup, /CCC|草稿預覽|正式提交/, "評核 PDF 可見內容不得再出現 CCC 或草稿／提交狀態小字");
 assert.match(cccPDFMarkup, /六大核心考核表[\s\S]*30%[\s\S]*80[\s\S]*24/, "CCC PDF 應同列顯示核心原始總分與 30% 加權得分");
 assert.match(cccPDFMarkup, /綜合加權總分[\s\S]*84/, "CCC PDF 應顯示四項加總後的 84 分");
@@ -1046,5 +1271,7 @@ assert.match(coreEPAPDFMarkup, /住院醫師姓名：[\s\S]*測試醫師[\s\S]*�
 assert.doesNotMatch(coreEPAPDFMarkup, /學員類別/, "Core EPAs PDF 不得再顯示學員類別");
 assert.match(coreEPAPDFMarkup, /學員建議[\s\S]*導師建議[\s\S]*科部建議/, "Core EPAs PDF 應帶入三組建議內容");
 assert.match(coreEPAPDFMarkup, /2026 年第 1 期/, "Core EPAs PDF 應帶入評量期別");
+
+await import("./ftp-write-probe-test.mjs");
 
 console.log("PASS: static contract and JavaScript syntax verified");

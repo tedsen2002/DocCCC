@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DocCCC FTP 寫入安全測試</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      color: #172033;
+      background: #eef2f7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 32px 18px 56px;
+      background: linear-gradient(145deg, #e8eef7, #f8fafc 52%, #fff4e8);
+    }
+
+    main {
+      width: min(900px, 100%);
+      margin: 0 auto;
+    }
+
+    h1, h2 { margin-top: 0; }
+    h1 { font-size: clamp(1.65rem, 4vw, 2.35rem); }
+    h2 { font-size: 1.1rem; }
+
+    .danger-banner,
+    .card,
+    .status-panel {
+      border-radius: 16px;
+      box-shadow: 0 12px 32px rgba(26, 39, 63, 0.1);
+    }
+
+    .danger-banner {
+      margin-bottom: 20px;
+      padding: 20px;
+      color: #fff;
+      background: #9f1239;
+      border: 3px solid #fb7185;
+    }
+
+    .danger-banner strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 1.22rem;
+    }
+
+    .danger-banner p { margin: 0; line-height: 1.65; }
+
+    .card {
+      margin-bottom: 18px;
+      padding: 22px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid #d8e0eb;
+    }
+
+    ol {
+      margin: 0;
+      padding-left: 1.4rem;
+      line-height: 1.75;
+    }
+
+    code {
+      padding: 0.12em 0.4em;
+      border-radius: 5px;
+      color: #7f1d1d;
+      background: #fee2e2;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    button,
+    .button-link {
+      min-height: 48px;
+      padding: 11px 16px;
+      border: 0;
+      border-radius: 10px;
+      font: inherit;
+      font-weight: 800;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    button:disabled,
+    .button-link[aria-disabled="true"] {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .btn-template { color: #172033; background: #facc15; }
+    .btn-open { color: #fff; background: #0369a1; }
+    .btn-write { color: #fff; background: #ea580c; }
+    .btn-second { color: #fff; background: #7c3aed; }
+    .btn-recovery { color: #fff; background: #475569; }
+
+    label {
+      display: block;
+      margin: 18px 0 7px;
+      font-weight: 800;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 12px;
+      border: 2px solid #94a3b8;
+      border-radius: 9px;
+      font: inherit;
+    }
+
+    input[type="text"]:focus {
+      outline: 3px solid rgba(234, 88, 12, 0.22);
+      border-color: #ea580c;
+    }
+
+    .file-summary {
+      min-height: 48px;
+      margin-top: 14px;
+      padding: 12px 14px;
+      line-height: 1.55;
+      background: #f1f5f9;
+      border-radius: 9px;
+    }
+
+    .status-panel {
+      padding: 20px;
+      background: #fff;
+      border: 2px solid #94a3b8;
+    }
+
+    .status-panel[data-state="working"] { border-color: #0284c7; }
+    .status-panel[data-state="success"] { border-color: #16a34a; }
+    .status-panel[data-state="error"] { border-color: #dc2626; }
+
+    #statusMessage {
+      margin: 0;
+      font-weight: 800;
+      line-height: 1.55;
+    }
+
+    #eventLog {
+      max-height: 260px;
+      margin: 14px 0 0;
+      padding: 12px 12px 12px 34px;
+      overflow: auto;
+      color: #334155;
+      background: #f8fafc;
+      border-radius: 8px;
+      line-height: 1.55;
+    }
+
+    .diagnostics {
+      margin-top: 12px;
+      color: #475569;
+      font-size: 0.9rem;
+      overflow-wrap: anywhere;
+    }
+
+    .note {
+      color: #475569;
+      line-height: 1.65;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>DocCCC FTP 寫入安全測試</h1>
+
+    <section class="danger-banner" role="alert">
+      <strong>只能使用可丟棄測試檔，絕對不可選正式 DocCCC-data.json</strong>
+      <p>這一頁不屬於正式系統，只用來確認 Windows「網路位置」中的 FTP 檔案能否由 Edge／Chrome 安全開啟、取得寫入權限並在同一頁面連續存檔。</p>
+    </section>
+
+    <section class="card">
+      <h2>準備方式</h2>
+      <ol>
+        <li>在 FTP 個人子資料夾內另建一個空白測試子資料夾，正式資料不可放進去。</li>
+        <li>按「下載可丟棄測試 JSON」，把檔案移入該測試子資料夾。</li>
+        <li>檔名必須保持 <code>DocCCC-ftp-write-test.json</code>。</li>
+        <li>按「安全開啟測試 JSON」。這是開啟對話框，不是另存對話框，選取本身不應更動檔案。</li>
+      </ol>
+      <div class="actions">
+        <a id="downloadTemplateButton" class="button-link btn-template" download="DocCCC-ftp-write-test.json">下載可丟棄測試 JSON</a>
+        <button id="openProbeButton" class="btn-open" type="button">安全開啟測試 JSON</button>
+      </div>
+      <div id="fileSummary" class="file-summary">尚未開啟測試檔。</div>
+    </section>
+
+    <section class="card">
+      <h2>寫入驗證</h2>
+      <p class="note">開啟成功後，原始位元組會先保留在本頁記憶體中，並提供復原下載。第一次測試會明確要求寫入權限；第二次測試沿用同一個檔案控制代碼，不會再叫你選檔。</p>
+      <label for="confirmationInput">輸入「我確認這是可丟棄測試檔」後才能寫入</label>
+      <input id="confirmationInput" type="text" autocomplete="off" spellcheck="false">
+      <div class="actions">
+        <button id="firstWriteButton" class="btn-write" type="button" disabled>取得權限並執行第 1 次寫入</button>
+        <button id="secondWriteButton" class="btn-second" type="button" disabled>執行第 2 次寫入（不再選檔）</button>
+        <a id="downloadOriginalButton" class="button-link btn-recovery" download="DocCCC-ftp-write-test-original.json" aria-disabled="true">下載記憶中的原始備份</a>
+      </div>
+    </section>
+
+    <section id="statusPanel" class="status-panel" data-state="idle" aria-live="polite">
+      <p id="statusMessage">等待建立並開啟可丟棄測試檔。</p>
+      <ol id="eventLog"></ol>
+      <div id="diagnostics" class="diagnostics"></div>
+    </section>
+  </main>
+
+  <script>
+    const TEST_FILENAME = "DocCCC-ftp-write-test.json";
+    const PRODUCTION_FILENAME = "DocCCC-data.json";
+    const PROBE_APP = "DocCCC-FTP-Write-Probe";
+    const CONFIRMATION_PHRASE = "我確認這是可丟棄測試檔";
+    const MAX_PROBE_BYTES = 1024 * 1024;
+    const VERIFY_DELAY_MS = 750;
+
+    const elements = {
+      downloadTemplateButton: document.getElementById("downloadTemplateButton"),
+      openProbeButton: document.getElementById("openProbeButton"),
+      fileSummary: document.getElementById("fileSummary"),
+      confirmationInput: document.getElementById("confirmationInput"),
+      firstWriteButton: document.getElementById("firstWriteButton"),
+      secondWriteButton: document.getElementById("secondWriteButton"),
+      downloadOriginalButton: document.getElementById("downloadOriginalButton"),
+      statusPanel: document.getElementById("statusPanel"),
+      statusMessage: document.getElementById("statusMessage"),
+      eventLog: document.getElementById("eventLog"),
+      diagnostics: document.getElementById("diagnostics")
+    };
+
+    let probeHandle = null;
+    let originalBytes = null;
+    let baselineBytes = null;
+    let preparedFirstWriteBytes = null;
+    let originalDownloadUrl = "";
+    let completedWrites = 0;
+    let pickerCount = 0;
+
+    function encodeUtf8(text) {
+      return new TextEncoder().encode(text);
+    }
+
+    function decodeUtf8(bytes) {
+      return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    }
+
+    function copyBytes(bytes) {
+      return new Uint8Array(bytes);
+    }
+
+    function bytesEqual(left, right) {
+      if (!(left instanceof Uint8Array) || !(right instanceof Uint8Array)) return false;
+      if (left.byteLength !== right.byteLength) return false;
+      for (let index = 0; index < left.byteLength; index += 1) {
+        if (left[index] !== right[index]) return false;
+      }
+      return true;
+    }
+
+    function makeProbeError(code, message) {
+      const error = new Error(message);
+      error.code = code;
+      return error;
+    }
+
+    function validateProbeFilename(filename) {
+      if (String(filename).toLowerCase() === PRODUCTION_FILENAME.toLowerCase()) {
+        throw makeProbeError("PRODUCTION_FILE", "已拒絕正式 DocCCC-data.json；本頁絕不會讀寫正式資料檔。");
+      }
+      if (filename !== TEST_FILENAME) {
+        throw makeProbeError("WRONG_FILENAME", `只能選取 ${TEST_FILENAME}。`);
+      }
+      return true;
+    }
+
+    function parseDisposableProbe(bytes) {
+      if (!(bytes instanceof Uint8Array) || bytes.byteLength === 0) {
+        throw makeProbeError("EMPTY_FILE", "測試 JSON 是空檔，請重新下載測試檔。");
+      }
+      if (bytes.byteLength > MAX_PROBE_BYTES) {
+        throw makeProbeError("FILE_TOO_LARGE", "測試 JSON 超過 1 MB，已停止處理。");
+      }
+      let value;
+      try {
+        value = JSON.parse(decodeUtf8(bytes));
+      } catch (error) {
+        throw makeProbeError("INVALID_JSON", `測試檔不是有效的 UTF-8 JSON：${error.message}`);
+      }
+      if (!value || Array.isArray(value) || value.app !== PROBE_APP || value.disposable !== true) {
+        throw makeProbeError("NOT_DISPOSABLE", "檔案缺少可丟棄測試標記，已停止處理。");
+      }
+      return value;
+    }
+
+    function createNextProbeBytes(currentBytes, sequence, timestamp, nonce) {
+      const value = parseDisposableProbe(currentBytes);
+      value.probe = {
+        sequence,
+        writtenAt: timestamp,
+        nonce
+      };
+      return encodeUtf8(`${JSON.stringify(value, null, 2)}\n`);
+    }
+
+    async function readHandleSnapshot(handle) {
+      const file = await handle.getFile();
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      return {
+        bytes,
+        size: file.size,
+        lastModified: file.lastModified
+      };
+    }
+
+    function waitForVerification(milliseconds) {
+      return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+    }
+
+    async function requestWritePermission(handle) {
+      if (!handle || typeof handle.requestPermission !== "function") {
+        throw makeProbeError("PERMISSION_UNSUPPORTED", "瀏覽器未提供既有檔案的寫入授權功能。");
+      }
+      const permission = await handle.requestPermission({ mode: "readwrite" });
+      if (permission !== "granted") {
+        throw makeProbeError("PERMISSION_DENIED", "未取得寫入權限；測試檔未進入寫入流程。");
+      }
+      return permission;
+    }
+
+    async function writeAndVerify(handle, expectedBytes, nextBytes, pause = waitForVerification) {
+      const before = await readHandleSnapshot(handle);
+      if (!bytesEqual(before.bytes, expectedBytes)) {
+        throw makeProbeError("CONFLICT", "寫入前發現檔案已被其他程式修改，已停止覆寫。");
+      }
+
+      let writable = null;
+      try {
+        writable = await handle.createWritable();
+        await writable.write(nextBytes);
+        await writable.close();
+        writable = null;
+      } catch (error) {
+        if (writable && typeof writable.abort === "function") {
+          try {
+            await writable.abort();
+          } catch (_) {
+            // 原始錯誤較重要；復原下載仍會保留在頁面上。
+          }
+        }
+        throw makeProbeError("WRITE_FAILED", `寫入或關閉檔案失敗：${error.message}`);
+      }
+
+      const immediate = await readHandleSnapshot(handle);
+      if (!bytesEqual(immediate.bytes, nextBytes)) {
+        throw makeProbeError("VERIFY_FAILED", "寫入後立即讀回的位元組不一致。");
+      }
+
+      await pause(VERIFY_DELAY_MS);
+      const delayed = await readHandleSnapshot(handle);
+      if (!bytesEqual(delayed.bytes, nextBytes)) {
+        throw makeProbeError("VERIFY_FAILED", "延遲讀回的位元組不一致，網路位置可能未持久保存。");
+      }
+
+      return { before, immediate, delayed };
+    }
+
+    function uniqueNonce() {
+      if (window.crypto && typeof window.crypto.randomUUID === "function") {
+        return window.crypto.randomUUID();
+      }
+      return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function templateText() {
+      return `${JSON.stringify({
+        app: PROBE_APP,
+        disposable: true,
+        purpose: "Only for testing a Windows FTP network-location file handle.",
+        probe: { sequence: 0, writtenAt: null, nonce: null }
+      }, null, 2)}\n`;
+    }
+
+    function setStatus(state, message) {
+      elements.statusPanel.dataset.state = state;
+      elements.statusMessage.textContent = message;
+    }
+
+    function appendLog(message) {
+      const item = document.createElement("li");
+      item.textContent = `${new Date().toLocaleTimeString("zh-TW", { hour12: false })}　${message}`;
+      elements.eventLog.append(item);
+    }
+
+    function byteSummary(bytes) {
+      let hash = 2166136261;
+      for (const byte of bytes) {
+        hash ^= byte;
+        hash = Math.imul(hash, 16777619);
+      }
+      return `${bytes.byteLength} bytes／校驗碼 ${(hash >>> 0).toString(16).padStart(8, "0")}`;
+    }
+
+    function refreshControls() {
+      const confirmed = elements.confirmationInput.value.trim() === CONFIRMATION_PHRASE;
+      elements.firstWriteButton.disabled = !probeHandle || completedWrites !== 0 || !confirmed;
+      elements.secondWriteButton.disabled = !probeHandle || completedWrites !== 1;
+    }
+
+    function clearSelectedProbe() {
+      probeHandle = null;
+      originalBytes = null;
+      baselineBytes = null;
+      preparedFirstWriteBytes = null;
+      completedWrites = 0;
+      elements.fileSummary.textContent = "尚未開啟測試檔。";
+      elements.downloadOriginalButton.setAttribute("aria-disabled", "true");
+      elements.downloadOriginalButton.removeAttribute("href");
+      if (originalDownloadUrl) URL.revokeObjectURL(originalDownloadUrl);
+      originalDownloadUrl = "";
+      refreshControls();
+    }
+
+    function exposeOriginalRecovery(bytes) {
+      if (originalDownloadUrl) URL.revokeObjectURL(originalDownloadUrl);
+      originalDownloadUrl = URL.createObjectURL(new Blob([bytes], { type: "application/json" }));
+      elements.downloadOriginalButton.href = originalDownloadUrl;
+      elements.downloadOriginalButton.setAttribute("aria-disabled", "false");
+    }
+
+    async function openDisposableProbe() {
+      if (!("showOpenFilePicker" in window)) {
+        setStatus("error", "此瀏覽器不支援安全開啟控制代碼；請使用最新版 Microsoft Edge 或 Google Chrome。");
+        return;
+      }
+      if (window.self !== window.top) {
+        setStatus("error", "請把測試頁直接開在最上層分頁，不可放在預覽框或內嵌頁面。");
+        return;
+      }
+
+      setStatus("working", "等待你在開啟對話框選取可丟棄測試 JSON……");
+      try {
+        pickerCount += 1;
+        const [handle] = await window.showOpenFilePicker({
+          id: "docccc-ftp-write-probe-open",
+          multiple: false,
+          types: [{
+            description: "DocCCC 可丟棄 FTP 測試 JSON",
+            accept: { "application/json": [".json"] }
+          }]
+        });
+
+        validateProbeFilename(handle.name);
+        const snapshot = await readHandleSnapshot(handle);
+        parseDisposableProbe(snapshot.bytes);
+
+        clearSelectedProbe();
+        probeHandle = handle;
+        originalBytes = copyBytes(snapshot.bytes);
+        baselineBytes = copyBytes(snapshot.bytes);
+        preparedFirstWriteBytes = createNextProbeBytes(
+          baselineBytes,
+          1,
+          new Date().toISOString(),
+          uniqueNonce()
+        );
+        exposeOriginalRecovery(originalBytes);
+        elements.fileSummary.textContent = `已安全開啟：${handle.name}（${byteSummary(originalBytes)}）；尚未要求寫入權限。`;
+        appendLog("以開啟對話框讀取測試檔，檔名與可丟棄標記均正確。");
+        setStatus("success", "安全讀取完成。請輸入確認文字，再執行第 1 次寫入測試。");
+        refreshControls();
+      } catch (error) {
+        if (error && error.name === "AbortError") {
+          setStatus("idle", "已取消選檔，未進行任何寫入。");
+          return;
+        }
+        clearSelectedProbe();
+        appendLog(`開啟失敗：${error.message}`);
+        setStatus("error", error.message || "無法安全開啟測試檔。");
+      }
+    }
+
+    async function runFirstWrite() {
+      if (!probeHandle || !baselineBytes || !preparedFirstWriteBytes) return;
+      if (elements.confirmationInput.value.trim() !== CONFIRMATION_PHRASE) return;
+
+      elements.firstWriteButton.disabled = true;
+      elements.openProbeButton.disabled = true;
+      setStatus("working", "正在要求既有測試檔的寫入權限……");
+      try {
+        await requestWritePermission(probeHandle);
+        appendLog("已由明確按鈕取得 readwrite 權限；未使用另存對話框。");
+        setStatus("working", "第 1 次寫入中，完成後會立即與延遲各讀回一次……");
+        const result = await writeAndVerify(probeHandle, baselineBytes, preparedFirstWriteBytes);
+        baselineBytes = copyBytes(preparedFirstWriteBytes);
+        completedWrites = 1;
+        appendLog(`第 1 次寫入及兩次讀回一致（${byteSummary(result.delayed.bytes)}）。`);
+        setStatus("success", "第 1 次寫入通過。現在請測試同一頁面免選檔的第 2 次寫入。");
+      } catch (error) {
+        appendLog(`第 1 次寫入失敗：${error.message}`);
+        setStatus("error", `${error.message} 原始測試檔的記憶體備份仍可下載；不要拿正式檔案重試。`);
+      } finally {
+        elements.openProbeButton.disabled = false;
+        refreshControls();
+      }
+    }
+
+    async function runSecondWrite() {
+      if (!probeHandle || !baselineBytes || completedWrites !== 1) return;
+      const nextBytes = createNextProbeBytes(
+        baselineBytes,
+        2,
+        new Date().toISOString(),
+        uniqueNonce()
+      );
+
+      elements.secondWriteButton.disabled = true;
+      elements.openProbeButton.disabled = true;
+      setStatus("working", "沿用同一個檔案控制代碼執行第 2 次寫入……");
+      try {
+        const result = await writeAndVerify(probeHandle, baselineBytes, nextBytes);
+        baselineBytes = copyBytes(nextBytes);
+        completedWrites = 2;
+        appendLog(`第 2 次寫入及兩次讀回一致（選檔器累計 ${pickerCount} 次）。`);
+        setStatus("success", "兩次測試均通過：同一頁面可在只選檔一次後連續寫入並驗證。請回報此畫面結果，再決定是否整合正式頁面。");
+        elements.fileSummary.textContent = `測試完成：${probeHandle.name}（${byteSummary(result.delayed.bytes)}）。`;
+      } catch (error) {
+        appendLog(`第 2 次寫入失敗：${error.message}`);
+        setStatus("error", `${error.message} 已停止後續寫入，請保留畫面並回報。`);
+      } finally {
+        elements.openProbeButton.disabled = false;
+        refreshControls();
+      }
+    }
+
+    const templateUrl = URL.createObjectURL(new Blob([templateText()], { type: "application/json" }));
+    elements.downloadTemplateButton.href = templateUrl;
+    elements.openProbeButton.addEventListener("click", openDisposableProbe);
+    elements.firstWriteButton.addEventListener("click", runFirstWrite);
+    elements.secondWriteButton.addEventListener("click", runSecondWrite);
+    elements.confirmationInput.addEventListener("input", refreshControls);
+    elements.diagnostics.textContent = `環境：${window.location.protocol}／secure context: ${window.isSecureContext ? "yes" : "no"}／top-level: ${window.self === window.top ? "yes" : "no"}`;
+  </script>
+</body>
+</html>
