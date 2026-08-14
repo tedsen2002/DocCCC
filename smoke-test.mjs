@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 
 const html = readFileSync(new URL("./index.html", import.meta.url), "utf8");
+const milestonesHtml = readFileSync(new URL("./milestones.html", import.meta.url), "utf8");
+const manualUrl = new URL("./manual/DocCCC_院內使用手冊.html", import.meta.url);
+const manualHtml = readFileSync(manualUrl, "utf8");
+const manualPdfUrl = new URL("./manual/DocCCC_院內使用手冊.pdf", import.meta.url);
 
 assert.match(html, /<title>CCC 核心能力評分<\/title>/, "頁面標題應存在");
 assert.match(html, /<button class="tab active" data-tab="assessment" type="button">六大核心<\/button>/, "原評分作業頁簽應改名為六大核心");
@@ -9,13 +13,31 @@ assert.match(html, /data-tab="ccc"/, "應有獨立 CCC 評核表分頁");
 assert.match(html, /id="panel-ccc"/, "CCC 評核表應有獨立頁面容器");
 assert.match(html, /data-tab="core-epa"/, "應有獨立 Core EPAs 評量表分頁");
 assert.match(html, /id="panel-core-epa"/, "Core EPAs 評量表應有獨立頁面容器");
-assert.match(html, /data-tab="assessment"[\s\S]*data-tab="milestones"[\s\S]*data-tab="core-epa"[\s\S]*data-tab="score-summary"[\s\S]*data-tab="ccc"/, "頁籤應依六大核心、美國 RT Milestones、Core EPAs、分數統計、CCC 排列");
+assert.match(html, /data-tab="assessment"[\s\S]*id="milestonesReferenceLink"[\s\S]*data-tab="core-epa"[\s\S]*data-tab="score-summary"[\s\S]*data-tab="ccc"/, "入口應依六大核心、美國 RT Milestones、Core EPAs、分數統計、CCC 排列");
 assert.match(html, /id="panel-score-summary"/, "應有獨立 EPA／六大核心分數統計頁");
 assert.match(html, /data-tab="roster"/, "應有名單設定分頁");
 assert.match(html, /data-tab="audit"/, "應有稽核紀錄分頁");
-assert.match(html, /data-tab="assessment"[\s\S]*data-tab="milestones"[\s\S]*data-tab="core-epa"/, "Milestones 中文參考分頁應排列在六大核心與 Core EPAs 之間");
-assert.match(html, /data-tab="milestones"[^>]*>美國RT- Milestones<\/button>/, "最後一個頁籤應命名為美國RT- Milestones");
-assert.match(html, /id="panel-milestones"/, "應有獨立的 Milestones 中文唯讀參考頁");
+assert.match(html, /id="milestonesReferenceLink" class="tab tab-reference" href="milestones\.html" target="_blank" rel="noopener">美國RT- Milestones<\/a>/, "Milestones 入口應另開獨立離線 HTML");
+assert.doesNotMatch(html, /id="panel-milestones"|data-tab="milestones"/, "主頁不應再內嵌 Milestones 面板");
+
+const manualImageSources = [...manualHtml.matchAll(/<img src="([^"]+)"/g)].map((match) => match[1]);
+assert.equal(manualImageSources.length, 27, "院內手冊應包含完整的 27 張圈選操作截圖");
+assert.equal(new Set(manualImageSources).size, manualImageSources.length, "院內手冊不應重複使用同一張操作截圖");
+for (const source of manualImageSources) {
+  assert.ok(existsSync(new URL(source, manualUrl)), `院內手冊截圖應存在：${source}`);
+}
+assert.match(manualHtml, /本機操作 HTML、FTP 共用單一 JSON/, "院內手冊應先說明本機 HTML 與 FTP JSON 的日常架構");
+assert.match(manualHtml, /id="milestones"[\s\S]*邊看邊評分/, "院內手冊應說明 Milestones 的並排使用方式");
+assert.match(manualHtml, /瀏覽器會另開 <code>milestones\.html<\/code>/, "院內手冊應說明 Milestones 是獨立頁面");
+assert.match(manualHtml, /Core EPA[\s\S]*教師姓名[\s\S]*確定並提交[\s\S]*提交後整張鎖定/, "院內手冊應說明 Core EPA 具名教師、提交與鎖定流程");
+assert.match(manualHtml, /class="password">tsgh123<\/p>/, "院內手冊應提供管理修改密碼");
+assert.doesNotMatch(manualHtml, /DOC12345|稽核檢視密碼/, "院內手冊不得揭露或教學稽核檢視密碼");
+assert.ok(manualHtml.indexOf('id="advanced"') > manualHtml.indexOf('id="admin"'), "匯入、匯出、共用資料夾與衝突等進階內容應放在一般流程之後");
+assert.ok(existsSync(manualPdfUrl), "院內手冊應提供可列印 PDF");
+assert.ok(statSync(manualPdfUrl).size > 1_000_000, "院內手冊 PDF 應包含實際截圖而非空白骨架");
+const manualPdfText = readFileSync(manualPdfUrl).toString("latin1");
+const manualPdfPageCount = (manualPdfText.match(/\/Type\s*\/Page\b/g) || []).length;
+assert.ok(manualPdfPageCount >= 20 && manualPdfPageCount <= 24, `院內手冊 PDF 應維持可閱讀且無零碎尾頁的篇幅，目前為 ${manualPdfPageCount} 頁`);
 assert.match(html, /id="exportDataButton"[^>]*>匯出資料<\/button>/, "右上角應提供完整資料匯出按鈕");
 assert.match(html, /id="importDataButton"[^>]*>匯入資料<\/button>/, "右上角應提供完整資料匯入按鈕");
 assert.match(html, /id="sharedFileDialog"/, "開啟網頁時應有強制連結共用 JSON 的阻擋畫面");
@@ -57,7 +79,7 @@ assert.match(html, /data-qr-value="\$\{CCC_SCORE_LOOKUP_URL\}"/, "QR Code 應保
 assert.match(html, /conturing\/journal分數查詢<br><small>密碼artd12345!<\/small>/, "CCC 表頭應顯示指定的查詢說明與密碼");
 assert.match(html, /<svg viewBox="0 0 37 37"[^>]*>[\s\S]*CCC_SCORE_LOOKUP_QR_PATH/, "分數查詢 QR Code 應完整內嵌，不得依賴外網圖片服務");
 assert.match(html, /elements\.importDataInput\.addEventListener\("change", importDataBackup\)/, "選取備份檔後應啟動匯入流程");
-assert.match(html, /const SCHEMA_VERSION = 11/, "多人三方合併與衝突稽核加入後應使用 schema v11");
+assert.match(html, /const SCHEMA_VERSION = 12/, "Core EPA 正式提交與稽核快照加入後應使用 schema v12");
 assert.match(html, /const ITEM_MAX_SCORE = 5/, "每個教師分項滿分應為 5 分");
 assert.match(html, /function itemScoreOptions\(selected = null\)/, "教師 0–5 分應由共用下拉選項產生");
 assert.match(html, /<select class="item-score-select"[^>]+required>/, "教師分項應使用 0–5 下拉選單");
@@ -198,6 +220,14 @@ assert.match(html, /name="mentorAdvice" maxlength="4000"/, "Core EPAs 應提供�
 assert.match(html, /name="programAdvice" maxlength="4000"/, "Core EPAs 應提供對訓練計畫與科部的建議欄");
 assert.match(html, /assessment\.coreEpaForms\[formIndex\] = \{/, "Core EPA 暫存應只更新目前選取的表單");
 assert.match(html, /data-core-epa-action="draft">暫存目前表單<\/button>/, "Core EPAs 應提供可繼續編輯的暫存按鈕");
+assert.match(html, /name="teacherName" type="text" maxlength="30"[^>]*required[^>]*placeholder="請輸入評核教師姓名"/, "Core EPA 應要求填寫教師姓名");
+assert.match(html, /type="submit">確定並提交<\/button>/, "Core EPA 表單底部應提供確定並提交按鈕");
+assert.match(html, /function submitCoreEPAForm\(event\)/, "Core EPA 應有獨立正式提交流程");
+assert.match(html, /submittedAt: form\.submittedAt \|\| timestamp/, "Core EPA 第一次提交後應保存固定提交時間");
+assert.match(html, /id="coreEpaUnlockPassword"[^>]*type="password"/, "Core EPA 已提交表單應提供管理密碼解鎖視窗");
+assert.match(html, /function unlockCoreEPAForm\(event\)/, "Core EPA 管理解鎖應有獨立流程");
+assert.match(html, /type: modifying \? "core-epa-modification" : "core-epa-submission"/, "Core EPA 提交與修改應留下不同稽核事件");
+assert.match(html, /querySelectorAll\("input, textarea"\)[^;]*control\.disabled = true/, "Core EPA 正式提交後應停用所有可編輯欄位");
 assert.match(html, /id="addCoreEpaFormButton" class="btn btn-create"[^>]*>＋ 新增表單<\/button>[\s\S]*id="coreEpaExportButton" class="btn btn-export"[^>]*>匯出 PDF<\/button>/, "Core EPA 新增與 PDF 按鈕應和六大核心使用相同位置順序及醒目配色");
 assert.match(html, /id="cccExportButton" class="btn btn-export"[^>]*>匯出 PDF<\/button>/, "CCC 的 PDF 按鈕也應固定在頁面右上操作列");
 assert.match(html, /function exportCoreEPAPDF\(\)/, "Core EPAs 應有獨立 PDF 匯出流程");
@@ -232,8 +262,8 @@ assert.deepEqual(
 );
 assert.match(html, /typeof form\.updatedAt === "string"[\s\S]*?\{ updatedAt: form\.updatedAt \}/, "Core EPA 人工解決衝突後的修改時間應可跨重開保留");
 
-const milestoneReference = html.match(/const MILESTONE_REFERENCE_GROUPS = \[([\s\S]*?)\n    \];/);
-assert.ok(milestoneReference, "應內嵌 PDF 整理後的中文 Milestones 參考資料");
+const milestoneReference = milestonesHtml.match(/const MILESTONE_REFERENCE_GROUPS = \[([\s\S]*?)\n    \];/);
+assert.ok(milestoneReference, "獨立頁應內嵌 PDF 整理後的中文 Milestones 參考資料");
 assert.equal((milestoneReference[1].match(/sourcePage:/g) || []).length, 21, "中文參考頁應完整涵蓋原 PDF 的 21 項次能力");
 const milestoneGroups = new Function(`return [${milestoneReference[1]}];`)();
 const milestoneItems = milestoneGroups.flatMap((group) => group.items);
@@ -245,20 +275,24 @@ assert.ok(milestoneItems.every((item) => item.levels.length === 5 && item.levels
 for (const domainCode of ["PC", "MK", "SBP", "PBLI", "PROF", "ICS"]) {
   assert.match(milestoneReference[1], new RegExp(`code: "${domainCode}"`), `中文參考頁應包含 ${domainCode} 能力領域`);
 }
-assert.match(html, /Level 4：[\s\S]*設計為畢業目標，但不是單獨的畢業要件/, "參考頁應保留 Level 4 並非單獨畢業要件的重要限制");
-assert.match(html, /非官方翻譯；若有解釋疑義，以原始 PDF 為準/, "中文整理應明確標示非官方翻譯及原始來源優先");
-assert.match(html, /if \(tabName === "milestones"\) renderMilestoneReference\(\)/, "切換到參考分頁時應渲染中文 Milestones 內容");
+assert.match(milestonesHtml, /Level 4：[\s\S]*設計為畢業目標，但不是單獨的畢業要件/, "參考頁應保留 Level 4 並非單獨畢業要件的重要限制");
+assert.match(milestonesHtml, /非官方翻譯；若有解釋疑義，以原始 PDF 為準/, "中文整理應明確標示非官方翻譯及原始來源優先");
+assert.match(milestonesHtml, /並排使用：[\s\S]*一邊查看敘述、一邊輸入成績/, "獨立頁應提示老師可與評分頁並排使用");
+assert.doesNotMatch(milestonesHtml, /localStorage|showOpenFilePicker|DocCCC-data\.json/, "唯讀參考頁不得讀寫評分資料");
 
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 assert.equal(scripts.length, 1, "應只有一段應用程式腳本");
 new Function(scripts[0][1]);
+const milestoneScripts = [...milestonesHtml.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+assert.equal(milestoneScripts.length, 1, "獨立 Milestones 頁應只有一段腳本");
+new Function(milestoneScripts[0][1]);
 
 const mergeCoreMatch = scripts[0][1].match(/\/\/ MERGE_CORE_START([\s\S]*?)\/\/ MERGE_CORE_END/);
 assert.ok(mergeCoreMatch, "應可抽取三方合併核心做實際邏輯驗證");
-const mergeCore = new Function("SCHEMA_VERSION", "MERGE_AMBIGUITY_MS", `${mergeCoreMatch[1]}; return { mergeSharedStates };`)(11, 5 * 60 * 1000);
+const mergeCore = new Function("SCHEMA_VERSION", "MERGE_AMBIGUITY_MS", `${mergeCoreMatch[1]}; return { mergeSharedStates };`)(12, 5 * 60 * 1000);
 const cloned = (value) => JSON.parse(JSON.stringify(value));
 const mergeState = (form, auditLog = []) => ({
-  schemaVersion: 11,
+  schemaVersion: 12,
   selectedPeriodId: "p1",
   periods: [{
     id: "p1", name: "第一期", createdAt: "2026-08-14T00:00:00.000Z",
@@ -336,6 +370,24 @@ lockedShared.periods[0].assessments.r1.sixCoreForms[0].student.updatedAt = "2026
 const lockedMerge = mergeCore.mergeSharedStates(lockedBase, lockedLocal, lockedShared);
 assert.equal(lockedMerge.conflicts.length, 1, "已提交評分即使修改時間相差超過五分鐘也不得靜默覆蓋");
 assert.equal(lockedMerge.conflicts[0].locked, true, "已提交評分的衝突應標記為需要管理密碼");
+
+const submittedCoreEPA = {
+  ...coreForm,
+  teacherName: "教師甲",
+  submittedAt: "2026-08-14T09:00:00.000Z",
+  savedAt: "2026-08-14T09:00:00.000Z",
+  levels: Array(11).fill("3")
+};
+const lockedCoreEPABase = mergeState(submittedCoreEPA);
+const lockedCoreEPALocal = cloned(lockedCoreEPABase);
+lockedCoreEPALocal.periods[0].assessments.r1.coreEpaForms[0].levels[0] = "4";
+lockedCoreEPALocal.periods[0].assessments.r1.coreEpaForms[0].updatedAt = "2026-08-14T10:00:00.000Z";
+const lockedCoreEPAShared = cloned(lockedCoreEPABase);
+lockedCoreEPAShared.periods[0].assessments.r1.coreEpaForms[0].levels[0] = "5";
+lockedCoreEPAShared.periods[0].assessments.r1.coreEpaForms[0].updatedAt = "2026-08-14T11:00:00.000Z";
+const lockedCoreEPAMerge = mergeCore.mergeSharedStates(lockedCoreEPABase, lockedCoreEPALocal, lockedCoreEPAShared);
+assert.equal(lockedCoreEPAMerge.conflicts.length, 1, "已提交 Core EPA 的雙邊修改不得依時間靜默覆蓋");
+assert.equal(lockedCoreEPAMerge.conflicts[0].locked, true, "已提交 Core EPA 的衝突應要求管理密碼");
 
 const originalAudit = { id: "audit-original", type: "submission", occurredAt: "2026-08-14T08:30:00.000Z" };
 const localAudit = { id: "audit-local", type: "unlock", occurredAt: "2026-08-14T09:00:00.000Z" };
@@ -445,7 +497,7 @@ assert.match(sharedGateModes.remoteFile.gateMessage, /本機資料夾/, "FTP／U
 const backupLogic = new Function(`
   const DATA_BACKUP_APP = "DocCCC";
   const DATA_BACKUP_VERSION = 1;
-  const SCHEMA_VERSION = 11;
+  const SCHEMA_VERSION = 12;
   const RESIDENT_LEVELS = ["R1", "R2", "R3", "R4"];
   const ITEM_MAX_SCORE = 5;
   const COMPETENCIES = Array.from({ length: 6 }, () => ({}));
@@ -459,7 +511,7 @@ const backupLogic = new Function(`
   return { createDataBackup, parseDataBackup };
 `)();
 const backupState = {
-  schemaVersion: 11,
+  schemaVersion: 12,
   periods: [{
     id: "period-1", name: "2026 年第 2 期", residents: [{ id: "r1", level: "R1", name: "測試醫師" }],
     assessments: { r1: {
@@ -493,13 +545,13 @@ const preCoreEpaBackup = structuredClone(backupPayload);
 preCoreEpaBackup.schemaVersion = 7;
 preCoreEpaBackup.data.schemaVersion = 7;
 delete preCoreEpaBackup.data.periods[0].assessments.r1.coreEpaForms;
-assert.equal(backupLogic.parseDataBackup(JSON.stringify(preCoreEpaBackup)).schemaVersion, 11, "舊備份應可遷移到目前 schema v11");
+assert.equal(backupLogic.parseDataBackup(JSON.stringify(preCoreEpaBackup)).schemaVersion, 12, "舊備份應可遷移到目前 schema v12");
 const deletionAuditBackup = structuredClone(backupPayload);
 deletionAuditBackup.data.auditLog.push({ type: "period-deletion", role: null, periodName: "已刪除期別", occurredAt: "2026-08-10T08:30:00.000Z" });
 assert.equal(backupLogic.parseDataBackup(JSON.stringify(deletionAuditBackup)).auditLog.at(-1).type, "period-deletion", "含期別刪除事件的備份應可還原");
 assert.throws(() => backupLogic.parseDataBackup("{}"), /有效的 DocCCC 備份/, "不得匯入其他 JSON 檔案");
 assert.throws(
-  () => backupLogic.parseDataBackup(JSON.stringify({ ...backupPayload, schemaVersion: 12 })),
+  () => backupLogic.parseDataBackup(JSON.stringify({ ...backupPayload, schemaVersion: 13 })),
   /較新版 DocCCC/,
   "不得用舊版網頁匯入較新 schema 的備份"
 );
@@ -511,7 +563,7 @@ invalidCoreEpaBackup.data.periods[0].assessments.r1.coreEpaForms[0].levels[0] = 
 assert.throws(() => backupLogic.parseDataBackup(JSON.stringify(invalidCoreEpaBackup)), /格式不正確/, "匯入時應拒絕超出 1–5 的 Core EPA 信賴程度");
 
 const migratedLegacyAssessment = new Function(`
-  const SCHEMA_VERSION = 11;
+  const SCHEMA_VERSION = 12;
   const RESIDENT_LEVELS = ["R1", "R2", "R3", "R4"];
   const defaultResidents = () => [];
   const legacyAuditEvents = () => [];
@@ -545,7 +597,7 @@ const migratedLegacyAssessment = new Function(`
   return migrateState(saved);
 `)();
 const migratedR1 = migratedLegacyAssessment.periods[0].assessments.r1;
-assert.equal(migratedLegacyAssessment.schemaVersion, 11, "schema v8 應遷移至 v11");
+assert.equal(migratedLegacyAssessment.schemaVersion, 12, "schema v8 應遷移至 v12");
 assert.equal(migratedR1.sixCoreForms.length, 1, "舊版每人單張評核應轉成一張六大核心表單");
 assert.equal(migratedR1.sixCoreForms[0].assessmentDate, "2026-01-11", "舊評核日期應優先取教師提交日期");
 assert.equal("student" in migratedR1, false, "遷移後不得保留會造成雙重來源的頂層學生資料");
@@ -1142,13 +1194,14 @@ const renderedCoreEPA = new Function(`
   const CORE_EPA_THRESHOLDS = ["R1 標準", "R2 標準"];
   let selectedCoreEPAResidentId = null;
   let selectedCoreEPAFormId = null;
+  let unlockedCoreEPAFormId = null;
   const elements = {
     coreEpaResidentSelect: { innerHTML: "", disabled: false },
     coreEpaFormSelect: { innerHTML: "", disabled: false },
     addCoreEpaFormButton: { disabled: false },
     coreEpaExportButton: { disabled: false },
     coreEpaEmpty: { hidden: true, innerHTML: "" },
-    coreEpaForm: { hidden: true, innerHTML: "" }
+    coreEpaForm: { hidden: true, innerHTML: "", classList: { toggle() {} }, querySelectorAll() { return []; } }
   };
   const residentFor = (period, residentId) => period.residents.find((resident) => resident.id === residentId);
   const formatReadableTime = (value) => value;
@@ -1177,11 +1230,14 @@ assert.equal((renderedCoreEPA.elements.coreEpaForm.innerHTML.match(/class="core-
 assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, /name="level-EPA11"/, "Core EPAs 表單應可填寫 EPA11 信賴程度");
 assert.doesNotMatch(renderedCoreEPA.elements.coreEpaForm.innerHTML, /學員類別|traineeType/, "Core EPAs 表單不得再顯示學員類別");
 assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, /對訓練計畫與科部的建議/, "Core EPAs 表單應完整渲染原始建議欄位");
+assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, /name="teacherName"[^>]*required/, "Core EPA 表單應渲染必填教師姓名");
+assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, />確定並提交<\/button>/, "尚未提交的 Core EPA 表單應在底部顯示正式提交按鈕");
 
 const createdCoreEPA = new Function(`
   const CORE_EPA_ITEMS = Array.from({ length: 11 });
   let activeCoreEPACreateResidentId = "r1";
   let selectedCoreEPAFormId = null;
+  let unlockedCoreEPAFormId = null;
   const period = { residents: [{ id: "r1", level: "R1", name: "測試醫師" }], assessments: { r1: { coreEpaForms: [] } } };
   const elements = {
     coreEpaNewAssessmentDate: { value: "2026-07-01" },
@@ -1218,6 +1274,7 @@ const savedCoreEPA = new Function(`
     { id: "e2", assessmentDate: "2026-08-14", createdAt: "2026-08-14T01:00:00.000Z", savedAt: null, levels: Array(11).fill(""), learnerAdvice: "", mentorAdvice: "", programAdvice: "" }
   ] } } };
   const values = {
+    teacherName: "  教師甲  ",
     learnerAdvice: "  持續精進  ",
     mentorAdvice: "  加強回饋  ", programAdvice: "  增加實作機會  ",
     ...Object.fromEntries(CORE_EPA_ITEMS.map((item, index) => ["level-" + item.code, index === 10 ? "not-assessed" : String(index % 5 + 1)]))
@@ -1244,9 +1301,104 @@ assert.equal(savedCoreEPA.forms[1].assessmentDate, "2026-08-14", "Core EPA 暫�
 assert.equal("traineeType" in savedCoreEPA.forms[1], false, "Core EPA 新格式不得保存學員類別");
 assert.deepEqual(savedCoreEPA.forms[1].levels.slice(0, 5), ["1", "2", "3", "4", "5"], "Core EPAs 表單應依 EPA 順序保存信賴程度");
 assert.equal(savedCoreEPA.forms[1].levels[10], "not-assessed", "Core EPAs 表單應保存未評量狀態");
+assert.equal(savedCoreEPA.forms[1].teacherName, "教師甲", "Core EPA 草稿應保存並整理教師姓名");
 assert.equal(savedCoreEPA.forms[1].learnerAdvice, "持續精進", "Core EPAs 表單應整理建議欄位空白");
 assert.equal(savedCoreEPA.persistCount, 1, "Core EPAs 草稿應寫入瀏覽器持久狀態一次");
 assert.equal(savedCoreEPA.renderCount, 1, "Core EPAs 草稿保存後應重新渲染目前學員表單");
+
+const submittedCoreEPAResult = new Function(`
+  const CORE_EPA_ITEMS = Array.from({ length: 11 }, (_, index) => ({ code: "EPA" + (index + 1) }));
+  let selectedCoreEPAResidentId = "r1";
+  let selectedCoreEPAFormId = "e1";
+  let unlockedCoreEPAFormId = null;
+  const period = { id: "p1", name: "第一期", residents: [{ id: "r1", level: "R1", name: "測試醫師" }], assessments: { r1: { coreEpaForms: [
+    { id: "e1", assessmentDate: "2026-08-14", createdAt: "2026-08-14T01:00:00.000Z", savedAt: null, submittedAt: null, teacherName: "", levels: Array(11).fill(""), learnerAdvice: "", mentorAdvice: "", programAdvice: "" }
+  ] } } };
+  const values = {
+    teacherName: "教師甲", learnerAdvice: "學員建議", mentorAdvice: "", programAdvice: "",
+    ...Object.fromEntries(CORE_EPA_ITEMS.map((item) => ["level-" + item.code, "4"]))
+  };
+  const FormData = class { get(name) { return values[name] ?? null; } };
+  const elements = { coreEpaForm: { reportValidity() { return true; }, elements: { teacherName: { focus() {} } } } };
+  const state = { auditLog: [] };
+  const currentPeriod = () => period;
+  const residentFor = (targetPeriod, residentId) => targetPeriod.residents.find((resident) => resident.id === residentId);
+  const mergeValuesEqual = (left, right) => JSON.stringify(left) === JSON.stringify(right);
+  const window = { confirm() { return true; } };
+  let persistCount = 0;
+  const persist = () => { persistCount += 1; return true; };
+  const render = () => {};
+  const showToast = () => {};
+  ${extractFunction("coreEpaFormsFor")}
+  ${extractFunction("findCoreEPAForm")}
+  ${extractFunction("readCoreEPAForm")}
+  ${extractFunction("currentCoreEPAContext")}
+  ${extractFunction("addAuditEvent")}
+  ${extractFunction("submitCoreEPAForm")}
+  submitCoreEPAForm({ preventDefault() {} });
+  return { form: period.assessments.r1.coreEpaForms[0], auditLog: state.auditLog, persistCount, unlockedCoreEPAFormId };
+`)();
+assert.equal(submittedCoreEPAResult.form.teacherName, "教師甲", "Core EPA 正式提交應保存具名教師");
+assert.ok(submittedCoreEPAResult.form.submittedAt, "Core EPA 正式提交應保存完成時間");
+assert.deepEqual(submittedCoreEPAResult.form.levels, Array(11).fill("4"), "Core EPA 正式提交應保存 EPA1–EPA11 完整快照");
+assert.equal(submittedCoreEPAResult.auditLog[0].type, "core-epa-submission", "Core EPA 正式提交應新增專屬稽核事件");
+assert.equal(submittedCoreEPAResult.auditLog[0].coreEpaForm.teacherName, "教師甲", "Core EPA 稽核事件應保存整張表單快照");
+assert.equal(submittedCoreEPAResult.persistCount, 1, "Core EPA 正式提交應持久化一次");
+
+const modifiedCoreEPAResult = new Function(`
+  const ADMIN_PASSWORD = "tsgh123";
+  const CORE_EPA_ITEMS = Array.from({ length: 11 }, (_, index) => ({ code: "EPA" + (index + 1) }));
+  let selectedCoreEPAResidentId = "r1";
+  let selectedCoreEPAFormId = "e1";
+  let unlockedCoreEPAFormId = null;
+  const originalSubmittedAt = "2026-08-14T09:00:00.000Z";
+  const period = { id: "p1", name: "第一期", residents: [{ id: "r1", level: "R1", name: "測試醫師" }], assessments: { r1: { coreEpaForms: [
+    { id: "e1", assessmentDate: "2026-08-14", createdAt: "2026-08-14T01:00:00.000Z", savedAt: originalSubmittedAt, submittedAt: originalSubmittedAt, teacherName: "教師甲", levels: Array(11).fill("3"), learnerAdvice: "原建議", mentorAdvice: "", programAdvice: "" }
+  ] } } };
+  const values = {
+    teacherName: "教師乙", learnerAdvice: "修改後建議", mentorAdvice: "", programAdvice: "",
+    ...Object.fromEntries(CORE_EPA_ITEMS.map((item, index) => ["level-" + item.code, index === 0 ? "4" : "3"]))
+  };
+  const FormData = class { get(name) { return values[name] ?? null; } };
+  const elements = {
+    coreEpaUnlockPassword: { value: ADMIN_PASSWORD, select() {} },
+    coreEpaUnlockDialog: { close() {} },
+    coreEpaForm: { reportValidity() { return true; }, elements: { teacherName: { focus() {} } } }
+  };
+  const state = { auditLog: [] };
+  const currentPeriod = () => period;
+  const residentFor = (targetPeriod, residentId) => targetPeriod.residents.find((resident) => resident.id === residentId);
+  let persistCount = 0;
+  const persist = () => { persistCount += 1; return true; };
+  const render = () => {};
+  const renderCoreEPAForm = () => {};
+  const renderAudit = () => {};
+  const requestAnimationFrame = (callback) => callback();
+  const showToast = () => {};
+  const window = { confirm() { throw new Error("修改已提交表單不應再呼叫首次提交確認"); } };
+  ${extractFunction("cloneMergeValue")}
+  ${extractFunction("mergeValuesEqual")}
+  ${extractFunction("coreEpaFormsFor")}
+  ${extractFunction("findCoreEPAForm")}
+  ${extractFunction("readCoreEPAForm")}
+  ${extractFunction("currentCoreEPAContext")}
+  ${extractFunction("addAuditEvent")}
+  ${extractFunction("unlockCoreEPAForm")}
+  ${extractFunction("submitCoreEPAForm")}
+  unlockCoreEPAForm({ preventDefault() {} });
+  const unlockedAfterPassword = unlockedCoreEPAFormId;
+  submitCoreEPAForm({ preventDefault() {} });
+  return { form: period.assessments.r1.coreEpaForms[0], auditLog: state.auditLog, persistCount, unlockedAfterPassword, unlockedCoreEPAFormId, originalSubmittedAt };
+`)();
+assert.equal(modifiedCoreEPAResult.unlockedAfterPassword, "e1", "正確管理密碼應只解鎖目前 Core EPA 表單");
+assert.equal(modifiedCoreEPAResult.auditLog[0].type, "unlock", "Core EPA 密碼解鎖應立即留下稽核事件");
+assert.equal(modifiedCoreEPAResult.auditLog[1].type, "core-epa-modification", "Core EPA 修改應留下專屬稽核事件");
+assert.equal(modifiedCoreEPAResult.auditLog[1].beforeCoreEpaForm.teacherName, "教師甲", "Core EPA 修改稽核應保留修改前快照");
+assert.equal(modifiedCoreEPAResult.auditLog[1].coreEpaForm.teacherName, "教師乙", "Core EPA 修改稽核應保存修改後快照");
+assert.equal(modifiedCoreEPAResult.form.submittedAt, modifiedCoreEPAResult.originalSubmittedAt, "Core EPA 修改不得覆蓋原始提交時間");
+assert.equal(modifiedCoreEPAResult.form.levels[0], "4", "Core EPA 解鎖後應可保存修改內容");
+assert.equal(modifiedCoreEPAResult.unlockedCoreEPAFormId, null, "Core EPA 修改保存後應立即重新鎖定");
+assert.equal(modifiedCoreEPAResult.persistCount, 2, "Core EPA 解鎖與修改應各自持久化稽核狀態");
 
 const coreEPAPDFMarkup = new Function(`
   const CORE_EPA_ITEMS = Array.from({ length: 11 }, (_, index) => ({ code: "EPA" + (index + 1), name: "評量項目 " + (index + 1) }));
@@ -1260,6 +1412,7 @@ const coreEPAPDFMarkup = new Function(`
   const resident = { level: "R1", name: "測試醫師" };
   const record = {
     assessmentDate: "2026-08-14",
+    teacherName: "教師甲",
     levels: ["4", "4", "4", "3", "3", "3", "2", "2", "2", "2", "5"],
     learnerAdvice: "學員建議", mentorAdvice: "導師建議", programAdvice: "科部建議"
   };
@@ -1268,6 +1421,7 @@ const coreEPAPDFMarkup = new Function(`
 assert.match(coreEPAPDFMarkup, /三軍總醫院 放射腫瘤部 core EPAs 評量表/, "Core EPAs PDF 應產生原始正式標題");
 assert.match(coreEPAPDFMarkup, /EPA11[\s\S]*Level 5/, "Core EPAs PDF 應帶入 EPA11 的信賴程度");
 assert.match(coreEPAPDFMarkup, /住院醫師姓名：[\s\S]*測試醫師[\s\S]*年資：[\s\S]*R1/, "Core EPAs PDF 應帶入住院醫師姓名與年資");
+assert.match(coreEPAPDFMarkup, /評核教師：[\s\S]*教師甲/, "Core EPAs PDF 應帶入具名評核教師");
 assert.doesNotMatch(coreEPAPDFMarkup, /學員類別/, "Core EPAs PDF 不得再顯示學員類別");
 assert.match(coreEPAPDFMarkup, /學員建議[\s\S]*導師建議[\s\S]*科部建議/, "Core EPAs PDF 應帶入三組建議內容");
 assert.match(coreEPAPDFMarkup, /2026 年第 1 期/, "Core EPAs PDF 應帶入評量期別");

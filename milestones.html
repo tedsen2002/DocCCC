@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>美國 RT Milestones 中文參考</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #142019;
+      --muted: #68746d;
+      --green: #115740;
+      --green-2: #1d775a;
+      --line: #d9ddd6;
+      --paper: #f5f5ee;
+      --card: #fffefa;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--paper); }
+    button, a { font: inherit; }
+    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+    header { position: sticky; z-index: 20; top: 0; border-bottom: 1px solid var(--line); background: rgba(250, 250, 245, .96); backdrop-filter: blur(12px); }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 70px; }
+    .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .brand-mark { display: grid; width: 42px; height: 42px; flex: none; place-items: center; border-radius: 12px; color: white; background: var(--green); font-weight: 900; }
+    .brand strong { display: block; font-size: 17px; }
+    .brand small { color: var(--muted); }
+    .actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .btn { min-height: 39px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: white; text-decoration: none; font-weight: 800; cursor: pointer; }
+    .btn-primary { color: white; border-color: var(--green); background: var(--green); }
+    main { padding: 32px 0 54px; }
+    .intro, .reference-card { border: 1px solid var(--line); border-radius: 20px; background: var(--card); box-shadow: 0 16px 45px rgba(25, 48, 36, .08); }
+    .intro { margin-bottom: 18px; padding: 26px; }
+    .eyebrow { color: var(--green-2); font-size: 12px; font-weight: 900; letter-spacing: .11em; }
+    h1 { margin: 8px 0 8px; font-size: clamp(29px, 4vw, 46px); letter-spacing: -.035em; }
+    .intro > p { max-width: 880px; margin: 0; color: var(--muted); line-height: 1.7; }
+    .source-badge { display: inline-flex; margin-top: 14px; padding: 7px 10px; border-radius: 999px; color: #0f4ec5; background: #edf3ff; font-size: 12px; font-weight: 850; }
+    .guide { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 20px; }
+    .guide div { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #fbfbf7; font-size: 13px; line-height: 1.55; }
+    .guide strong { color: var(--green); }
+    .side-by-side-tip { margin-top: 12px; padding: 11px 13px; border-left: 4px solid #1769ff; color: #17498c; background: #f0f5ff; font-size: 13px; line-height: 1.55; }
+    .reference-card { padding: 22px; }
+    .domain + .domain { margin-top: 25px; }
+    .domain-heading { display: flex; align-items: baseline; gap: 9px; margin: 0 0 10px; font-size: 21px; }
+    .domain-code { color: var(--green-2); font-size: 13px; letter-spacing: .08em; }
+    details { margin-bottom: 9px; overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: white; }
+    summary { display: flex; align-items: center; gap: 10px; padding: 13px 15px; cursor: pointer; font-weight: 850; list-style: none; }
+    summary::-webkit-details-marker { display: none; }
+    summary::before { content: "＋"; display: grid; width: 25px; height: 25px; flex: none; place-items: center; border-radius: 50%; color: var(--green); background: #e8f0e9; }
+    details[open] summary::before { content: "－"; }
+    summary small { margin-left: auto; color: var(--muted); font-weight: 650; }
+    .level-scroll { overflow-x: auto; padding: 0 14px 14px; }
+    .levels { display: grid; min-width: 980px; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+    .level { padding: 11px 12px; border-top: 4px solid var(--green-2); border-radius: 10px; background: #f7f8f4; }
+    .level:nth-child(4) { border-top-color: #1769ff; background: #f2f6ff; }
+    .level:nth-child(5) { border-top-color: #8d55a8; background: #faf3fd; }
+    .level h3 { margin: 0 0 7px; font-size: 13px; }
+    .level ul { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.55; }
+    .level li + li { margin-top: 5px; }
+    .footnote { margin: 18px 0 0; padding: 12px 14px; border-left: 4px solid #d3921c; color: var(--muted); background: #fff8e7; font-size: 12px; line-height: 1.65; }
+    footer { padding: 0 0 40px; color: var(--muted); font-size: 12px; }
+    @media (max-width: 680px) {
+      .shell { width: min(100% - 20px, 1180px); }
+      .topbar { align-items: flex-start; padding: 10px 0; flex-direction: column; }
+      .actions { width: 100%; justify-content: flex-start; }
+      .guide { grid-template-columns: 1fr; }
+      .intro, .reference-card { padding: 18px; }
+      summary { align-items: flex-start; flex-wrap: wrap; }
+      summary small { width: 100%; margin-left: 35px; }
+    }
+    @media print {
+      @page { size: A4 landscape; margin: 9mm; }
+      body { background: white; }
+      header, .side-by-side-tip, footer { display: none !important; }
+      main { padding: 0; }
+      .shell { width: 100%; }
+      .intro, .reference-card { border: 0; border-radius: 0; box-shadow: none; }
+      .intro { padding: 0 0 4mm; }
+      .intro h1 { font-size: 20pt; }
+      .guide { display: none; }
+      .reference-card { padding: 0; }
+      details { break-inside: avoid; }
+      .level-scroll { overflow: visible; }
+      .levels { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell topbar">
+      <div class="brand"><span class="brand-mark">RT</span><div><strong>美國 RT Milestones</strong><small>獨立唯讀參考頁</small></div></div>
+      <div class="actions">
+        <button id="expandAllButton" class="btn" type="button">全部展開</button>
+        <button id="collapseAllButton" class="btn" type="button">全部收合</button>
+        <button id="printReferenceButton" class="btn" type="button">列印參考資料</button>
+        <a class="btn btn-primary" href="index.html">返回評分系統</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="intro">
+      <div class="eyebrow">ACGME RADIATION ONCOLOGY · VERSION 2.2</div>
+      <h1>放射腫瘤科 Milestones 中文參考</h1>
+      <p>依據 ACGME Radiation Oncology Milestones, Version 2.2（2021 第二次修訂，2022 年 7 月實施）整理。此頁為院內教育用中文整理，非官方翻譯；若有解釋疑義，以原始 PDF 為準。</p>
+      <span class="source-badge">6 個領域 · 21 項次能力 · Level 1–5</span>
+      <div class="guide">
+        <div><strong>如何判讀：</strong>Level 1 至 Level 5 代表由初學者逐步走向專家；選定某一 Level，表示該層及較低層敘述大致均已展現。</div>
+        <div><strong>不是年資對照：</strong>Level 不直接等同 PGY 年級，也沒有規定必須在哪一年達到哪一級；表現可能因經驗與情境前進或退步。</div>
+        <div><strong>Level 4：</strong>設計為畢業目標，但不是單獨的畢業要件。畢業及獨立執業準備度仍由訓練計畫主持人綜合判斷。</div>
+        <div><strong>Level 5：</strong>代表該次能力表現超出一般住院醫師期待；Milestones 主要用於形成性回饋與持續改善，不應單獨作為高風險決策依據。</div>
+      </div>
+      <div class="side-by-side-tip"><strong>並排使用：</strong>本頁不會讀寫評分資料。請保留評分系統視窗，將本頁拖到螢幕另一側，即可一邊查看敘述、一邊輸入成績。</div>
+    </section>
+
+    <section class="reference-card">
+      <div id="referenceContent"></div>
+      <p class="footnote">「獨立執行」仍須符合 ACGME、院方及訓練計畫的監督規範。原表另提供「尚未完成 Level 1」與「目前無法評量」選項；Professionalism 3 評估的是辨識福祉風險、求助與運用資源的能力，不是直接評斷住院醫師本人的身心福祉。</p>
+    </section>
+  </main>
+  <footer class="shell">DocCCC · 美國 RT Milestones 院內中文參考</footer>
+
+  <script>
+    const MILESTONE_REFERENCE_GROUPS = [
+      {
+        code: "PC", name: "病人照護（Patient Care）", items: [
+          { code: "PC1", title: "初診與會診（Consult）", sourcePage: 1, levels: [
+            ["取得基本病史並完成一般理學檢查", "列出知情同意流程的基本要素"],
+            ["取得疾病部位導向病史並完成基本局部理學檢查", "列出治療選項；回答治療計畫問題，必要時主動尋求指導"],
+            ["完成完整的部位導向病史及進階理學檢查", "為常見臨床情境選擇治療並擬定多專業照護計畫", "說明常見治療的風險與效益並取得知情同意"],
+            ["完成複雜臨床情境的病史與理學檢查", "為複雜情境選擇治療並協調多專業照護", "說明複雜治療的風險與效益並取得知情同意"],
+            ["領導多專業照護團隊"]
+          ]},
+          { code: "PC2", title: "模擬定位（Simulation）", sourcePage: 2, levels: [
+            ["辨識參與模擬定位的跨專業團隊成員", "說明放射腫瘤科醫師在定位流程中的角色", "列出定位參數"],
+            ["監督模擬定位流程，確認既定參數均達成"],
+            ["針對常見情境選擇兼顧腫瘤涵蓋與病人舒適度的定位參數", "辨識常見定位掃描問題並與團隊合作排除"],
+            ["針對少見情境選擇適當定位參數", "辨識少見定位問題並與團隊合作排除"],
+            ["發展新的模擬定位固定技術"]
+          ]},
+          { code: "PC3", title: "輪廓勾畫與靶區界定（Contouring and Target Delineation）", sourcePage: 3, levels: [
+            ["辨識相關危急器官（OAR）", "辨識有助靶區界定的診斷影像工具", "列出靶體積定義"],
+            ["勾畫常見危急器官", "選擇適當診斷影像以提升靶區界定品質", "勾畫簡單靶體積"],
+            ["勾畫複雜危急器官", "確認融合影像與計畫影像配準的正確性", "勾畫中度複雜靶體積"],
+            ["辨識危急器官勾畫錯誤", "處理解剖影像配準錯誤", "勾畫複雜靶體積"],
+            ["預見治療計畫困難，並主動調整靶體積"]
+          ]},
+          { code: "PC4", title: "治療計畫與計畫評估（Treatment Planning and Plan Evaluation）", sourcePage: 4, levels: [
+            ["說明放射腫瘤科醫師在治療計畫中的角色", "辨識不同治療計畫技術", "理解靶區涵蓋必須與危急器官劑量取得平衡"],
+            ["評估簡單放療計畫並辨識是否需修正", "辨識基礎計畫技術", "了解傳統分次下串聯與平行器官的一般耐受劑量"],
+            ["評估中度複雜計畫並辨識是否需修正", "提出運用簡單計畫技術的修正建議", "了解非傳統分次下危急器官的一般耐受劑量"],
+            ["評估複雜計畫並辨識是否需修正", "提出運用複雜計畫技術的修正建議", "運用 BED 或等效劑量計算，獨立評估再照射計畫"],
+            ["持續預見劑量師在計畫設計上的困難，主動提供最大化靶區涵蓋並降低危急器官劑量的建議"]
+          ]},
+          { code: "PC5", title: "治療執行（Treatment Delivery）", sourcePage: 5, levels: [
+            ["說明治療中訪視及症狀詢問的目的", "說明線上／離線影像審查的重要性", "理解合併治療期間持續協調照護的重要性"],
+            ["預期並詢問常見急性治療毒性", "以線上及離線影像評估基本擺位", "辨識需跨專業討論的治療中問題"],
+            ["處理常見急性治療毒性", "以線上及離線影像評估複雜擺位", "協調接受合併治療病人的多專業照護"],
+            ["處理複雜或高等級急性治療毒性", "獨立決定重新定位並啟動適應性放療", "處理需偏離原治療療程的多專業照護，例如治療中斷"],
+            ["設計創新的病人擺位策略"]
+          ]},
+          { code: "PC6", title: "治療後追蹤（Follow-Up）", sourcePage: 6, levels: [
+            ["參與癌症治療後監測", "說明追蹤訪視、監測及放射相關症狀詢問的目的"],
+            ["在常規情境提出適當癌症監測建議", "辨識並詢問常見放射線晚期毒性"],
+            ["在複雜或罕見情境提出適當癌症監測建議", "處理常見放射線晚期毒性"],
+            ["擬定並協調完整的癌症存活者照護計畫", "處理複雜或高等級放射線晚期毒性"],
+            ["示範完整癌症存活者照護計畫之擬定與協調的最佳實務"]
+          ]},
+          { code: "PC7", title: "近接治療（Brachytherapy）", sourcePage: 7, levels: [
+            ["辨識近接治療施源器", "辨識近接治療的靶區與危急器官", "參與近接治療計畫審查"],
+            ["植入過程中放置簡單腔內施源器並參與周術期照護", "勾畫常見近接治療靶區與危急器官", "評估常見近接治療計畫"],
+            ["執行常見腔內／組織間植入並處理周術期照護及常見併發症", "勾畫中度複雜靶區與危急器官", "評估中度複雜近接治療計畫"],
+            ["執行複雜腔內／組織間植入並處理困難周術期併發症", "勾畫複雜靶區與危急器官", "持續展現評估複雜近接治療計畫的能力"],
+            ["示範近接治療的最佳實務"]
+          ]},
+          { code: "PC8", title: "立體定位放射手術與體部放療（SRS／SBRT）", sourcePage: 8, levels: [
+            ["參與 SRS／SBRT 適應症討論", "辨識靶區與危急器官", "辨認 SRS／SBRT 治療計畫"],
+            ["了解 SRS／SBRT 適應症", "勾畫簡單靶區與危急器官", "評估簡單 SRS／SBRT 計畫"],
+            ["對簡單 SRS／SBRT 提出建議", "勾畫並評估中度複雜 SRS／SBRT 靶區、危急器官與計畫"],
+            ["對複雜 SRS／SBRT 提出建議", "勾畫複雜靶區與危急器官並評估複雜計畫"],
+            ["示範複雜 SRS／SBRT 的最佳實務"]
+          ]}
+        ]
+      },
+      { code: "MK", name: "醫學知識（Medical Knowledge）", items: [
+        { code: "MK1", title: "應用科學：放射物理、放射與癌症生物、統計、試驗設計及腫瘤解剖", sourcePage: 9, levels: [
+          ["具備正常構造的基礎影像解剖知識", "理解醫學物理與放射／癌症生物學在放射腫瘤科的重要性"],
+          ["辨識腫瘤異常構造的基礎影像解剖並應用於分期", "說明醫學物理與放射／癌症生物學的基礎概念"],
+          ["在常見情境整合病理解剖與靶區指引，例如乳癌或頭頸部淋巴解剖", "將物理與放射／癌症生物概念應用於常見情境"],
+          ["依複雜情境整合病理解剖及指引", "將物理與放射／癌症生物概念應用於複雜情境"],
+          ["在臨床展現解剖與影像、醫學物理、放射／癌症生物學應用的卓越知識"]
+        ]},
+        { code: "MK2", title: "放射腫瘤學實證基礎（Evidence-Based Foundations）", sourcePage: 10, levels: [
+          ["理解實證醫學在放射腫瘤科的重要性"],
+          ["摘要一篇已發表研究", "整理支持常見病人情境治療決策的實證資料"],
+          ["評讀基礎研究並將試驗資料應用於常見臨床情境", "整理支持少見病人情境治療決策的實證資料"],
+          ["評讀複雜研究並應用於較少見情境", "比較、對照並批判支持治療決策的實證資料"],
+          ["評讀複雜研究並應用於罕見情境，展現卓越的研究評讀能力"]
+        ]}
+      ]},
+      { code: "SBP", name: "制度下之臨床工作（Systems-Based Practice）", items: [
+        { code: "SBP1", title: "病人安全與品質改善", sourcePage: 11, levels: [
+          ["了解常見的身體、心理與財務病安事件", "了解病安事件通報方式", "了解基礎品質改善方法與指標"],
+          ["辨識導致病安事件的系統因素", "透過院內系統通報模擬或實際事件", "說明本地品質改善方案"],
+          ["參與病安事件分析與向病人／家屬揭露事件", "參與本地品質改善方案"],
+          ["分析病安事件並提出預防策略", "向病人與家屬揭露事件", "具備辨識、發展、執行及分析品質改善專案所需技能"],
+          ["帶領團隊修改系統以預防病安事件", "示範或指導事件揭露", "在機構或社區層級建立、執行並評估品質改善方案"]
+        ]},
+        { code: "SBP2", title: "以病人為中心的系統導航", sourcePage: 12, levels: [
+          ["了解照護協調", "辨識安全有效轉銜與交班的關鍵要素", "了解族群與社區健康需求"],
+          ["運用跨專業角色協調常規照護", "在常規情境安全有效交班", "辨識在地族群與社區的特定健康需求"],
+          ["協調複雜臨床照護並完成安全交班", "有效運用在地資源滿足病人族群與社區需求"],
+          ["示範跨專業、跨科別的病人中心照護協調", "倡議醫療體系內外安全有效的轉銜", "參與調整臨床作法以回應特定族群需求"],
+          ["分析並領導照護協調改善", "改善跨體系轉銜品質以最佳化結果", "領導創新並倡議具特殊醫療需求的族群與社區"]
+        ]},
+        { code: "SBP3", title: "醫師在醫療體系中的角色", sourcePage: 13, levels: [
+          ["辨識複雜醫療體系的主要構成", "說明基本支付制度及執業模式", "辨識資訊、法律、申報編碼、財務與人事等轉銜執業知識領域"],
+          ["說明醫療體系各構成如何互相影響病人照護", "考量病人支付限制提供照護", "說明合約、醫責保險、法規與遵循等核心行政知識"],
+          ["討論個人執業對住院天數、再入院及效率等整體系統的影響", "將病人支付限制納入共享決策", "運用電子病歷、文件與申報編碼等執業資訊科技"],
+          ["管理複雜醫療體系各環節，提供有效率且有效的照護與轉銜", "在支付限制下倡議病人所需資源", "分析個人執業型態與專業要求，準備進入獨立執業"],
+          ["倡議或領導高價值且有效率的系統變革", "參與健康政策倡議", "教育他人準備轉銜至獨立執業"]
+        ]}
+      ]},
+      { code: "PBLI", name: "從工作中學習與改善（Practice-Based Learning and Improvement）", items: [
+        { code: "PBLI1", title: "實證與知情的臨床實務", sourcePage: 14, levels: [
+          ["示範取得與運用可用實證，並納入病人偏好與價值以照護常規病人"],
+          ["提出明確臨床問題並探詢病人偏好與價值，以引導實證照護"],
+          ["找到並運用最佳可用實證，整合病人偏好照護複雜病人"],
+          ["即使面對不確定或互相衝突的證據，仍能批判評讀並依個別病人情境應用"],
+          ["指導他人為複雜病人批判評讀並運用實證"]
+        ]},
+        { code: "PBLI2", title: "反思實務與個人成長承諾", sourcePage: 15, levels: [
+          ["設定目標並為個人及專業發展負責", "辨識期待與實際表現落差的因素", "主動尋找改善機會"],
+          ["開放接受回饋與其他表現資料以設定目標", "分析並反思表現落差因素", "在提示下設計並執行學習計畫"],
+          ["以適應力與謙遜態度定期尋求表現資料", "反思後採取行為改變縮小落差", "獨立建立並執行學習計畫"],
+          ["持續且有意識地尋求表現資料", "挑戰假設並考慮替代方案", "用表現資料評估學習計畫成效並適時改善"],
+          ["示範以適應力與謙遜態度持續尋求回饋", "指導他人反思實務", "協助他人設計與執行學習計畫"]
+        ]}
+      ]},
+      { code: "PROF", name: "專業素養（Professionalism）", items: [
+        { code: "PROF1", title: "專業行為與倫理原則", sourcePage: 16, levels: [
+          ["辨識並說明可能引發專業失誤的因素", "說明何時及如何通報專業失誤與克服常見障礙", "了解知情同意、代理決策、預立意願、保密、錯誤揭露及有限資源管理等倫理原則"],
+          ["在常規情境展現專業行為", "為自己的專業失誤負責", "運用倫理原則分析單純情境"],
+          ["在複雜或高壓情境展現專業行為", "辨識何時需尋求協助處理複雜倫理情境", "運用倫理原則分析複雜情境"],
+          ["辨識可能觸發專業失誤的情境並預防自己與他人失誤", "需要時運用倫理諮詢、文獻、風險管理或法律資源處理倫理兩難"],
+          ["當他人行為未達專業期待時予以指導", "透過結構化品質改善處理造成或加劇倫理問題的系統因素"]
+        ]},
+        { code: "PROF2", title: "責任感與謹慎（Accountability／Conscientiousness）", sourcePage: 17, levels: [
+          ["為未完成工作與責任負責，辨識可能因素並提出未來準時完成的策略"],
+          ["在常規情境準時且注意細節地完成工作與責任"],
+          ["在複雜或高壓情境準時且注意細節地完成工作與責任"],
+          ["辨識可能影響他人準時完成工作與責任的情境"],
+          ["對系統整體結果承擔責任"]
+        ]},
+        { code: "PROF3", title: "自我覺察與尋求協助（Self-Awareness and Help-Seeking）", sourcePage: 18, levels: [
+          ["辨識福祉構成要素，說明自己或同儕倦怠與憂鬱的風險因子、徵象及症狀"],
+          ["在協助下辨識自己或同儕的福祉狀態及適應不良風險"],
+          ["獨立辨識自己或同儕的福祉狀態，並向適當人員反映疑慮"],
+          ["擬定並執行改善自己或同儕福祉的計畫，包括運用院內或外部資源"],
+          ["建議並促成執業場所或機構層級的系統改變以促進福祉"]
+        ]}
+      ]},
+      { code: "ICS", name: "人際與溝通技巧（Interpersonal and Communication Skills）", items: [
+        { code: "ICS1", title: "以病人與家庭為中心的溝通", sourcePage: 19, levels: [
+          ["以語言與非語言行為表達尊重並建立關係", "辨識語言、身心障礙等常見溝通障礙，並清楚說明自己在醫療體系中的角色", "辨識需依病人／家庭期待與理解調整溝通策略"],
+          ["在單純互動中運用主動聆聽與清楚語言建立治療關係", "辨識健康識能等複雜障礙", "組織並啟動溝通：介紹參與者、設定議程、澄清期待並確認理解"],
+          ["在困難互動中建立治療關係", "在提示下反思偏見並降低溝通障礙", "在指導下以敏感及同理方式傳遞醫療資訊、探詢價值與目標並承認不確定與衝突"],
+          ["不論複雜度均能自然建立兼顧病人／家庭脈絡的治療關係", "獨立辨識偏見並主動降低障礙", "以共享決策整合價值、目標、偏好與治療選項，形成個人化照護計畫"],
+          ["指導他人運用情境覺察與批判反思建立良好治療關係", "示範自我覺察及降低溝通障礙", "示範高度不確定或衝突情境中的共享決策"]
+        ]},
+        { code: "ICS2", title: "跨專業與團隊溝通", sourcePage: 20, levels: [
+          ["有禮地提出會診需求", "使用重視所有醫療團隊成員的語言", "參與結構化回饋"],
+          ["清楚簡潔地提出會診需求", "有效向所有團隊成員傳達資訊", "主動徵詢自己作為團隊成員的表現回饋"],
+          ["確認自己對會診建議的理解", "主動聆聽並依團隊需要調整溝通方式", "向同儕與學習者提出疑慮及回饋"],
+          ["整合不同團隊成員的建議以最佳化病人照護", "依總結性回饋持續展現有效團隊溝通", "向上級提供回饋與建設性批評"],
+          ["示範重視所有成員意見且能處理衝突的彈性溝通", "發展或領導跨專業溝通訓練", "在複雜情境或新科技下促進定期團隊回饋"]
+        ]},
+        { code: "ICS3", title: "醫療體系內的溝通", sourcePage: 21, levels: [
+          ["在病歷中正確記錄資訊", "保護病人個人健康資訊", "依院內政策使用適當管道溝通，例如病安通報、手機或呼叫器"],
+          ["透過病歷紀錄呈現有組織的診斷與治療推理", "依院內格式及時完成必要資料", "以尊重方式反映系統問題"],
+          ["在病歷中簡潔呈現診斷與治療推理", "依情境選擇電話／面談等直接溝通或病歷／訊息等間接溝通", "使用適當管道提出清楚且具建設性的系統改善建議"],
+          ["以清楚、簡潔、及時且有組織的書面方式溝通並提供預期指引", "書面或口頭溝通可作為他人範例", "主動與適當利害關係人進行困難對話，改善系統資料完整性與友善度"],
+          ["示範如何回饋以改善他人書面溝通", "引導部門或機構政策與程序的溝通", "促成機構、醫療體系及專業領域等更大社群就系統問題展開對話"]
+        ]}
+      ]}
+    ];
+
+    function escapeHTML(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    document.querySelector("#referenceContent").innerHTML = MILESTONE_REFERENCE_GROUPS.map((group) => `
+      <section class="domain" id="domain-${escapeHTML(group.code.toLowerCase())}">
+        <h2 class="domain-heading"><span class="domain-code">${escapeHTML(group.code)}</span>${escapeHTML(group.name)}</h2>
+        ${group.items.map((item, itemIndex) => `
+          <details ${group.code === "PC" && itemIndex === 0 ? "open" : ""}>
+            <summary><span>${escapeHTML(item.code)}　${escapeHTML(item.title)}</span><small>原表第 ${item.sourcePage} 頁</small></summary>
+            <div class="level-scroll"><div class="levels" aria-label="${escapeHTML(item.code)} Level 1 至 Level 5 中文參考">
+              ${item.levels.map((statements, levelIndex) => `
+                <article class="level"><h3>Level ${levelIndex + 1}</h3><ul>${statements.map((statement) => `<li>${escapeHTML(statement)}</li>`).join("")}</ul></article>
+              `).join("")}
+            </div></div>
+          </details>
+        `).join("")}
+      </section>
+    `).join("");
+
+    document.querySelector("#expandAllButton").addEventListener("click", () => document.querySelectorAll("details").forEach((item) => { item.open = true; }));
+    document.querySelector("#collapseAllButton").addEventListener("click", () => document.querySelectorAll("details").forEach((item) => { item.open = false; }));
+    document.querySelector("#printReferenceButton").addEventListener("click", () => window.print());
+    let printOpenState = [];
+    window.addEventListener("beforeprint", () => {
+      printOpenState = [...document.querySelectorAll("details")].map((item) => item.open);
+      document.querySelectorAll("details").forEach((item) => { item.open = true; });
+    });
+    window.addEventListener("afterprint", () => document.querySelectorAll("details").forEach((item, index) => { item.open = printOpenState[index] ?? item.open; }));
+  </script>
+</body>
+</html>

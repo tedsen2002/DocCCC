@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DocCCC 院內使用手冊</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #142019;
+      --muted: #627068;
+      --green: #115740;
+      --green-soft: #eaf3ee;
+      --blue: #1769ff;
+      --blue-soft: #edf3ff;
+      --orange: #e86617;
+      --amber-soft: #fff4d8;
+      --red: #d9364b;
+      --line: #d9ddd6;
+      --paper: #f5f5ee;
+      --card: #fffefa;
+      font-family: "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--ink); background: var(--paper); line-height: 1.65; }
+    a { color: #0f4ec5; }
+    code { padding: 2px 6px; border-radius: 6px; color: var(--green); background: var(--green-soft); font-family: Consolas, monospace; }
+    .screen-only { position: sticky; z-index: 20; top: 0; border-bottom: 1px solid var(--line); background: rgba(255, 254, 250, .96); backdrop-filter: blur(10px); }
+    .screen-nav { display: flex; width: min(1180px, calc(100% - 28px)); min-height: 58px; margin: 0 auto; align-items: center; justify-content: space-between; gap: 14px; }
+    .screen-nav strong { white-space: nowrap; }
+    .screen-nav div { display: flex; gap: 7px; overflow-x: auto; }
+    .screen-nav a { padding: 7px 10px; border-radius: 8px; color: var(--ink); text-decoration: none; white-space: nowrap; font-size: 13px; font-weight: 800; }
+    .screen-nav a:hover { color: white; background: var(--green); }
+    main { width: min(1180px, calc(100% - 28px)); margin: 0 auto; padding: 28px 0 60px; }
+    .page, .chapter { margin-bottom: 24px; padding: 30px; border: 1px solid var(--line); border-radius: 22px; background: var(--card); box-shadow: 0 14px 42px rgba(17, 52, 35, .07); }
+    .cover { display: grid; min-height: 650px; align-content: center; background: linear-gradient(135deg, #fffefa 0 62%, #eaf3ee 62% 100%); }
+    .eyebrow { color: var(--green); font-size: 13px; font-weight: 900; letter-spacing: .12em; }
+    h1 { max-width: 780px; margin: 10px 0 14px; font-size: clamp(38px, 7vw, 78px); line-height: 1.08; letter-spacing: -.04em; }
+    h2 { margin: 0 0 8px; font-size: 30px; line-height: 1.25; }
+    h3 { margin: 22px 0 8px; font-size: 20px; }
+    p { margin: 8px 0; }
+    .lead { max-width: 800px; color: var(--muted); font-size: 19px; }
+    .meta { margin-top: 30px; color: var(--muted); font-size: 13px; }
+    .notice { margin: 16px 0; padding: 13px 15px; border-left: 5px solid var(--blue); border-radius: 0 12px 12px 0; color: #17498c; background: var(--blue-soft); }
+    .warning { margin: 16px 0; padding: 13px 15px; border-left: 5px solid #d3921c; border-radius: 0 12px 12px 0; color: #6f4a0b; background: var(--amber-soft); }
+    .danger { margin: 16px 0; padding: 13px 15px; border-left: 5px solid var(--red); border-radius: 0 12px 12px 0; color: #8e2536; background: #fff0f2; }
+    .quick-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 20px 0; }
+    .quick-card { padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: #fbfbf7; }
+    .quick-card b { display: grid; width: 34px; height: 34px; margin-bottom: 9px; place-items: center; border-radius: 50%; color: white; background: var(--green); }
+    .file-map { display: grid; grid-template-columns: 1fr auto 1fr; gap: 18px; align-items: center; margin: 22px 0; }
+    .file-box { min-height: 150px; padding: 18px; border: 2px solid var(--line); border-radius: 16px; background: white; }
+    .file-box strong { display: block; margin-bottom: 9px; color: var(--green); font-size: 19px; }
+    .file-box ul { margin: 0; padding-left: 22px; }
+    .arrow { color: var(--blue); font-size: 34px; font-weight: 900; }
+    ol, ul { padding-left: 25px; }
+    li + li { margin-top: 7px; }
+    .steps { counter-reset: manual-step; padding: 0; list-style: none; }
+    .steps > li { position: relative; min-height: 38px; padding-left: 50px; }
+    .steps > li + li { margin-top: 12px; }
+    .steps > li::before { counter-increment: manual-step; content: counter(manual-step); position: absolute; left: 0; top: -2px; display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: white; background: var(--green); font-weight: 900; }
+    .key { display: inline-flex; min-width: 25px; height: 25px; margin-right: 4px; align-items: center; justify-content: center; border-radius: 50%; color: white; background: var(--red); font-weight: 900; }
+    figure { margin: 20px 0 0; break-inside: avoid; }
+    figure img { display: block; width: 100%; max-height: 650px; object-fit: contain; object-position: center top; border: 1px solid var(--line); border-radius: 14px; background: #f2f2ed; }
+    figcaption { margin-top: 8px; color: var(--muted); font-size: 13px; }
+    .two-up { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .two-up figure img { max-height: 440px; }
+    .checklist { display: grid; gap: 8px; padding: 0; list-style: none; }
+    .checklist li { position: relative; padding: 10px 12px 10px 42px; border: 1px solid var(--line); border-radius: 10px; background: white; }
+    .checklist li::before { content: "✓"; position: absolute; left: 13px; color: var(--green); font-weight: 950; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { padding: 11px 12px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: white; background: var(--green); }
+    tr:nth-child(even) td { background: #fbfbf7; }
+    .password { display: inline-block; padding: 7px 11px; border: 2px solid #e0b85a; border-radius: 10px; color: #6f4a0b; background: var(--amber-soft); font: 900 18px Consolas, monospace; letter-spacing: .03em; }
+    .footer-note { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+    @media (max-width: 760px) {
+      .screen-nav { align-items: flex-start; padding: 9px 0; flex-direction: column; }
+      main { width: min(100% - 16px, 1180px); padding-top: 12px; }
+      .page, .chapter { padding: 19px; border-radius: 16px; }
+      .quick-grid, .two-up { grid-template-columns: 1fr; }
+      .file-map { grid-template-columns: 1fr; }
+      .arrow { transform: rotate(90deg); text-align: center; }
+    }
+    @media print {
+      @page { size: A4 landscape; margin: 9mm; }
+      body { background: white; font-size: 9.5pt; line-height: 1.35; }
+      .screen-only { display: none !important; }
+      main { width: 100%; padding: 0; }
+      .page, .chapter { min-height: 188mm; margin: 0; padding: 5mm; border: 0; border-radius: 0; box-shadow: none; break-after: page; }
+      .cover { min-height: 188mm; }
+      .page:last-child, .chapter:last-child { break-after: auto; }
+      h1 { font-size: 42pt; }
+      h2 { font-size: 19pt; }
+      h3 { margin: 4mm 0 2mm; font-size: 12pt; }
+      p { margin: 1.5mm 0; }
+      .quick-grid { gap: 2.5mm; margin: 4mm 0; }
+      .quick-card { padding: 3mm; }
+      .quick-card b { width: 7mm; height: 7mm; margin-bottom: 1.5mm; }
+      .file-map { gap: 3mm; margin: 4mm 0; }
+      .file-box { min-height: 28mm; padding: 3mm; }
+      .notice, .warning, .danger { margin: 3mm 0; padding: 2.5mm 3mm; }
+      .steps > li { min-height: 7mm; padding-left: 10mm; }
+      .steps > li + li { margin-top: 2mm; }
+      .steps > li::before { width: 7mm; height: 7mm; }
+      figure { margin-top: 3mm; }
+      figure img { max-height: 108mm; }
+      figcaption { margin-top: 1.5mm; font-size: 9pt; }
+      .two-up { gap: 3mm; }
+      .two-up figure img { max-height: 80mm; }
+      .checklist { gap: 1.5mm; }
+      .checklist li { padding: 2mm 2.5mm 2mm 9mm; }
+      table { margin-top: 3mm; }
+      th, td { padding: 2mm 2.5mm; }
+      .notice, .warning, .danger, .quick-card, .file-box { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="screen-only">
+    <div class="screen-nav">
+      <strong>DocCCC 院內使用手冊</strong>
+      <div>
+        <a href="#start">開始使用</a><a href="#six-core">六大核心</a><a href="#milestones">Milestones</a><a href="#core-epa">Core EPA</a><a href="#ccc">CCC</a><a href="#admin">管理修改</a><a href="#advanced">進階處理</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="page cover">
+      <div class="eyebrow">三軍總醫院 · 放射腫瘤部</div>
+      <h1>DocCCC<br>院內使用手冊</h1>
+      <p class="lead">本機操作 HTML、FTP 共用單一 JSON 的新手流程。照著紅框編號操作即可；日常使用不需要自行匯入或匯出備份。</p>
+      <div class="notice"><strong>圖片資料皆為示範假資料。</strong>姓名、日期與評分僅供說明，不是院內真實紀錄。</div>
+      <p class="meta">適用檔案：<code>index.html</code>、<code>milestones.html</code>、FTP 上的 <code>DocCCC-data.json</code><br>手冊版本：2026-08-15</p>
+    </section>
+
+    <section id="start" class="chapter">
+      <div class="eyebrow">先看這一頁</div>
+      <h2>每天的標準流程只有四步</h2>
+      <div class="quick-grid">
+        <div class="quick-card"><b>1</b>從每台電腦的<strong>本機硬碟</strong>開啟 <code>index.html</code>。</div>
+        <div class="quick-card"><b>2</b>選取 FTP 共用資料夾中的固定檔案 <code>DocCCC-data.json</code>，再允許寫入。</div>
+        <div class="quick-card"><b>3</b>看到右上角「FTP JSON 已連結」後，照各頁面的暫存／提交按鈕操作。</div>
+        <div class="quick-card"><b>4</b>關閉前確認右上角顯示「已同步」；若不確定，按一次「儲存 JSON」。</div>
+      </div>
+      <div class="file-map">
+        <div class="file-box"><strong>每台電腦的本機資料夾</strong><ul><li><code>index.html</code>（評分系統）</li><li><code>milestones.html</code>（獨立參考頁）</li></ul></div>
+        <div class="arrow">⇄</div>
+        <div class="file-box"><strong>FTP 共用資料夾</strong><ul><li><code>DocCCC-data.json</code>（所有人共用的正式資料）</li><li>HTML 可備份在這裡，但<strong>執行前要複製到本機</strong></li></ul></div>
+      </div>
+      <div class="warning"><strong>不要直接從 FTP／網路位置執行 HTML。</strong>目前可靠的院內用法是「本機 HTML ＋ FTP JSON」。</div>
+    </section>
+
+    <section class="chapter">
+      <div class="eyebrow">每次開啟</div>
+      <h2>連結 FTP 共用 JSON</h2>
+      <ol class="steps">
+        <li>在阻擋視窗按橘色的「開啟 FTP 共用 JSON」。</li>
+        <li>Windows 檔案選擇器出現後，進入院內 FTP 的共用子資料夾，選取<strong>唯一的</strong> <code>DocCCC-data.json</code>。</li>
+        <li>回到網頁後，再按藍色「允許寫入並開始使用」。這是瀏覽器必要的第二次授權。</li>
+        <li>右上角出現綠點與「FTP JSON 已連結／已同步」後才開始輸入。</li>
+      </ol>
+      <div class="two-up">
+        <figure><img src="assets/01-open-ftp-json.png" alt="圈選開啟 FTP 共用 JSON"><figcaption><span class="key">1</span>先安全開啟既有 JSON；這不是另存新檔。</figcaption></figure>
+        <figure><img src="assets/02-authorize-write.png" alt="圈選允許寫入"><figcaption><span class="key">1</span>確認檔名與位置後，允許網頁寫回同一檔案。</figcaption></figure>
+      </div>
+    </section>
+
+    <section class="chapter">
+      <div class="eyebrow">連結成功</div>
+      <h2>先認右上角的儲存狀態</h2>
+      <p><span class="key">1</span>綠色狀態代表目前已連結 FTP JSON。<span class="key">2</span>「儲存 JSON」可在網路恢復後或關閉前手動再同步一次。</p>
+      <figure><img src="assets/03-linked-status.png" alt="FTP JSON 已連結與儲存 JSON 按鈕"><figcaption>一般暫存、提交、名單修正會自動寫回；不必每次另存新檔。</figcaption></figure>
+      <ul class="checklist">
+        <li>顯示「已同步」：可以安全關閉。</li>
+        <li>顯示「同步中／待同步」：先等候，不要立刻關閉。</li>
+        <li>顯示錯誤：先保留頁面，確認 FTP 可讀寫後按「儲存 JSON」。</li>
+      </ul>
+    </section>
+
+    <section class="chapter">
+      <div class="eyebrow">開始新一期前</div>
+      <h2>設定期別與住院醫師名單</h2>
+      <ol class="steps">
+        <li>第一次使用或人員異動時，進入「名單設定」。</li>
+        <li>在姓名欄輸入住院醫師；需要增加同年級人員時，按對應的「新增 R1／R2／R3／R4」。</li>
+        <li>回到六大核心後，以「新增期別」建立新一期。新期別會複製當下名單，但歷史期別名單不受影響。</li>
+        <li>期別名稱可用「更改期別名稱」修正，不需要密碼。</li>
+      </ol>
+      <div class="two-up">
+        <figure><img src="assets/04-roster.png" alt="名單設定"><figcaption><span class="key">1</span>名單頁　<span class="key">2</span>姓名　<span class="key">3</span>新增同年級人員。</figcaption></figure>
+        <figure><img src="assets/24-period-actions.png" alt="期別操作"><figcaption>更名、刪除與新增期別都在六大核心頁的固定操作列。</figcaption></figure>
+      </div>
+      <div class="warning">已有評核、暫存或相關資料的人員不能直接從名單移除。請保留歷史紀錄，下一期再調整名單。</div>
+    </section>
+
+    <section id="six-core" class="chapter">
+      <div class="eyebrow">主要流程一</div>
+      <h2>六大核心：新增一張評核表</h2>
+      <ol class="steps">
+        <li>進入「六大核心」。</li>
+        <li>確認目前期別。</li>
+        <li>按橘色「＋ 新增表單」。</li>
+        <li>選擇住院醫師與評核日期，再建立表單。同一位住院醫師同一期可依日期建立多張。</li>
+      </ol>
+      <div class="two-up">
+        <figure><img src="assets/05-six-core-toolbar.png" alt="六大核心固定操作列"><figcaption><span class="key">1</span>六大核心　<span class="key">2</span>期別　<span class="key">3</span>新增表單　<span class="key">4</span>匯出 PDF。</figcaption></figure>
+        <figure><img src="assets/06-add-six-core-form.png" alt="新增六大核心表單視窗"><figcaption>選人、選日期、建立；日期是同一人多張表單的主要辨識方式。</figcaption></figure>
+      </div>
+    </section>
+
+    <section class="chapter">
+      <div class="eyebrow">六大核心</div>
+      <h2>先學生自評，再由具名教師評分</h2>
+      <ol class="steps">
+        <li>學生按「填寫學生自評」，六項能力各選 L1–L5，確認後提交。提交後即鎖定。</li>
+        <li>學生完成後，「填寫教師評分」才會開放。</li>
+        <li>教師輸入姓名，完成 20 個分項分數與六項整體 Level。</li>
+        <li>尚未填完可按「暫存」；全部確認後按「確認並提交」。教師提交後也會鎖定。</li>
+        <li>雙方完成後，頁面會顯示教師綠色絕對分數圖，以及學生紅色／教師藍色 Level 六角圖。</li>
+      </ol>
+      <div class="two-up">
+        <figure><img src="assets/07-six-core-actions-student.png" alt="學生自評入口"><figcaption>學生先完成目前日期的自評。</figcaption></figure>
+        <figure><img src="assets/08-six-core-actions-teacher.png" alt="教師評分與修改入口"><figcaption>學生完成後教師按鈕才可使用；已完成表單顯示修改入口。</figcaption></figure>
+      </div>
+    </section>
+
+    <section class="chapter">
+      <div class="eyebrow">六大核心</div>
+      <h2>提交與暫存的差別</h2>
+      <table>
+        <thead><tr><th>動作</th><th>用途</th><th>之後能否直接修改</th></tr></thead>
+        <tbody>
+          <tr><td>暫存</td><td>教師尚未填完，先保存目前內容。</td><td>可以，之後繼續填寫。</td></tr>
+          <tr><td>確認並提交</td><td>內容已完成，成為正式評核。</td><td>不可以；需使用管理密碼解鎖。</td></tr>
+        </tbody>
+      </table>
+      <div class="two-up">
+        <figure><img src="assets/09-student-submit.png" alt="學生確認並提交"><figcaption>學生完成六項 Level 後按「確認並提交」。</figcaption></figure>
+        <figure><img src="assets/10-teacher-name.png" alt="教師姓名欄"><figcaption>教師評分必須填寫具名教師。</figcaption></figure>
+      </div>
+      <figure><img src="assets/11-teacher-save-submit.png" alt="教師暫存與提交"><figcaption><span class="key">1</span>暫存　<span class="key">2</span>確認並提交。</figcaption></figure>
+    </section>
+
+    <section id="milestones" class="chapter">
+      <div class="eyebrow">獨立參考頁</div>
+      <h2>美國 RT‑Milestones：邊看邊評分</h2>
+      <ol class="steps">
+        <li>在六大核心與 Core EPAs 之間按「美國RT- Milestones ↗」。</li>
+        <li>瀏覽器會另開 <code>milestones.html</code>；原評分頁不會被切走。</li>
+        <li>把兩個視窗拖到螢幕左右兩側，即可一邊展開中文參考，一邊輸入成績。</li>
+        <li>此頁唯讀，不讀寫 JSON，也不保存任何評分。</li>
+      </ol>
+      <div class="two-up">
+        <figure><img src="assets/12-milestones-entry.png" alt="Milestones 獨立頁入口"><figcaption><span class="key">1</span>入口固定在六大核心與 Core EPAs 之間。</figcaption></figure>
+        <figure><img src="assets/13-milestones-standalone.png" alt="獨立 Milestones 中文參考"><figcaption><span class="key">1</span>全部展開　<span class="key">2</span>並排提示　<span class="key">3</span>展開個別能力。</figcaption></figure>
+      </div>
+      <div class="warning">若按入口後找不到頁面，確認 <code>milestones.html</code> 與 <code>index.html</code> 位於同一個本機資料夾。</div>
+    </section>
+
+    <section id="core-epa" class="chapter">
+      <div class="eyebrow">主要流程二</div>
+      <h2>Core EPA：同一人可建立多張日期表單</h2>
+      <ol class="steps">
+        <li>進入「Core EPAs」，選擇期別與受評住院醫師。</li>
+        <li>按橘色「＋ 新增表單」，選評量日期。每次評量建立一張，不需選學員類別。</li>
+        <li>上方「評量表」選單可切換同一人的各張日期表單。</li>
+        <li>藍色「匯出 PDF」會輸出目前選到的這一張。</li>
+      </ol>
+      <figure><img src="assets/14-core-epa-toolbar.png" alt="Core EPA 固定操作列"><figcaption><span class="key">1</span>Core EPAs　<span class="key">2</span>表單切換　<span class="key">3</span>新增　<span class="key">4</span>PDF。</figcaption></figure>
+    </section>
+
+    <section class="chapter">
+      <div class="eyebrow">Core EPA</div>
+      <h2>具名教師填寫、暫存或正式提交</h2>
+      <ol class="steps">
+        <li>填寫「教師姓名」。</li>
+        <li>EPA1–EPA11 每項選 1–5；確實無法評量時可選「未評量」。</li>
+        <li>依需要填寫對學員、導師與訓練計畫／科部的建議。</li>
+        <li>未完成按「暫存目前表單」；確認完成按「確定並提交」。</li>
+        <li>提交後整張鎖定，重開瀏覽器仍保持鎖定。</li>
+      </ol>
+      <div class="two-up">
+        <figure><img src="assets/15-core-epa-teacher-levels.png" alt="Core EPA 教師姓名"><figcaption><span class="key">1</span>教師姓名必填；下方依序完成 EPA1–EPA11。</figcaption></figure>
+        <figure><img src="assets/16-core-epa-save-submit.png" alt="Core EPA 暫存與提交"><figcaption><span class="key">1</span>暫存　<span class="key">2</span>確定並提交。</figcaption></figure>
+      </div>
+      <figure><img src="assets/17-core-epa-locked.png" alt="Core EPA 提交後鎖定"><figcaption>提交後所有欄位停用；需要修正時按 <span class="key">2</span>「輸入管理密碼以修改」。</figcaption></figure>
+    </section>
+
+    <section class="chapter">
+      <div class="eyebrow">統計頁</div>
+      <h2>EPA／六大核心分數統計</h2>
+      <p>進入統計頁後先選期別。每位住院醫師會列出該期多張 Core EPA 供參考，以及六大核心教師正式提交資料的平均。</p>
+      <ul>
+        <li>六大核心只計入<strong>教師已正式提交</strong>的表單。</li>
+        <li>Core EPA 僅在統計頁供參考，<strong>不會自動帶入 CCC</strong>。</li>
+        <li>不同日期的表單仍各自保存，可由明細追溯。</li>
+      </ul>
+      <figure><img src="assets/19-score-summary.png" alt="EPA 與六大核心分數統計"><figcaption><span class="key">1</span>統計頁　<span class="key">2</span>選擇要查看的期別。</figcaption></figure>
+    </section>
+
+    <section id="ccc" class="chapter">
+      <div class="eyebrow">主要流程三</div>
+      <h2>CCC 評核表：先選日期範圍</h2>
+      <ol class="steps">
+        <li>進入「CCC 評核表」，選期別與住院醫師。</li>
+        <li>設定六大核心納入起日與迄日。</li>
+        <li>系統會找出該日期範圍內、該人教師已正式提交的六大核心表單。</li>
+        <li>同一期若有兩三張表單，會先計算每張滿分 100 的分數，再取這些表單的平均帶入 CCC。</li>
+        <li>Core EPA 不會自動帶入 CCC。</li>
+      </ol>
+      <div class="two-up">
+        <figure><img src="assets/20-ccc-toolbar.png" alt="CCC 評核表操作列"><figcaption><span class="key">1</span>CCC 頁　<span class="key">2</span>期別　<span class="key">3</span>住院醫師　<span class="key">4</span>匯出 PDF。</figcaption></figure>
+        <figure><img src="assets/21-ccc-scores.png" alt="CCC 日期範圍與人工分數"><figcaption>圈選日期範圍後，再填治療計畫、Journal meeting 與年度考試三項人工分數。</figcaption></figure>
+      </div>
+    </section>
+
+    <section class="chapter">
+      <div class="eyebrow">CCC 評核表</div>
+      <h2>完成其餘評核、簽核與提交</h2>
+      <ol class="steps">
+        <li>完成 EPA 臨床授權、教學、研究、病歷、病安、CCC 結論、評語與簽核欄。</li>
+        <li>尚未完成按「暫存」；確認無誤後按「提交」。正式提交後會鎖定。</li>
+        <li>右上「匯出 PDF」輸出目前人員的 CCC 表。網頁表頭的查分 QR Code 與密碼不會出現在 PDF。</li>
+      </ol>
+      <figure><img src="assets/22-ccc-save-submit.png" alt="CCC 暫存與提交"><figcaption><span class="key">1</span>暫存可繼續編輯　<span class="key">2</span>提交後鎖定。</figcaption></figure>
+    </section>
+
+    <section id="admin" class="chapter">
+      <div class="eyebrow">需要修正時</div>
+      <h2>管理修改與刪除密碼</h2>
+      <p>六大核心或 Core EPA 正式提交後，如確實需要修正，使用管理密碼：</p>
+      <p class="password">tsgh123</p>
+      <h3>六大核心</h3>
+      <p>在已完成表單按「修改已提交分數」，輸入密碼並解鎖；修改後儲存。學生與教師資料仍分開處理。</p>
+      <h3>Core EPA</h3>
+      <p>在鎖定表單底部按「輸入管理密碼以修改」，驗證後回到表單修改；按「儲存修改並重新鎖定」後立即再次鎖定。</p>
+      <div class="two-up">
+        <figure><img src="assets/23-admin-unlock.png" alt="六大核心管理解鎖"><figcaption>六大核心：輸入密碼後驗證並解鎖。</figcaption></figure>
+        <figure><img src="assets/18-core-epa-unlock.png" alt="Core EPA 管理解鎖"><figcaption>Core EPA：<span class="key">1</span>密碼　<span class="key">2</span>驗證並解鎖。</figcaption></figure>
+      </div>
+    </section>
+
+    <section class="chapter">
+      <div class="eyebrow">高風險操作</div>
+      <h2>刪除期別前務必再確認</h2>
+      <p>刪除目前期別也使用管理密碼 <span class="password">tsgh123</span>。</p>
+      <div class="danger"><strong>刪除期別無法復原。</strong>該期名單、六大核心、Core EPA 與 CCC 資料會一起移除。除非確定整期建錯，否則不要使用。</div>
+      <figure><img src="assets/25-delete-period.png" alt="刪除期別密碼確認"><figcaption><span class="key">1</span>管理密碼　<span class="key">2</span>確認刪除整期。</figcaption></figure>
+    </section>
+
+    <section class="chapter">
+      <div class="eyebrow">每天結束前</div>
+      <h2>安全關閉檢查</h2>
+      <ul class="checklist">
+        <li>需要的表單已按「暫存」或「提交」，不是只停留在輸入畫面。</li>
+        <li>右上角顯示「已同步」。</li>
+        <li>若剛恢復網路或不確定，按一次「儲存 JSON」，等到「已同步」。</li>
+        <li>再關閉分頁或瀏覽器。</li>
+      </ul>
+      <div class="notice">瀏覽器本機也會保留一份資料，但多人共同作業時，FTP 的 <code>DocCCC-data.json</code> 才是大家交換最新版的共同檔案。</div>
+    </section>
+
+    <section id="advanced" class="chapter">
+      <div class="eyebrow">進階功能 · 一般每天不需使用</div>
+      <h2>備份匯出、匯入與共用資料夾模式</h2>
+      <figure><img src="assets/26-advanced-data-buttons.png" alt="儲存 JSON 匯出與匯入"><figcaption><span class="key">1</span>儲存 JSON　<span class="key">2</span>匯出完整備份　<span class="key">3</span>匯入完整備份。</figcaption></figure>
+      <table>
+        <thead><tr><th>功能</th><th>什麼時候用</th><th>注意事項</th></tr></thead>
+        <tbody>
+          <tr><td>儲存 JSON</td><td>同步狀態不確定、FTP 剛恢復，或關閉前想再確認。</td><td>會寫回本次開啟時選定的同一個 <code>DocCCC-data.json</code>。</td></tr>
+          <tr><td>匯出資料</td><td>製作額外完整備份、版本更新前留存。</td><td>下載的是另一份備份檔，不是日常多人共用流程。</td></tr>
+          <tr><td>匯入資料</td><td>從完整備份還原整套資料。</td><td>會取代目前資料，確認備份內容與日期後才操作。</td></tr>
+          <tr><td>共用資料夾（自動同步）</td><td>一般本機或瀏覽器支援的 SMB 資料夾可直接選整個資料夾時。</td><td>院內「網路位置」FTP 相容性不佳；目前建議仍使用「開啟 FTP 共用 JSON」。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="chapter">
+      <div class="eyebrow">進階功能</div>
+      <h2>多人同時修改時，系統怎麼合併</h2>
+      <ul>
+        <li>不同人、不同表單或不同欄位：自動取聯集，兩邊都保留。</li>
+        <li>空白與非空白：通常保留非空白；若某人明確清空且修改時間明顯較新，會保留新的清空結果。</li>
+        <li>同一欄位修改時間相差超過五分鐘：採較新的版本。</li>
+        <li>同一欄位在五分鐘內兩邊都修改：無法安全判斷，會請使用者選擇本機、FTP，或合併兩邊文字。</li>
+        <li>已正式提交／鎖定的資料發生衝突：不會靜默覆蓋，需管理密碼確認。</li>
+      </ul>
+      <figure><img src="assets/27-merge-conflict.png" alt="同欄位衝突選擇"><figcaption><span class="key">1</span>保留本機　<span class="key">2</span>保留 FTP　<span class="key">3</span>套用選擇並合併。文字欄另可選擇合併兩邊文字。</figcaption></figure>
+      <div class="warning">最有效的預防方式：同一時間避免兩位使用者編輯<strong>同一位住院醫師的同一張表單</strong>。</div>
+    </section>
+
+    <section class="chapter">
+      <div class="eyebrow">排除問題</div>
+      <h2>常見狀況快速處理</h2>
+      <table>
+        <thead><tr><th>狀況</th><th>處理方式</th></tr></thead>
+        <tbody>
+          <tr><td>一直要求重新選共用資料</td><td>確認是從本機硬碟開啟 <code>index.html</code>，不是從 FTP／UNC 網路位置執行；再重新選取 FTP 上唯一的 <code>DocCCC-data.json</code>。</td></tr>
+          <tr><td>選了 JSON 但沒有進入系統</td><td>等候「已安全讀取」提示，再按第二步藍色「允許寫入並開始使用」。若瀏覽器不支援，改用最新版 Microsoft Edge 或 Google Chrome。</td></tr>
+          <tr><td>Milestones 入口打不開</td><td>把 <code>milestones.html</code> 與 <code>index.html</code> 放在同一個本機資料夾。</td></tr>
+          <tr><td>右上角不是「已同步」</td><td>不要先關閉。確認 FTP 仍可存取，按「儲存 JSON」；若仍失敗，先匯出完整備份留存，再請管理者檢查 FTP。</td></tr>
+          <tr><td>JSON 變成 0 KB 或損壞</td><td>停止其他電腦繼續寫入，先以最近的完整備份還原。正常連結既有 JSON 應使用「開啟 FTP 共用 JSON」，不要用另存新檔流程覆蓋既有檔案。</td></tr>
+          <tr><td>出現衝突選擇視窗</td><td>比較畫面上的時間與內容；知道哪一版正確就選該版，兩邊文字都要保留時選「合併兩邊文字」。</td></tr>
+        </tbody>
+      </table>
+      <p class="footer-note">本手冊只涵蓋一般評分、管理修改與資料交換流程；未說明稽核紀錄頁。若仍無法排除，請保留錯誤畫面、發生時間與當時操作步驟，再交由系統維護者確認。</p>
+    </section>
+  </main>
+</body>
+</html>
