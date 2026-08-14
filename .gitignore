@@ -9,3 +9,6 @@
 .agents/
 .codex
 *.bak-*
+
+# Runtime assessment data may contain personal records and must stay local.
+DocCCC-data.json
