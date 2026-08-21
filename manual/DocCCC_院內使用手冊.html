@@ -133,7 +133,7 @@
       <h1>DocCCC<br>院內使用手冊</h1>
       <p class="lead">本機操作 HTML、FTP 共用單一 JSON 的新手流程。照著紅框編號操作即可；日常使用不需要自行匯入或匯出備份。</p>
       <div class="notice"><strong>圖片資料皆為示範假資料。</strong>姓名、日期與評分僅供說明，不是院內真實紀錄。</div>
-      <p class="meta">適用檔案：<code>index.html</code>、<code>milestones.html</code>、FTP 上的 <code>DocCCC-data.json</code><br>手冊版本：2026-08-15</p>
+      <p class="meta">適用檔案：<code>index.html</code>、<code>milestones.html</code>、FTP 上的 <code>DocCCC-data.json</code><br>手冊版本：2026-08-21</p>
     </section>
 
     <section id="start" class="chapter">
@@ -141,7 +141,7 @@
       <h2>每天的標準流程只有四步</h2>
       <div class="quick-grid">
         <div class="quick-card"><b>1</b>從每台電腦的<strong>本機硬碟</strong>開啟 <code>index.html</code>。</div>
-        <div class="quick-card"><b>2</b>選取 FTP 共用資料夾中的固定檔案 <code>DocCCC-data.json</code>，再允許寫入。</div>
+        <div class="quick-card"><b>2</b>按「開啟 FTP 共用檔案」，選取固定的 <code>DocCCC-data.json</code>；瀏覽器詢問時允許變更。</div>
         <div class="quick-card"><b>3</b>看到右上角「FTP JSON 已連結」後，照各頁面的暫存／提交按鈕操作。</div>
         <div class="quick-card"><b>4</b>關閉前確認右上角顯示「已同步」；若不確定，按一次「儲存 JSON」。</div>
       </div>
@@ -151,21 +151,19 @@
         <div class="file-box"><strong>FTP 共用資料夾</strong><ul><li><code>DocCCC-data.json</code>（所有人共用的正式資料）</li><li>HTML 可備份在這裡，但<strong>執行前要複製到本機</strong></li></ul></div>
       </div>
       <div class="warning"><strong>不要直接從 FTP／網路位置執行 HTML。</strong>目前可靠的院內用法是「本機 HTML ＋ FTP JSON」。</div>
+      <div class="notice"><strong>公開網頁版不強制連結共用檔案。</strong>從 HTTP／HTTPS 網址開啟時可直接使用瀏覽器本機資料；只有需要讀寫院內 FTP JSON 時，才由右上角自行連結。</div>
     </section>
 
     <section class="chapter">
       <div class="eyebrow">每次開啟</div>
       <h2>連結 FTP 共用 JSON</h2>
       <ol class="steps">
-        <li>在阻擋視窗按橘色的「開啟 FTP 共用 JSON」。</li>
+        <li>在阻擋視窗按橘色的「開啟 FTP 共用檔案」。</li>
         <li>Windows 檔案選擇器出現後，進入院內 FTP 的共用子資料夾，選取<strong>唯一的</strong> <code>DocCCC-data.json</code>。</li>
-        <li>回到網頁後，再按藍色「允許寫入並開始使用」。這是瀏覽器必要的第二次授權。</li>
+        <li>若 Edge／Chrome 詢問是否允許變更檔案，請按「允許」。完成後網頁會直接載入資料並開始作業，<strong>不需再按網站內的第二個按鈕</strong>。</li>
         <li>右上角出現綠點與「FTP JSON 已連結／已同步」後才開始輸入。</li>
       </ol>
-      <div class="two-up">
-        <figure><img src="assets/01-open-ftp-json.png" alt="圈選開啟 FTP 共用 JSON"><figcaption><span class="key">1</span>先安全開啟既有 JSON；這不是另存新檔。</figcaption></figure>
-        <figure><img src="assets/02-authorize-write.png" alt="圈選允許寫入"><figcaption><span class="key">1</span>確認檔名與位置後，允許網頁寫回同一檔案。</figcaption></figure>
-      </div>
+      <figure><img src="assets/01-open-ftp-json.png" alt="圈選開啟 FTP 共用檔案"><figcaption><span class="key">1</span>啟動畫面只保留這個 FTP 共用檔案入口；選檔後若出現瀏覽器原生權限提示，再按允許。</figcaption></figure>
     </section>
 
     <section class="chapter">
@@ -203,11 +201,11 @@
         <li>進入「六大核心」。</li>
         <li>確認目前期別。</li>
         <li>按橘色「＋ 新增表單」。</li>
-        <li>選擇住院醫師與評核日期，再建立表單。同一位住院醫師同一期可依日期建立多張。</li>
+        <li>選擇住院醫師、評核日期並輸入住院醫師指定的評分教師，再建立表單。同一位住院醫師同一期可依日期建立多張。</li>
       </ol>
       <div class="two-up">
         <figure><img src="assets/05-six-core-toolbar.png" alt="六大核心固定操作列"><figcaption><span class="key">1</span>六大核心　<span class="key">2</span>期別　<span class="key">3</span>新增表單　<span class="key">4</span>匯出 PDF。</figcaption></figure>
-        <figure><img src="assets/06-add-six-core-form.png" alt="新增六大核心表單視窗"><figcaption>選人、選日期、建立；日期是同一人多張表單的主要辨識方式。</figcaption></figure>
+        <figure><img src="assets/06-add-six-core-form.png" alt="新增六大核心表單視窗"><figcaption><span class="key">1</span>住院醫師　<span class="key">2</span>日期　<span class="key">3</span>指定教師　<span class="key">4</span>建立並填寫學生自評。</figcaption></figure>
       </div>
     </section>
 
@@ -216,10 +214,11 @@
       <h2>先學生自評，再由具名教師評分</h2>
       <ol class="steps">
         <li>學生按「填寫學生自評」，六項能力各選 L1–L5，確認後提交。提交後即鎖定。</li>
-        <li>學生完成後，「填寫教師評分」才會開放。</li>
-        <li>教師輸入姓名，完成 20 個分項分數與六項整體 Level。</li>
-        <li>尚未填完可按「暫存」；全部確認後按「確認並提交」。教師提交後也會鎖定。</li>
-        <li>雙方完成後，頁面會顯示教師綠色絕對分數圖，以及學生紅色／教師藍色 Level 六角圖。</li>
+        <li>學生完成後，「填寫教師評分」才會開放。畫面會同時顯示「目前評分教師」與住院醫師原指定教師。</li>
+        <li>姓名正確時點「確定我是評分教師」；需要換人時才點「變更評分教師」並輸入新姓名。完成確認前，評分欄位不會開放。</li>
+        <li>20 個分項各選 N/A 或 1–5 分，再完成六項整體 Level；N/A 不列入得分與滿分分母。</li>
+        <li>尚未填完可按「暫存」；再次開啟時，暫存姓名會成為目前評分教師，只要再次確認即可續填，不必重選變更。</li>
+        <li>全部確認後按「確認並提交」。教師提交後會鎖定；雙方完成後顯示教師綠色絕對分數圖，以及學生紅色／教師藍色 Level 六角圖。</li>
       </ol>
       <div class="two-up">
         <figure><img src="assets/07-six-core-actions-student.png" alt="學生自評入口"><figcaption>學生先完成目前日期的自評。</figcaption></figure>
@@ -239,9 +238,18 @@
       </table>
       <div class="two-up">
         <figure><img src="assets/09-student-submit.png" alt="學生確認並提交"><figcaption>學生完成六項 Level 後按「確認並提交」。</figcaption></figure>
-        <figure><img src="assets/10-teacher-name.png" alt="教師姓名欄"><figcaption>教師評分必須填寫具名教師。</figcaption></figure>
+        <figure><img src="assets/10-teacher-name.png" alt="目前評分教師確認與變更"><figcaption><span class="key">1</span>目前教師　<span class="key">2</span>原指定教師　<span class="key">3</span>確認續填　<span class="key">4</span>變更姓名。</figcaption></figure>
       </div>
-      <figure><img src="assets/11-teacher-save-submit.png" alt="教師暫存與提交"><figcaption><span class="key">1</span>暫存　<span class="key">2</span>確認並提交。</figcaption></figure>
+    </section>
+
+    <section class="chapter">
+      <div class="eyebrow">六大核心</div>
+      <h2>N/A：只扣除有效滿分，不當成 0 分</h2>
+      <div class="notice"><strong>N/A 計分範例：</strong>PC 原本 8 項、滿分 40；若 1 項 N/A，其餘 7 項皆得 5 分，結果顯示「PC 病人照護（滿分40）　35/35（100%）｜N/A 1項」。</div>
+      <div class="two-up">
+        <figure><img src="assets/11-teacher-save-submit.png" alt="教師 N/A、有效分母、暫存與提交"><figcaption><span class="key">1</span>N/A 選項　<span class="key">2</span>有效小計／滿分　<span class="key">3</span>暫存　<span class="key">4</span>確認並提交。</figcaption></figure>
+        <figure><img src="assets/28-six-core-na-result.png" alt="六大核心完成後顯示原始滿分、有效分母與 N/A 數量"><figcaption><span class="key">1</span>原始滿分　<span class="key">2</span>有效得分／有效滿分及 N/A 數量　<span class="key">3</span>全表有效總分。</figcaption></figure>
+      </div>
     </section>
 
     <section id="milestones" class="chapter">
@@ -265,7 +273,7 @@
       <h2>Core EPA：同一人可建立多張日期表單</h2>
       <ol class="steps">
         <li>進入「Core EPAs」，選擇期別與受評住院醫師。</li>
-        <li>按橘色「＋ 新增表單」，選評量日期。每次評量建立一張，不需選學員類別。</li>
+        <li>按橘色「＋ 新增表單」，選評量日期並輸入住院醫師指定的評分教師。每次評量建立一張，不需選學員類別。</li>
         <li>上方「評量表」選單可切換同一人的各張日期表單。</li>
         <li>藍色「匯出 PDF」會輸出目前選到的這一張。</li>
       </ol>
@@ -276,14 +284,14 @@
       <div class="eyebrow">Core EPA</div>
       <h2>具名教師填寫、暫存或正式提交</h2>
       <ol class="steps">
-        <li>填寫「教師姓名」。</li>
+        <li>先查看目前評分教師與原指定教師；姓名正確時點「確定我是評分教師」，需要換人才選「變更評分教師」。</li>
         <li>EPA1–EPA11 每項選 1–5；確實無法評量時可選「未評量」。</li>
         <li>依需要填寫對學員、導師與訓練計畫／科部的建議。</li>
-        <li>未完成按「暫存目前表單」；確認完成按「確定並提交」。</li>
+        <li>未完成按「暫存目前表單」；下次開啟只需再次確認暫存的目前教師即可續填。確認完成後按「確定並提交」。</li>
         <li>提交後整張鎖定，重開瀏覽器仍保持鎖定。</li>
       </ol>
       <div class="two-up">
-        <figure><img src="assets/15-core-epa-teacher-levels.png" alt="Core EPA 教師姓名"><figcaption><span class="key">1</span>教師姓名必填；下方依序完成 EPA1–EPA11。</figcaption></figure>
+        <figure><img src="assets/15-core-epa-teacher-levels.png" alt="Core EPA 目前教師確認與變更"><figcaption><span class="key">1</span>目前教師　<span class="key">2</span>原指定教師　<span class="key">3</span>確認續填　<span class="key">4</span>變更姓名。</figcaption></figure>
         <figure><img src="assets/16-core-epa-save-submit.png" alt="Core EPA 暫存與提交"><figcaption><span class="key">1</span>暫存　<span class="key">2</span>確定並提交。</figcaption></figure>
       </div>
       <figure><img src="assets/17-core-epa-locked.png" alt="Core EPA 提交後鎖定"><figcaption>提交後所有欄位停用；需要修正時按 <span class="key">2</span>「輸入管理密碼以修改」。</figcaption></figure>
@@ -295,6 +303,7 @@
       <p>進入統計頁後先選期別。每位住院醫師會列出該期多張 Core EPA 供參考，以及六大核心教師正式提交資料的平均。</p>
       <ul>
         <li>六大核心只計入<strong>教師已正式提交</strong>的表單。</li>
+        <li>每張六大核心先以「有效得分 ÷ 有效滿分」換算 100 分；N/A 不列入分子與分母。</li>
         <li>Core EPA 僅在統計頁供參考，<strong>不會自動帶入 CCC</strong>。</li>
         <li>不同日期的表單仍各自保存，可由明細追溯。</li>
       </ul>
@@ -365,7 +374,7 @@
 
     <section id="advanced" class="chapter">
       <div class="eyebrow">進階功能 · 一般每天不需使用</div>
-      <h2>備份匯出、匯入與共用資料夾模式</h2>
+      <h2>備份匯出與匯入</h2>
       <figure><img src="assets/26-advanced-data-buttons.png" alt="儲存 JSON 匯出與匯入"><figcaption><span class="key">1</span>儲存 JSON　<span class="key">2</span>匯出完整備份　<span class="key">3</span>匯入完整備份。</figcaption></figure>
       <table>
         <thead><tr><th>功能</th><th>什麼時候用</th><th>注意事項</th></tr></thead>
@@ -373,7 +382,6 @@
           <tr><td>儲存 JSON</td><td>同步狀態不確定、FTP 剛恢復，或關閉前想再確認。</td><td>會寫回本次開啟時選定的同一個 <code>DocCCC-data.json</code>。</td></tr>
           <tr><td>匯出資料</td><td>製作額外完整備份、版本更新前留存。</td><td>下載的是另一份備份檔，不是日常多人共用流程。</td></tr>
           <tr><td>匯入資料</td><td>從完整備份還原整套資料。</td><td>會取代目前資料，確認備份內容與日期後才操作。</td></tr>
-          <tr><td>共用資料夾（自動同步）</td><td>一般本機或瀏覽器支援的 SMB 資料夾可直接選整個資料夾時。</td><td>院內「網路位置」FTP 相容性不佳；目前建議仍使用「開啟 FTP 共用 JSON」。</td></tr>
         </tbody>
       </table>
     </section>
@@ -399,10 +407,10 @@
         <thead><tr><th>狀況</th><th>處理方式</th></tr></thead>
         <tbody>
           <tr><td>一直要求重新選共用資料</td><td>確認是從本機硬碟開啟 <code>index.html</code>，不是從 FTP／UNC 網路位置執行；再重新選取 FTP 上唯一的 <code>DocCCC-data.json</code>。</td></tr>
-          <tr><td>選了 JSON 但沒有進入系統</td><td>等候「已安全讀取」提示，再按第二步藍色「允許寫入並開始使用」。若瀏覽器不支援，改用最新版 Microsoft Edge 或 Google Chrome。</td></tr>
+          <tr><td>選了 JSON 但沒有進入系統</td><td>查看瀏覽器是否正在等待原生權限確認；若有就按允許。網頁不會再顯示第二個授權按鈕。若仍失敗，改用最新版 Microsoft Edge 或 Google Chrome。</td></tr>
           <tr><td>Milestones 入口打不開</td><td>把 <code>milestones.html</code> 與 <code>index.html</code> 放在同一個本機資料夾。</td></tr>
           <tr><td>右上角不是「已同步」</td><td>不要先關閉。確認 FTP 仍可存取，按「儲存 JSON」；若仍失敗，先匯出完整備份留存，再請管理者檢查 FTP。</td></tr>
-          <tr><td>JSON 變成 0 KB 或損壞</td><td>停止其他電腦繼續寫入，先以最近的完整備份還原。正常連結既有 JSON 應使用「開啟 FTP 共用 JSON」，不要用另存新檔流程覆蓋既有檔案。</td></tr>
+          <tr><td>JSON 變成 0 KB 或損壞</td><td>停止其他電腦繼續寫入，先以最近的完整備份還原。正常連結既有 JSON 應使用「開啟 FTP 共用檔案」，不要用另存新檔流程覆蓋既有檔案。</td></tr>
           <tr><td>出現衝突選擇視窗</td><td>比較畫面上的時間與內容；知道哪一版正確就選該版，兩邊文字都要保留時選「合併兩邊文字」。</td></tr>
         </tbody>
       </table>

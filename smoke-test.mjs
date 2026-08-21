@@ -27,9 +27,16 @@ for (const source of manualImageSources) {
   assert.ok(existsSync(new URL(source, manualUrl)), `院內手冊截圖應存在：${source}`);
 }
 assert.match(manualHtml, /本機操作 HTML、FTP 共用單一 JSON/, "院內手冊應先說明本機 HTML 與 FTP JSON 的日常架構");
+assert.match(manualHtml, /開啟 FTP 共用檔案[\s\S]*不需再按網站內的第二個按鈕/, "院內手冊應說明 FTP 選檔後可直接開始作業");
+assert.match(manualHtml, /公開網頁版不強制連結共用檔案/, "院內手冊應說明 HTTP(S) 公開版可直接使用");
+assert.ok(manualImageSources.includes("assets/28-six-core-na-result.png"), "院內手冊應包含六大核心 N\/A 有效分母結果截圖");
+assert.ok(!manualImageSources.includes("assets/02-authorize-write.png"), "院內手冊不得保留已移除的第二次網站授權步驟");
 assert.match(manualHtml, /id="milestones"[\s\S]*邊看邊評分/, "院內手冊應說明 Milestones 的並排使用方式");
 assert.match(manualHtml, /瀏覽器會另開 <code>milestones\.html<\/code>/, "院內手冊應說明 Milestones 是獨立頁面");
-assert.match(manualHtml, /Core EPA[\s\S]*教師姓名[\s\S]*確定並提交[\s\S]*提交後整張鎖定/, "院內手冊應說明 Core EPA 具名教師、提交與鎖定流程");
+assert.match(manualHtml, /目前評分教師[\s\S]*確定我是評分教師[\s\S]*暫存姓名會成為目前評分教師/, "院內手冊應說明六大核心暫存後沿用目前教師並重新確認");
+assert.match(manualHtml, /Core EPA[\s\S]*目前評分教師[\s\S]*確定我是評分教師[\s\S]*提交後整張鎖定/, "院內手冊應說明 Core EPA 目前教師確認、提交與鎖定流程");
+assert.match(manualHtml, /PC 病人照護（滿分40）[\s\S]*35\/35（100%）｜N\/A 1項/, "院內手冊應以實例說明原始滿分、有效分母與 N\/A 數量");
+assert.match(manualHtml, /有效得分 ÷ 有效滿分[\s\S]*N\/A 不列入分子與分母/, "院內手冊應說明 N\/A 後續百分比算法");
 assert.match(manualHtml, /class="password">tsgh123<\/p>/, "院內手冊應提供管理修改密碼");
 assert.doesNotMatch(manualHtml, /DOC12345|稽核檢視密碼/, "院內手冊不得揭露或教學稽核檢視密碼");
 assert.ok(manualHtml.indexOf('id="advanced"') > manualHtml.indexOf('id="admin"'), "匯入、匯出、共用資料夾與衝突等進階內容應放在一般流程之後");
@@ -85,6 +92,7 @@ assert.match(html, /const SCHEMA_VERSION = 13/, "指定教師與 N\/A 計分加�
 assert.match(html, /const ITEM_MAX_SCORE = 5/, "每個教師分項滿分應為 5 分");
 assert.match(html, /const ITEM_NOT_APPLICABLE = "NA"/, "教師分項應以固定 NA 值保存不適用");
 assert.match(html, /function itemScoreOptions\(selected = null\)/, "教師 N\/A 或 1–5 分應由共用下拉選項產生");
+assert.match(html, /selected !== null && selected !== "" && Number\(selected\) === 0/, "教師草稿的空白 null 不得被誤判為 N\/A");
 assert.match(html, /<option value="\$\{ITEM_NOT_APPLICABLE\}"[^>]*>N\/A<\/option>/, "教師分項應提供 N\/A 選項");
 assert.doesNotMatch(html, /\[0, 1, 2, 3, 4, 5\]/, "教師分項不得再提供 0 分選項");
 assert.match(html, /<select class="item-score-select"[^>]+required>/, "教師分項應使用 N\/A 或 1–5 下拉選單");
@@ -415,6 +423,15 @@ function extractFunction(name) {
   assert.ok(match, `應可抽取 ${name} 做實際邏輯驗證`);
   return match[0];
 }
+
+const itemScoreOptionsLogic = new Function(`
+  const ITEM_NOT_APPLICABLE = "NA";
+  ${extractFunction("itemScoreOptions")}
+  return itemScoreOptions;
+`)();
+assert.doesNotMatch(itemScoreOptionsLogic(null), /value="NA" selected/, "未填寫的教師草稿不得顯示為 N\/A");
+assert.match(itemScoreOptionsLogic("NA"), /value="NA" selected/, "已選擇的 N\/A 應在重新開啟草稿後保留");
+assert.match(itemScoreOptionsLogic(0), /value="NA" selected/, "尚未遷移的歷史 0 分仍應以 N\/A 顯示");
 
 const migratedCoreEPATimestamp = new Function(`
   const CORE_EPA_ITEMS = Array.from({ length: 11 });

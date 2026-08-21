@@ -4594,7 +4594,7 @@
     }
 
     function itemScoreOptions(selected = null) {
-      const selectedNA = selected === ITEM_NOT_APPLICABLE || Number(selected) === 0;
+      const selectedNA = selected === ITEM_NOT_APPLICABLE || (selected !== null && selected !== "" && Number(selected) === 0);
       return `<option value="">請選擇</option><option value="${ITEM_NOT_APPLICABLE}"${selectedNA ? " selected" : ""}>N/A</option>${[1, 2, 3, 4, 5].map((score) =>
         `<option value="${score}"${selected !== null && selected !== "" && Number(selected) === score ? " selected" : ""}>${score} 分</option>`
       ).join("")}`;
