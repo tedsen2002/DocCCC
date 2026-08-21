@@ -320,7 +320,7 @@
     canvas[data-radar-kind="absolute"]:focus-visible { outline: 3px solid rgba(29, 107, 80, 0.28); outline-offset: 2px; }
     .chart-hint { margin: 2px 0 0; color: var(--green-2); text-align: center; font-size: 11px; font-weight: 800; }
     .result-summary { display: grid; gap: 4px; margin-top: 10px; font-size: 11px; }
-    .result-row { display: grid; grid-template-columns: minmax(86px, 1.25fr) 1fr 1fr; gap: 8px; padding: 5px 2px; border-bottom: 1px solid #e5e7e1; }
+    .result-row { display: grid; grid-template-columns: minmax(110px, 1.2fr) minmax(145px, 1.35fr) 0.8fr; gap: 8px; padding: 5px 2px; border-bottom: 1px solid #e5e7e1; }
     .result-row span:first-child { font-weight: 850; }
     .result-row.head { color: var(--muted); font-size: 10px; font-weight: 800; }
     .result-row.total { color: var(--green); border-bottom: 0; font-weight: 850; }
@@ -451,6 +451,16 @@
     .simple-field { display: grid; gap: 7px; margin-bottom: 18px; }
     .simple-field label { font-size: 13px; font-weight: 800; }
     .simple-field[hidden], .modify-stage[hidden] { display: none; }
+    .teacher-identity-panel { display: grid; gap: 10px; margin: 0 0 18px; padding: 14px; border: 1px solid #c9d8d0; border-radius: 13px; background: #f4f8f5; }
+    .teacher-identity-panel[hidden], .teacher-name-change[hidden] { display: none; }
+    .teacher-identity-panel legend { padding: 0 5px; font-size: 14px; font-weight: 900; }
+    .teacher-identity-panel p { margin: 0; color: var(--muted); font-size: 13px; }
+    .teacher-identity-choice { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; background: white; font-size: 13px; font-weight: 800; }
+    .teacher-identity-choice input { accent-color: var(--green); }
+    .teacher-name-change { display: grid; gap: 6px; padding-left: 28px; }
+    .teacher-name-change label { font-size: 12px; font-weight: 850; }
+    .teacher-name-change input { width: 100%; }
+    .identity-locked-note { color: var(--green); font-size: 12px; font-weight: 800; }
     .form-score-summary {
       position: sticky;
       z-index: 2;
@@ -573,6 +583,7 @@
     .core-epa-form { display: grid; gap: 14px; }
     .core-epa-form[hidden] { display: none; }
     .core-epa-basic-grid { display: grid; grid-template-columns: 1.2fr 0.65fr 0.9fr 1.1fr; gap: 12px; }
+    .core-epa-identity { grid-column: 1 / -1; margin: 0; }
     .core-epa-teacher-field { display: grid; gap: 5px; min-width: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 11px; background: white; }
     .core-epa-teacher-field span { color: var(--muted); font-size: 11px; font-weight: 800; }
     .core-epa-teacher-field input { width: 100%; min-width: 0; min-height: 34px; padding: 6px 8px; }
@@ -716,6 +727,7 @@
       .formal-final-score table, .formal-detail-table { min-width: 0; table-layout: fixed; }
       .formal-final-score th, .formal-final-score td { padding: 1.2mm 1.2mm; border: 0.2mm solid #777; font-size: 7pt; text-align: center; }
       .formal-final-score th { color: #111; background: #eee; }
+      .formal-final-score td small { display: block; margin-top: 0.3mm; font-size: 5.8pt; line-height: 1.1; }
       .formal-final-score .formal-total td { font-size: 7.5pt; font-weight: 900; }
       .formal-detail-heading { display: flex; align-items: center; justify-content: space-between; margin: 2mm 0 1mm; }
       .formal-detail-heading h2 { margin: 0; font-size: 8.5pt; }
@@ -817,20 +829,17 @@
       <p>HTML 必須先複製到這台電腦的本機磁碟再開啟；FTP 只保留下列固定資料檔：</p>
       <code class="shared-file-name">DocCCC-data.json</code>
       <ol class="shared-file-steps">
-        <li>FTP 顯示在 Windows「網路位置」時，按橘色按鈕安全開啟既有 JSON。</li>
-        <li>確認資料後，再按藍色按鈕允許寫入；選取檔案本身不會進入另存或清空流程。</li>
-        <li>載入完成後，暫存、提交與其他正式資料變更都會寫回同一檔案。</li>
-        <li>一般本機或可選取的共享資料夾，仍可使用綠色按鈕自動同步。</li>
-        <li>多人修改不同表單或欄位時會自動取聯集；同一欄位在五分鐘內同時修改才會要求選擇。</li>
+        <li>按下方按鈕，從 Windows「網路位置」開啟既有的固定 JSON。</li>
+        <li>若瀏覽器詢問是否允許變更檔案，請按允許；完成後會直接載入並開始作業。</li>
+        <li>暫存、提交與其他正式資料變更會自動寫回同一檔案；多人同欄位衝突時才會要求選擇。</li>
       </ol>
       <p id="sharedFileProgress" class="shared-file-progress" role="status" aria-live="polite">尚未連結共用資料。</p>
       <p id="sharedFileError" class="shared-file-error" role="alert" hidden></p>
       <div class="shared-file-actions">
         <button id="closeSharedFileDialogButton" class="btn btn-secondary" type="button" hidden>稍後再連結</button>
-        <button id="sharedFileBackupButton" class="btn btn-secondary" type="button">下載目前瀏覽器備份</button>
-        <button id="openSharedFileButton" class="btn btn-primary" type="button">共用資料夾（自動同步）</button>
-        <button id="openNetworkSharedFileButton" class="btn btn-create" type="button" autofocus>開啟 FTP 共用 JSON</button>
-        <button id="authorizeNetworkSharedFileButton" class="btn btn-export" type="button" hidden>允許寫入並開始使用</button>
+        <button id="sharedFileBackupButton" class="btn btn-secondary" type="button" hidden>下載目前瀏覽器備份</button>
+        <button id="openSharedFileButton" class="btn btn-primary" type="button" hidden>共用資料夾（自動同步）</button>
+        <button id="openNetworkSharedFileButton" class="btn btn-create" type="button" autofocus>開啟 FTP 共用檔案</button>
         <button id="fallbackSharedFileButton" class="btn btn-secondary" type="button" hidden>相容模式匯入</button>
         <input id="fallbackSharedFileInput" type="file" accept=".json,application/json" hidden>
       </div>
@@ -866,7 +875,7 @@
       </div>
       <aside class="local-note">
         <strong>共用 JSON 儲存</strong>
-        院內以 HTML 檔案開啟時，需先選取放有 <code>DocCCC-data.json</code> 的共用資料夾；公開網址則可直接使用瀏覽器本機資料，並可由右上角「連結 JSON」自願連結。連結後看到「已同步」再關閉網頁；不同表單或欄位的多人更新會自動合併。
+        院內以 HTML 檔案開啟時，需先開啟 FTP 網路位置中的 <code>DocCCC-data.json</code>；公開網址則可直接使用瀏覽器本機資料，並可由右上角「連結 JSON」自願連結。連結後看到「已同步」再關閉網頁；不同表單或欄位的多人更新會自動合併。
       </aside>
     </section>
 
@@ -1012,6 +1021,10 @@
           <label for="sixCoreAssessmentDate">評核日期</label>
           <input id="sixCoreAssessmentDate" name="assessmentDate" type="date" required>
         </div>
+        <div class="simple-field">
+          <label for="sixCoreAssignedTeacherName">指定評分教師姓名</label>
+          <input id="sixCoreAssignedTeacherName" name="assignedTeacherName" type="text" maxlength="30" autocomplete="name" required placeholder="由住院醫師輸入預定評分教師">
+        </div>
         <p class="section-help">日期用來區分同一期內的多張表單；建立後仍須由學生先提交，再由具名教師評分。</p>
         <div class="dialog-actions">
           <button class="btn btn-secondary" data-close-dialog="sixCoreFormDialog" type="button">取消</button>
@@ -1034,6 +1047,10 @@
         <div class="simple-field">
           <label for="coreEpaNewAssessmentDate">評量日期</label>
           <input id="coreEpaNewAssessmentDate" name="assessmentDate" type="date" required>
+        </div>
+        <div class="simple-field">
+          <label for="coreEpaAssignedTeacherName">指定評分教師姓名</label>
+          <input id="coreEpaAssignedTeacherName" name="assignedTeacherName" type="text" maxlength="30" autocomplete="name" required placeholder="由住院醫師輸入預定評分教師">
         </div>
         <p class="section-help">日期用來區分同一期、同一位住院醫師的多張 Core EPA 評量表。</p>
         <div class="dialog-actions">
@@ -1077,10 +1094,18 @@
         <button class="icon-button" data-close-dialog="scoreDialog" type="button" aria-label="關閉">×</button>
       </div>
       <div class="dialog-body">
-        <div id="teacherNameField" class="simple-field" hidden>
-          <label for="teacherName">教師姓名</label>
-          <input id="teacherName" name="teacherName" type="text" maxlength="30" autocomplete="name" placeholder="請輸入評分教師姓名">
-        </div>
+        <fieldset id="teacherIdentityField" class="teacher-identity-panel" hidden>
+          <legend>先確認評分教師</legend>
+          <p>目前評分教師：<strong id="currentTeacherNameText">未指定</strong></p>
+          <p>住院醫師指定：<strong id="assignedTeacherNameText">未指定</strong></p>
+          <label class="teacher-identity-choice"><input id="confirmCurrentTeacher" name="teacherIdentityMode" type="radio" value="current">確定我是評分教師</label>
+          <label class="teacher-identity-choice"><input id="changeAssignedTeacher" name="teacherIdentityMode" type="radio" value="change">變更評分教師</label>
+          <div id="teacherNameField" class="teacher-name-change" hidden>
+            <label for="teacherName">實際評分教師姓名</label>
+            <input id="teacherName" name="teacherName" type="text" maxlength="30" autocomplete="name" placeholder="請輸入實際評分教師姓名">
+          </div>
+          <span class="identity-locked-note">完成確認或變更姓名後，才可開始評分。</span>
+        </fieldset>
         <div id="scoreFormSummary" class="form-score-summary" hidden></div>
         <div id="scoreFields" class="score-fields"></div>
         <div id="scoreLockWarning" class="lock-warning">請確認評核內容無誤。提交後即鎖定，無法修改。</div>
@@ -1234,7 +1259,7 @@
 
   <script>
     const STORAGE_KEY = "docccc-assessment-v1";
-    const SCHEMA_VERSION = 12;
+    const SCHEMA_VERSION = 13;
     const DATA_BACKUP_APP = "DocCCC";
     const DATA_BACKUP_VERSION = 1;
     const SHARED_DATA_FILENAME = "DocCCC-data.json";
@@ -1246,6 +1271,7 @@
     const ADMIN_PASSWORD = "tsgh123";
     const AUDIT_PASSWORD = "DOC12345";
     const ITEM_MAX_SCORE = 5;
+    const ITEM_NOT_APPLICABLE = "NA";
     const COMPETENCIES = [
       {
         code: "PC",
@@ -1373,21 +1399,39 @@
       return { sixCoreForms: [], coreEpaForms: [] };
     }
 
-    function makeSixCoreForm(assessmentDate) {
+    function normalizeItemScore(value, allowEmpty = false) {
+      if (value === null || value === undefined || value === "") return allowEmpty ? null : value;
+      if (value === ITEM_NOT_APPLICABLE || Number(value) === 0) return ITEM_NOT_APPLICABLE;
+      const score = Number(value);
+      return Number.isInteger(score) && score >= 1 && score <= ITEM_MAX_SCORE ? score : value;
+    }
+
+    function migrateItemScores(scores, allowEmpty = false) {
+      return Array.isArray(scores) ? scores.map((score) => normalizeItemScore(score, allowEmpty)) : scores;
+    }
+
+    function migrateSixCoreScoreRecord(record, allowEmpty = false) {
+      if (!record || typeof record !== "object" || !Array.isArray(record.itemScores)) return record || null;
+      return { ...record, itemScores: migrateItemScores(record.itemScores, allowEmpty) };
+    }
+
+    function makeSixCoreForm(assessmentDate, assignedTeacherName) {
       return {
         id: `six-core-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         assessmentDate,
         createdAt: new Date().toISOString(),
+        assignedTeacherName,
         student: null,
         teacher: null
       };
     }
 
-    function makeCoreEPAForm(assessmentDate) {
+    function makeCoreEPAForm(assessmentDate, assignedTeacherName) {
       return {
         id: `core-epa-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         assessmentDate,
         createdAt: new Date().toISOString(),
+        assignedTeacherName,
         savedAt: null,
         submittedAt: null,
         teacherName: "",
@@ -1458,6 +1502,7 @@
                 sixCoreFormId: form.id,
                 assessmentDate: form.assessmentDate,
                 role,
+                assignedTeacherName: form.assignedTeacherName || submission.teacherName || "",
                 teacherName: submission.teacherName || "",
                 actorName: role === "teacher" ? submission.teacherName || "未記錄（舊資料）" : resident.name || "未命名",
                 occurredAt: submission.submittedAt,
@@ -1492,6 +1537,7 @@
         createdAt: timestamp,
         savedAt: typeof form.savedAt === "string" && !Number.isNaN(Date.parse(form.savedAt)) ? form.savedAt : null,
         submittedAt: typeof form.submittedAt === "string" && !Number.isNaN(Date.parse(form.submittedAt)) ? form.submittedAt : null,
+        assignedTeacherName: String(form.assignedTeacherName || form.teacherName || ""),
         teacherName: String(form.teacherName || ""),
         ...(typeof form.updatedAt === "string" && !Number.isNaN(Date.parse(form.updatedAt)) ? { updatedAt: form.updatedAt } : {}),
         levels: CORE_EPA_ITEMS.map((_, itemIndex) => String(form.levels?.[itemIndex] ?? "")),
@@ -1505,27 +1551,34 @@
       const assessment = source && typeof source === "object" && !Array.isArray(source) ? source : {};
       let sixCoreForms;
       if (Array.isArray(assessment.sixCoreForms)) {
-        sixCoreForms = assessment.sixCoreForms.map((form, index) => ({
-          ...form,
-          id: typeof form?.id === "string" && form.id ? form.id : `six-core-${period.id}-${resident.id}-${index + 1}`,
-          assessmentDate: typeof form?.assessmentDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(form.assessmentDate)
-            ? form.assessmentDate
-            : inferredSixCoreDate(form, period),
-          createdAt: typeof form?.createdAt === "string" && !Number.isNaN(Date.parse(form.createdAt))
-            ? form.createdAt
-            : form?.teacher?.submittedAt || form?.student?.submittedAt || form?.teacherDraft?.savedAt || period.createdAt || new Date().toISOString(),
-          student: form?.student || null,
-          teacher: form?.teacher || null
-        }));
+        sixCoreForms = assessment.sixCoreForms.map((form, index) => {
+          const teacher = migrateSixCoreScoreRecord(form?.teacher);
+          const teacherDraft = migrateSixCoreScoreRecord(form?.teacherDraft, true);
+          return {
+            ...form,
+            id: typeof form?.id === "string" && form.id ? form.id : `six-core-${period.id}-${resident.id}-${index + 1}`,
+            assessmentDate: typeof form?.assessmentDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(form.assessmentDate)
+              ? form.assessmentDate
+              : inferredSixCoreDate(form, period),
+            createdAt: typeof form?.createdAt === "string" && !Number.isNaN(Date.parse(form.createdAt))
+              ? form.createdAt
+              : form?.teacher?.submittedAt || form?.student?.submittedAt || form?.teacherDraft?.savedAt || period.createdAt || new Date().toISOString(),
+            assignedTeacherName: String(form?.assignedTeacherName || teacher?.teacherName || teacherDraft?.teacherName || ""),
+            student: form?.student || null,
+            teacher,
+            teacherDraft
+          };
+        });
       } else {
         const hasLegacyForm = Boolean(assessment.student || assessment.teacher || assessment.teacherDraft);
         sixCoreForms = hasLegacyForm ? [{
           id: `six-core-${period.id}-${resident.id}-legacy`,
           assessmentDate: inferredSixCoreDate(assessment, period),
           createdAt: assessment.teacher?.submittedAt || assessment.student?.submittedAt || assessment.teacherDraft?.savedAt || period.createdAt || new Date().toISOString(),
+          assignedTeacherName: String(assessment.teacher?.teacherName || assessment.teacherDraft?.teacherName || ""),
           student: assessment.student || null,
-          teacher: assessment.teacher || null,
-          ...(assessment.teacherDraft ? { teacherDraft: assessment.teacherDraft } : {})
+          teacher: migrateSixCoreScoreRecord(assessment.teacher),
+          ...(assessment.teacherDraft ? { teacherDraft: migrateSixCoreScoreRecord(assessment.teacherDraft, true) } : {})
         }] : [];
       }
       const sourceCoreEPAForms = Array.isArray(assessment.coreEpaForms)
@@ -1552,11 +1605,20 @@
         ]));
         return { ...period, residents, assessments };
       });
+      const sourceAuditLog = Array.isArray(saved.auditLog) ? saved.auditLog : legacyAuditEvents(periods);
+      const auditLog = sourceAuditLog.map((event) => ({
+        ...event,
+        assignedTeacherName: String(event?.assignedTeacherName || event?.teacherName || ""),
+        itemScores: migrateItemScores(event?.itemScores),
+        beforeItemScores: migrateItemScores(event?.beforeItemScores),
+        ...(event?.coreEpaForm ? { coreEpaForm: { ...event.coreEpaForm, assignedTeacherName: String(event.coreEpaForm.assignedTeacherName || event.coreEpaForm.teacherName || "") } } : {}),
+        ...(event?.beforeCoreEpaForm ? { beforeCoreEpaForm: { ...event.beforeCoreEpaForm, assignedTeacherName: String(event.beforeCoreEpaForm.assignedTeacherName || event.beforeCoreEpaForm.teacherName || "") } } : {})
+      }));
       return {
         schemaVersion: SCHEMA_VERSION,
         periods,
         selectedPeriodId: periods.some((period) => period.id === saved.selectedPeriodId) ? saved.selectedPeriodId : periods[0]?.id || null,
-        auditLog: Array.isArray(saved.auditLog) ? saved.auditLog : legacyAuditEvents(periods)
+        auditLog
       };
     }
 
@@ -1593,9 +1655,6 @@
     let sharedFileConflict = false;
     let sharedFileWriteError = false;
     let sharedFileWritePromise = null;
-    let pendingNetworkFileHandle = null;
-    let pendingNetworkFileText = "";
-    let pendingNetworkFileState = null;
     let pendingMergeConflictResolution = null;
 
     const elements = {
@@ -1645,7 +1704,6 @@
       sharedFileCompatibility: document.querySelector("#sharedFileCompatibility"),
       openSharedFileButton: document.querySelector("#openSharedFileButton"),
       openNetworkSharedFileButton: document.querySelector("#openNetworkSharedFileButton"),
-      authorizeNetworkSharedFileButton: document.querySelector("#authorizeNetworkSharedFileButton"),
       fallbackSharedFileButton: document.querySelector("#fallbackSharedFileButton"),
       fallbackSharedFileInput: document.querySelector("#fallbackSharedFileInput"),
       sharedFileBackupButton: document.querySelector("#sharedFileBackupButton"),
@@ -1664,10 +1722,12 @@
       sixCoreFormMeta: document.querySelector("#sixCoreFormMeta"),
       sixCoreResidentForNewForm: document.querySelector("#sixCoreResidentForNewForm"),
       sixCoreAssessmentDate: document.querySelector("#sixCoreAssessmentDate"),
+      sixCoreAssignedTeacherName: document.querySelector("#sixCoreAssignedTeacherName"),
       coreEpaFormDialog: document.querySelector("#coreEpaFormDialog"),
       coreEpaFormCreateForm: document.querySelector("#coreEpaFormCreateForm"),
       coreEpaFormMeta: document.querySelector("#coreEpaFormMeta"),
       coreEpaNewAssessmentDate: document.querySelector("#coreEpaNewAssessmentDate"),
+      coreEpaAssignedTeacherName: document.querySelector("#coreEpaAssignedTeacherName"),
       coreEpaUnlockDialog: document.querySelector("#coreEpaUnlockDialog"),
       coreEpaUnlockForm: document.querySelector("#coreEpaUnlockForm"),
       coreEpaUnlockMeta: document.querySelector("#coreEpaUnlockMeta"),
@@ -1680,6 +1740,12 @@
       scoreFormSummary: document.querySelector("#scoreFormSummary"),
       scoreLockWarning: document.querySelector("#scoreLockWarning"),
       saveDraftButton: document.querySelector("#saveDraftButton"),
+      submitScoreButton: document.querySelector("#submitScoreButton"),
+      teacherIdentityField: document.querySelector("#teacherIdentityField"),
+      currentTeacherNameText: document.querySelector("#currentTeacherNameText"),
+      assignedTeacherNameText: document.querySelector("#assignedTeacherNameText"),
+      confirmCurrentTeacher: document.querySelector("#confirmCurrentTeacher"),
+      changeAssignedTeacher: document.querySelector("#changeAssignedTeacher"),
       teacherNameField: document.querySelector("#teacherNameField"),
       teacherName: document.querySelector("#teacherName"),
       modifyDialog: document.querySelector("#modifyDialog"),
@@ -1738,7 +1804,8 @@
       const validDate = (date) => typeof date === "string" && !Number.isNaN(Date.parse(date));
       const validDateOnly = (date) => typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) && !Number.isNaN(Date.parse(`${date}T00:00:00`));
       const validLevelsSnapshot = (levels) => Array.isArray(levels) && levels.length === COMPETENCIES.length && levels.every((level) => Number.isInteger(level) && level >= 1 && level <= 5);
-      const validItemsSnapshot = (scores) => Array.isArray(scores) && scores.length === ASSESSMENT_ITEMS.length && scores.every((score) => Number.isInteger(score) && score >= 0 && score <= ITEM_MAX_SCORE);
+      const validImportedItemScore = (score) => score === ITEM_NOT_APPLICABLE || (Number.isInteger(score) && score >= 0 && score <= ITEM_MAX_SCORE);
+      const validItemsSnapshot = (scores) => Array.isArray(scores) && scores.length === ASSESSMENT_ITEMS.length && scores.every(validImportedItemScore);
       const validLegacyScores = (scores) => Array.isArray(scores) && scores.length === COMPETENCIES.length && scores.every((score) => Number.isFinite(Number(score)) && Number(score) >= 0 && Number(score) <= 100);
       const validSubmission = (submission, role) => {
         if (submission === null || submission === undefined) return true;
@@ -1749,13 +1816,14 @@
       };
       const validDraft = (draft) => draft === null || draft === undefined || (isRecord(draft) &&
         typeof draft.teacherName === "string" && validDate(draft.savedAt) &&
-        Array.isArray(draft.itemScores) && draft.itemScores.length === ASSESSMENT_ITEMS.length && draft.itemScores.every((score) => score === null || (Number.isInteger(score) && score >= 0 && score <= ITEM_MAX_SCORE)) &&
+        Array.isArray(draft.itemScores) && draft.itemScores.length === ASSESSMENT_ITEMS.length && draft.itemScores.every((score) => score === null || validImportedItemScore(score)) &&
         Array.isArray(draft.levels) && draft.levels.length === COMPETENCIES.length && draft.levels.every((level) => level === null || (Number.isInteger(level) && level >= 1 && level <= 5)));
       const validSixCoreForms = (forms) => {
         if (!Array.isArray(forms)) return false;
         const formIds = new Set();
         return forms.every((form) => {
-          if (!isRecord(form) || !validId(form.id) || formIds.has(form.id) || !validDateOnly(form.assessmentDate) || !validDate(form.createdAt)) return false;
+          if (!isRecord(form) || !validId(form.id) || formIds.has(form.id) || !validDateOnly(form.assessmentDate) || !validDate(form.createdAt) ||
+              (form.assignedTeacherName !== undefined && (typeof form.assignedTeacherName !== "string" || form.assignedTeacherName.length > 30))) return false;
           formIds.add(form.id);
           return validSubmission(form.student, "student") && validSubmission(form.teacher, "teacher") && validDraft(form.teacherDraft) && (!form.teacher || Boolean(form.student));
         });
@@ -1774,6 +1842,7 @@
         Array.isArray(record.levels) && record.levels.length === CORE_EPA_ITEMS.length && record.levels.every((level) =>
           level === "" || CORE_EPA_LEVEL_OPTIONS.some(([value]) => value === String(level))) &&
         (record.teacherName === undefined || (typeof record.teacherName === "string" && record.teacherName.length <= 30)) &&
+        (record.assignedTeacherName === undefined || (typeof record.assignedTeacherName === "string" && record.assignedTeacherName.length <= 30)) &&
         [record.learnerAdvice, record.mentorAdvice, record.programAdvice].every((text) => typeof text === "string" && text.length <= 4000);
       const validLegacyCoreEPADraft = (record) => record === null || record === undefined || (validCoreEPAValues(record) &&
         (!record.traineeType || ["medical-student", "pgy1", "pgy2", "resident"].includes(record.traineeType)) &&
@@ -1958,7 +2027,8 @@
     }
 
     function mergeDirectLockedPath(path) {
-      return /\/sixCoreForms\/@[^/]+\/(?:student|teacher)$/.test(path) || /\/cccSubmission$/.test(path);
+      return /\/sixCoreForms\/@[^/]+\/(?:student|teacher|assignedTeacherName)$/.test(path) ||
+        /\/coreEpaForms\/@[^/]+\/assignedTeacherName$/.test(path) || /\/cccSubmission$/.test(path);
     }
 
     function mergeValueContainsLockedData(value) {
@@ -2147,6 +2217,7 @@
         name: residentId ? "住院醫師姓名" : "期別名稱",
         level: "住院醫師年級",
         assessmentDate: "評核日期",
+        assignedTeacherName: "住院醫師指定教師",
         teacherName: "教師姓名",
         learnerAdvice: "對學員的建議事項",
         mentorAdvice: "對導師的建議事項",
@@ -2388,11 +2459,7 @@
       if (!elements.sharedFileDialog.open) elements.sharedFileDialog.showModal();
     }
 
-    function clearPendingNetworkFile() {
-      pendingNetworkFileHandle = null;
-      pendingNetworkFileText = "";
-      pendingNetworkFileState = null;
-      elements.authorizeNetworkSharedFileButton.hidden = true;
+    function resetSharedFileGateActions() {
       elements.openNetworkSharedFileButton.hidden = !canUseNetworkFileAccess();
     }
 
@@ -2427,7 +2494,7 @@
       sharedFileDirty = false;
       sharedFileConflict = false;
       sharedFileWriteError = false;
-      clearPendingNetworkFile();
+      resetSharedFileGateActions();
       elements.closeSharedFileDialogButton.hidden = true;
       if (elements.sharedFileDialog.open) elements.sharedFileDialog.close();
       const directlyWritable = mode === "direct" || mode === "network-file";
@@ -2438,7 +2505,7 @@
     async function openSharedDataFile() {
       if (sharedFileDirty && !window.confirm("目前有尚未同步的本機變更。重新讀取共用 JSON 會取代這些內容；請先下載備份。確定繼續嗎？")) return;
       const previousMode = sharedFileMode;
-      clearPendingNetworkFile();
+      resetSharedFileGateActions();
       elements.openSharedFileButton.disabled = true;
       elements.openSharedFileButton.textContent = "選取中…";
       setSharedFileDialogError("");
@@ -2506,12 +2573,12 @@
     async function openNetworkSharedDataFile() {
       if (sharedFileDirty && !window.confirm("目前有尚未同步的本機變更。重新讀取共用 JSON 會取代這些內容；請先下載備份。確定繼續嗎？")) return;
       const previousMode = sharedFileMode;
-      clearPendingNetworkFile();
+      resetSharedFileGateActions();
       elements.openNetworkSharedFileButton.disabled = true;
       elements.openNetworkSharedFileButton.textContent = "開啟中…";
       setSharedFileDialogError("");
       setSharedFileDialogProgress(`請從 Windows「網路位置」開啟既有的 ${SHARED_DATA_FILENAME}；這不是另存對話框。`, "working");
-      setSharedFileStatus("loading", "正在讀取 FTP JSON");
+      setSharedFileStatus("loading", "正在開啟 FTP JSON");
       try {
         const [handle] = await window.showOpenFilePicker({
           id: "docccc-network-json",
@@ -2522,20 +2589,20 @@
           }]
         });
         if (handle.name !== SHARED_DATA_FILENAME) throw new Error(`只能選取固定檔名「${SHARED_DATA_FILENAME}」。`);
+        if (typeof handle.requestPermission !== "function") throw new Error("此瀏覽器未提供既有檔案的寫入授權，請使用最新版 Edge／Chrome。");
+        setSharedFileDialogProgress("正在要求瀏覽器允許讀寫同一個 FTP 共用檔案…", "working");
+        const permission = await handle.requestPermission({ mode: "readwrite" });
+        if (permission !== "granted") throw new Error("未取得 FTP 共用檔案寫入權限，正式頁面仍保持鎖定。");
+        setSharedFileDialogProgress(`已取得權限，正在讀取並檢查 ${SHARED_DATA_FILENAME}…`, "working");
         const sourceText = await withSharedFileTimeout(
           readSharedDataFile(handle),
           `已選取 ${SHARED_DATA_FILENAME}，但從 FTP 網路位置讀取逾時。`
         );
         const importedState = parseDataBackup(sourceText);
-        pendingNetworkFileHandle = handle;
-        pendingNetworkFileText = sourceText;
-        pendingNetworkFileState = importedState;
-        elements.authorizeNetworkSharedFileButton.hidden = false;
-        elements.openNetworkSharedFileButton.hidden = true;
-        setSharedFileDialogProgress(`已安全讀取 ${SHARED_DATA_FILENAME}，尚未寫入。請按「允許寫入並開始使用」完成連結。`, "working");
-        setSharedFileStatus("loading", "等待寫入授權");
+        if (!replaceStateFromSharedFile(importedState, sourceText, "network-file", handle)) throw new Error("瀏覽器無法保存載入的資料。");
+        showToast(`已安全載入並連結 FTP 網路位置中的 ${SHARED_DATA_FILENAME}。`);
       } catch (error) {
-        clearPendingNetworkFile();
+        resetSharedFileGateActions();
         if (error?.name === "AbortError") {
           setSharedFileDialogProgress("已取消開啟 FTP JSON，未進行任何寫入。", "idle");
           if (previousMode === "preview") {
@@ -2548,7 +2615,7 @@
         } else {
           console.error(error);
           const message = error?.name === "SecurityError" || error?.name === "NotAllowedError"
-            ? "瀏覽器拒絕開啟檔案。請確認 index.html 已複製到本機磁碟，並直接以 Edge／Chrome 最上層分頁開啟。"
+            ? "瀏覽器拒絕開啟或寫入檔案。請確認 index.html 已複製到本機磁碟、直接以 Edge／Chrome 最上層分頁開啟，並在瀏覽器提示中允許變更。"
             : error instanceof Error ? error.message : "無法開啟 FTP 共用 JSON。";
           setSharedFileDialogError(message);
           setSharedFileDialogProgress(`FTP JSON 開啟失敗（${error?.name || "未知錯誤"}）。`, "error");
@@ -2556,52 +2623,7 @@
         }
       } finally {
         elements.openNetworkSharedFileButton.disabled = false;
-        elements.openNetworkSharedFileButton.textContent = "開啟 FTP 共用 JSON";
-      }
-    }
-
-    async function authorizeNetworkSharedDataFile() {
-      const handle = pendingNetworkFileHandle;
-      const sourceText = pendingNetworkFileText;
-      const importedState = pendingNetworkFileState;
-      if (!handle || !sourceText || !importedState) {
-        setSharedFileDialogError("請先安全開啟 FTP 網路位置中的 DocCCC-data.json。");
-        return;
-      }
-      if (typeof handle.requestPermission !== "function") {
-        setSharedFileDialogError("此瀏覽器未提供既有檔案的寫入授權，請使用最新版 Edge／Chrome。");
-        return;
-      }
-
-      let permissionPromise;
-      try {
-        permissionPromise = handle.requestPermission({ mode: "readwrite" });
-      } catch (error) {
-        setSharedFileDialogError(error instanceof Error ? error.message : "無法啟動寫入授權。");
-        return;
-      }
-      elements.authorizeNetworkSharedFileButton.disabled = true;
-      try {
-        const permission = await permissionPromise;
-        if (permission !== "granted") throw new Error("未取得 FTP JSON 寫入權限，正式頁面仍保持鎖定。");
-        setSharedFileDialogProgress("已取得寫入權限，正在確認 FTP JSON 未被其他電腦更新…", "working");
-        const latestText = await withSharedFileTimeout(
-          readSharedDataFile(handle),
-          "取得權限後重新讀取 FTP JSON 逾時。"
-        );
-        if (latestText !== sourceText) throw new Error("FTP JSON 在授權期間已被其他電腦更新，請重新開啟最新檔案。");
-        if (!replaceStateFromSharedFile(importedState, sourceText, "network-file", handle)) throw new Error("瀏覽器無法保存載入的資料。");
-        showToast(`已安全載入並連結 FTP 網路位置中的 ${SHARED_DATA_FILENAME}。`);
-      } catch (error) {
-        console.error(error);
-        const message = error?.name === "NotAllowedError"
-          ? "請直接再按一次「允許寫入並開始使用」；若仍失敗，請確認 HTML 是從本機磁碟開啟，而不是直接從 FTP／UNC 開啟。"
-          : error instanceof Error ? error.message : "無法取得 FTP JSON 寫入權限。";
-        setSharedFileDialogError(message);
-        setSharedFileDialogProgress("尚未完成寫入授權；未改動 FTP JSON。", "error");
-        setSharedFileStatus("error", "寫入授權失敗");
-      } finally {
-        elements.authorizeNetworkSharedFileButton.disabled = false;
+        elements.openNetworkSharedFileButton.textContent = "開啟 FTP 共用檔案";
       }
     }
 
@@ -2771,12 +2793,11 @@
     function initializeSharedDataGate() {
       const isTopLevelPage = window.self === window.top;
       const isHostedPreview = window.location.protocol === "http:" || window.location.protocol === "https:";
-      const directoryAccess = canUseDirectoryAccess();
       const networkFileAccess = canUseNetworkFileAccess();
-      const directFileAccess = directoryAccess || networkFileAccess;
-      elements.openSharedFileButton.hidden = !directoryAccess;
+      const directFileAccess = networkFileAccess;
+      elements.openSharedFileButton.hidden = true;
+      elements.sharedFileBackupButton.hidden = true;
       elements.openNetworkSharedFileButton.hidden = !networkFileAccess;
-      elements.authorizeNetworkSharedFileButton.hidden = true;
       elements.fallbackSharedFileButton.hidden = directFileAccess;
       elements.sharedFileCompatibility.hidden = directFileAccess;
       setSharedFileDialogProgress("尚未連結共用資料。", "idle");
@@ -2793,13 +2814,13 @@
       elements.sharedFileDialogTitle.textContent = isRemoteHTMLLaunch() ? "請先把 HTML 複製到本機" : "先連結共用資料";
       elements.sharedFileDialogIntro.textContent = isRemoteHTMLLaunch()
         ? "目前 index.html 是從 FTP、UNC 或其他網路位置直接啟動，瀏覽器不允許可靠寫入。"
-        : "每次開啟網頁都必須重新讀取 FTP 或共用資料夾中的最新 JSON。";
+        : "每次開啟網頁都必須重新讀取 FTP 網路位置中的最新共用檔案。";
       elements.closeSharedFileDialogButton.hidden = true;
       setSharedFileStatus("locked", "待連結 JSON");
       const unsupportedMessage = isRemoteHTMLLaunch()
         ? "請關閉此頁，先把 index.html 複製到 C:\\Users\\USER\\Downloads\\CCC 等本機資料夾，再從本機檔案開啟；FTP 只保留 DocCCC-data.json 作為共用資料。"
         : !isTopLevelPage
-        ? "目前網頁開在預覽框或嵌入頁面中，瀏覽器不允許取得資料夾寫入權限。請將 index.html 直接以 Edge 或 Chrome 的新分頁開啟。"
+        ? "目前網頁開在預覽框或嵌入頁面中，瀏覽器不允許取得檔案寫入權限。請將 index.html 直接以 Edge 或 Chrome 的新分頁開啟。"
         : "目前的瀏覽器或開啟方式不支援直接覆寫檔案，請使用最新版 Edge 或 Chrome。";
       if (isRemoteHTMLLaunch()) {
         elements.fallbackSharedFileButton.hidden = true;
@@ -2853,7 +2874,7 @@
     }
 
     function validItemScores(scores) {
-      return scores.length === ASSESSMENT_ITEMS.length && scores.every((score) => Number.isInteger(score) && score >= 0 && score <= ITEM_MAX_SCORE);
+      return scores.length === ASSESSMENT_ITEMS.length && scores.every((score) => score === ITEM_NOT_APPLICABLE || (Number.isInteger(score) && score >= 1 && score <= ITEM_MAX_SCORE));
     }
 
     function teacherDomainMetrics(itemScores) {
@@ -2861,20 +2882,44 @@
       return COMPETENCIES.map((competency) => {
         const values = itemScores.slice(offset, offset + competency.items.length);
         offset += competency.items.length;
-        const score = values.reduce((total, value) => total + Number(value || 0), 0);
-        const max = competency.items.length * ITEM_MAX_SCORE;
-        return { code: competency.code, name: competency.name, score, max, percent: Math.round(score / max * 100) };
+        const numericScores = values.filter((value) => Number.isInteger(value) && value >= 1 && value <= ITEM_MAX_SCORE);
+        const score = numericScores.reduce((total, value) => total + value, 0);
+        const max = numericScores.length * ITEM_MAX_SCORE;
+        const nominalMax = values.length * ITEM_MAX_SCORE;
+        const notApplicable = values.filter((value) => value === ITEM_NOT_APPLICABLE || (value !== null && value !== "" && Number(value) === 0)).length;
+        return {
+          code: competency.code,
+          name: competency.name,
+          score,
+          max,
+          nominalMax,
+          percent: max > 0 ? Math.round(score / max * 1000) / 10 : null,
+          notApplicable
+        };
       });
+    }
+
+    function teacherFormTotal(metrics) {
+      const score = metrics.reduce((total, metric) => total + metric.score, 0);
+      const max = metrics.reduce((total, metric) => total + metric.max, 0);
+      return { score, max, percent: max > 0 ? Math.round(score / max * 1000) / 10 : null };
+    }
+
+    function teacherMetricResultText(metric) {
+      if (metric.max <= 0) return `有效滿分0｜N/A ${metric.notApplicable}項`;
+      return `${metric.score}/${metric.max}（${formatCCCScore(metric.percent)}%）｜N/A ${metric.notApplicable}項`;
     }
 
     function sixCoreFormResult(form) {
       const teacher = form?.teacher;
       if (validItemScores(teacher?.itemScores || [])) {
         const rawMetrics = teacherDomainMetrics(teacher.itemScores);
+        const total = teacherFormTotal(rawMetrics);
+        if (total.percent === null) return null;
         return {
           form,
           metrics: rawMetrics.map((metric) => ({ code: metric.code, name: metric.name, score: metric.percent })),
-          score: rawMetrics.reduce((total, metric) => total + metric.score, 0)
+          score: total.percent
         };
       }
       if (Array.isArray(teacher?.scores) && teacher.scores.length === COMPETENCIES.length && teacher.scores.every((score) => Number.isFinite(Number(score)))) {
@@ -2901,7 +2946,10 @@
     function sixCoreAggregate(assessment, dateFrom = "", dateTo = "") {
       const forms = completedSixCoreResults(assessment, dateFrom, dateTo);
       if (forms.length === 0) return { metrics: null, score: null, forms: [] };
-      const average = (values) => Math.round(values.reduce((total, value) => total + value, 0) / values.length * 10) / 10;
+      const average = (values) => {
+        const numericValues = values.filter((value) => Number.isFinite(value));
+        return numericValues.length ? Math.round(numericValues.reduce((total, value) => total + value, 0) / numericValues.length * 10) / 10 : null;
+      };
       return {
         metrics: COMPETENCIES.map((competency, index) => ({
           code: competency.code,
@@ -3024,13 +3072,38 @@
 
     function readCoreEPAForm(form = elements.coreEpaForm) {
       const formData = new FormData(form);
+      const identityMode = String(formData.get("teacherIdentityMode") || "");
+      const currentTeacherName = String(form.dataset.currentTeacherName || form.dataset.assignedTeacherName || "").trim();
+      const teacherName = identityMode === "current"
+        ? currentTeacherName
+        : String(formData.get("teacherName") || "").trim();
       return {
-        teacherName: String(formData.get("teacherName") || "").trim(),
+        teacherName,
         levels: CORE_EPA_ITEMS.map((item) => String(formData.get(`level-${item.code}`) || "")),
         learnerAdvice: String(formData.get("learnerAdvice") || "").trim(),
         mentorAdvice: String(formData.get("mentorAdvice") || "").trim(),
         programAdvice: String(formData.get("programAdvice") || "").trim()
       };
+    }
+
+    function confirmedCoreEPATeacherName(form = elements.coreEpaForm) {
+      const identityMode = form.elements.teacherIdentityMode?.value;
+      if (identityMode === "current") return String(form.dataset.currentTeacherName || form.dataset.assignedTeacherName || "").trim();
+      if (identityMode === "change") return String(form.elements.teacherName?.value || "").trim();
+      return "";
+    }
+
+    function refreshCoreEPATeacherIdentity() {
+      const panel = elements.coreEpaForm.querySelector("[data-core-epa-identity]");
+      if (!panel) return;
+      const mode = elements.coreEpaForm.elements.teacherIdentityMode?.value;
+      const nameField = panel.querySelector("[data-core-epa-teacher-change]");
+      const nameInput = elements.coreEpaForm.elements.teacherName;
+      if (nameField) nameField.hidden = mode !== "change";
+      if (nameInput) nameInput.required = mode === "change";
+      const confirmed = Boolean(confirmedCoreEPATeacherName());
+      elements.coreEpaForm.querySelectorAll(".core-epa-list input, .core-epa-advice-grid textarea").forEach((control) => { control.disabled = !confirmed; });
+      elements.coreEpaForm.querySelectorAll('[data-core-epa-action="draft"], button[type="submit"]').forEach((button) => { button.disabled = !confirmed; });
     }
 
     function ensureAssessments(period) {
@@ -3053,7 +3126,7 @@
       }).format(new Date(iso));
     }
 
-    function addAuditEvent({ type, period, resident, sixCoreFormId = "", coreEpaFormId = "", assessmentDate = "", role = null, scores = null, beforeScores = null, levels = null, beforeLevels = null, itemScores = null, beforeItemScores = null, teacherName = "", actorName = "", cccForm = null, coreEpaForm = null, beforeCoreEpaForm = null, periodSummary = null }) {
+    function addAuditEvent({ type, period, resident, sixCoreFormId = "", coreEpaFormId = "", assessmentDate = "", role = null, scores = null, beforeScores = null, levels = null, beforeLevels = null, itemScores = null, beforeItemScores = null, assignedTeacherName = "", teacherName = "", actorName = "", cccForm = null, coreEpaForm = null, beforeCoreEpaForm = null, periodSummary = null }) {
       state.auditLog.push({
         id: `audit-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         type,
@@ -3066,6 +3139,7 @@
         coreEpaFormId,
         assessmentDate,
         role,
+        assignedTeacherName,
         teacherName,
         actorName,
         occurredAt: new Date().toISOString(),
@@ -3143,18 +3217,21 @@
         const allForms = sixCoreFormsFor(assessment);
         const formRows = allForms.map((form, index) => {
           const result = sixCoreFormResult(form);
-          const status = result ? `${formatCCCScore(result.score)} 分` : form.teacherDraft ? "教師暫存" : form.student ? "待教師評分" : "待學生自評";
-          const teacherName = form.teacher?.teacherName || form.teacherDraft?.teacherName || "—";
+          const status = result ? `${formatCCCScore(result.score)} 分` : form.teacher ? "全部 N/A" : form.teacherDraft ? "教師暫存" : form.student ? "待教師評分" : "待學生自評";
+          const actualTeacherName = form.teacher?.teacherName || form.teacherDraft?.teacherName || "";
+          const teacherName = actualTeacherName && actualTeacherName !== form.assignedTeacherName
+            ? `${form.assignedTeacherName || "未指定"} → ${actualTeacherName}`
+            : actualTeacherName || form.assignedTeacherName || "—";
           return `<div class="summary-form-row"><time>${escapeHTML(form.assessmentDate)}</time><span>第 ${index + 1} 次 · ${escapeHTML(teacherName)}</span><strong>${escapeHTML(status)}</strong></div>`;
         }).join("");
         const domainMarkup = aggregate.metrics
-          ? aggregate.metrics.map((metric) => `<div class="summary-domain"><span>${escapeHTML(metric.code)} ${escapeHTML(metric.name)}</span><strong>${formatCCCScore(metric.score)}%</strong></div>`).join("")
+          ? aggregate.metrics.map((metric) => `<div class="summary-domain"><span>${escapeHTML(metric.code)} ${escapeHTML(metric.name)}</span><strong>${metric.score === null ? "N/A" : `${formatCCCScore(metric.score)}%`}</strong></div>`).join("")
           : `<div class="empty">尚無教師正式提交的六大核心評核。</div>`;
         const coreEPAForms = coreEpaFormsFor(assessment);
         const epaMarkup = coreEPAForms.length
           ? coreEPAForms.map((form, index) => `
               <div class="summary-epa-form">
-                <div class="summary-epa-form-head"><time datetime="${escapeHTML(form.assessmentDate)}">${escapeHTML(form.assessmentDate)}</time><span>第 ${index + 1} 張${form.savedAt ? ` · ${escapeHTML(formatReadableTime(form.savedAt))} 暫存` : " · 尚未暫存"}</span></div>
+                <div class="summary-epa-form-head"><time datetime="${escapeHTML(form.assessmentDate)}">${escapeHTML(form.assessmentDate)}</time><span>第 ${index + 1} 張 · ${escapeHTML(form.teacherName && form.teacherName !== form.assignedTeacherName ? `${form.assignedTeacherName || "未指定"} → ${form.teacherName}` : form.teacherName || form.assignedTeacherName || "未指定教師")}${form.savedAt ? ` · ${escapeHTML(formatReadableTime(form.savedAt))} 暫存` : " · 尚未暫存"}</span></div>
                 <div class="summary-epa-grid">${CORE_EPA_ITEMS.map((item, itemIndex) => `<div class="summary-epa-item"><span>${escapeHTML(item.code)}</span><strong>${escapeHTML(coreEPALevelLabel(form.levels?.[itemIndex]))}</strong></div>`).join("")}</div>
               </div>
             `).join("")
@@ -3279,7 +3356,7 @@
               <div id="cccIncludedForms" class="ccc-included-forms">${submitted && !assessment.cccSubmission.coreSourceForms ? "舊版 CCC 紀錄未保存納入日期與表單清單。" : cccIncludedFormsMarkup(includedForms)}</div>
             </div>
             <div class="ccc-core-intro">
-              <p>每張表先依 20 個教師評分小項取得滿分 100 的原始總分，再對所選日期範圍內的正式提交表單做等權平均；草稿與只有學生完成的表單不列入。</p>
+              <p>每張表先以「有效分項得分 ÷ 有效分項滿分」換算為 100 分；N/A 不列入分子與分母，再對所選日期範圍內的正式提交表單做等權平均。草稿與只有學生完成的表單不列入。</p>
               <div id="cccCoreAverage" class="ccc-core-average">六大核心平均　${formatCCCScore(coreScore)}${coreScore === null ? "" : ` 分（${includedForms.length} 張）`}</div>
             </div>
             <div class="ccc-core-grid" aria-label="六大核心能力百分比分數">${coreCards}</div>
@@ -3288,7 +3365,7 @@
               <div class="ccc-score-row">
                 <label for="cccCoreScore">六大核心考核表</label>
                 <span class="ccc-score-weight">30%</span>
-                <input id="cccCoreScore" class="ccc-score-input" type="text" value="${formatCCCScore(coreScore)}" readonly aria-label="六大核心考核表原始總分">
+                <input id="cccCoreScore" class="ccc-score-input" type="text" value="${formatCCCScore(coreScore)}" readonly aria-label="六大核心考核表有效分項換算總分">
                 <output id="cccCoreContribution" class="ccc-score-contribution">${formatCCCScore(coreContribution)}</output>
               </div>
               <div class="ccc-score-row">
@@ -3462,6 +3539,27 @@
         </div>
       `).join("");
       const thresholds = CORE_EPA_THRESHOLDS.map((text) => `<div>${escapeHTML(text)}</div>`).join("");
+      const assignedTeacherName = String(draft.assignedTeacherName || "").trim();
+      const currentTeacherName = String(draft.teacherName || assignedTeacherName).trim();
+      const teacherIdentityMarkup = submitted
+        ? `
+          <div class="ccc-readonly-field"><span>住院醫師指定教師</span><strong>${escapeHTML(assignedTeacherName || "未記錄")}</strong></div>
+          <label class="core-epa-teacher-field" for="coreEpaTeacherName"><span>實際評分教師</span><input id="coreEpaTeacherName" name="teacherName" type="text" maxlength="30" autocomplete="name" required value="${escapeHTML(draft.teacherName || "")}"></label>
+        `
+        : `
+          <fieldset class="teacher-identity-panel core-epa-identity" data-core-epa-identity>
+            <legend>先確認評分教師</legend>
+            <p>目前評分教師：<strong>${escapeHTML(currentTeacherName || "未指定（請選擇變更並輸入姓名）")}</strong></p>
+            <p>住院醫師指定：<strong>${escapeHTML(assignedTeacherName || "未指定")}</strong></p>
+            <label class="teacher-identity-choice"><input name="teacherIdentityMode" type="radio" value="current"${currentTeacherName ? "" : " disabled"}>確定我是評分教師</label>
+            <label class="teacher-identity-choice"><input name="teacherIdentityMode" type="radio" value="change">變更評分教師</label>
+            <div class="teacher-name-change" data-core-epa-teacher-change hidden>
+              <label for="coreEpaTeacherName">實際評分教師姓名</label>
+              <input id="coreEpaTeacherName" name="teacherName" type="text" maxlength="30" autocomplete="name" placeholder="請輸入實際評分教師姓名" value="${escapeHTML(draft.teacherName || "")}">
+            </div>
+            <span class="identity-locked-note">完成確認或變更姓名後，才可開始評分。</span>
+          </fieldset>
+        `;
 
       elements.coreEpaEmpty.hidden = true;
       elements.coreEpaForm.hidden = false;
@@ -3481,7 +3579,7 @@
               <div class="ccc-readonly-field"><span>住院醫師姓名</span><strong>${escapeHTML(resident.name || "未命名")}</strong></div>
               <div class="ccc-readonly-field"><span>名單年資</span><strong>${escapeHTML(resident.level)}</strong></div>
               <div class="ccc-readonly-field"><span>評量日期</span><strong>${escapeHTML(draft.assessmentDate)}</strong></div>
-              <label class="core-epa-teacher-field" for="coreEpaTeacherName"><span>教師姓名</span><input id="coreEpaTeacherName" name="teacherName" type="text" maxlength="30" autocomplete="name" required placeholder="請輸入評核教師姓名" value="${escapeHTML(draft.teacherName || "")}"></label>
+              ${teacherIdentityMarkup}
             </div>
           </div>
         </section>
@@ -3519,8 +3617,11 @@
           </div>
         </div>
       `;
+      elements.coreEpaForm.dataset.assignedTeacherName = assignedTeacherName;
+      elements.coreEpaForm.dataset.currentTeacherName = currentTeacherName;
       elements.coreEpaForm.classList.toggle("is-submitted", submitted && !unlocked);
       if (!editable) elements.coreEpaForm.querySelectorAll("input, textarea").forEach((control) => { control.disabled = true; });
+      if (!submitted) refreshCoreEPATeacherIdentity();
     }
 
     function updateCCCAggregate() {
@@ -3616,6 +3717,10 @@
         renderCoreEPAForm(period);
         return;
       }
+      if (!confirmedCoreEPATeacherName()) {
+        showToast("請先確認或變更評分教師姓名。");
+        return;
+      }
       const formIndex = assessment.coreEpaForms.findIndex((item) => item.id === form.id);
       const previousForm = form;
       assessment.coreEpaForms[formIndex] = {
@@ -3642,6 +3747,10 @@
       if (modifying && unlockedCoreEPAFormId !== form.id) {
         showToast("Core EPA 評量表已正式提交並鎖定，請先輸入管理密碼。");
         renderCoreEPAForm(period);
+        return;
+      }
+      if (!modifying && !confirmedCoreEPATeacherName()) {
+        showToast("請先確認或變更評分教師姓名。");
         return;
       }
       if (!elements.coreEpaForm.reportValidity()) return;
@@ -3683,6 +3792,7 @@
         coreEpaFormId: form.id,
         assessmentDate: form.assessmentDate,
         role: "core-epa",
+        assignedTeacherName: form.assignedTeacherName || "",
         teacherName: nextForm.teacherName,
         actorName: modifying ? "管理者（密碼驗證）" : nextForm.teacherName,
         coreEpaForm: nextForm,
@@ -3726,7 +3836,7 @@
       const previousAuditLength = state.auditLog.length;
       addAuditEvent({
         type: "unlock", period, resident, coreEpaFormId: form.id, assessmentDate: form.assessmentDate,
-        role: "core-epa", teacherName: form.teacherName || "", actorName: "管理者（密碼驗證）"
+        role: "core-epa", assignedTeacherName: form.assignedTeacherName || "", teacherName: form.teacherName || "", actorName: "管理者（密碼驗證）"
       });
       if (!persist()) {
         state.auditLog.splice(previousAuditLength);
@@ -3961,6 +4071,7 @@
           <span>住院醫師姓名：<strong>${escapeHTML(resident.name || "未命名")}</strong></span>
           <span>年資：<strong>${escapeHTML(resident.level)}</strong></span>
           <span>日期：<strong>${escapeHTML(formatCCCPrintDate(record.assessmentDate))}</strong></span>
+          <span>指定教師：<strong>${escapeHTML(record.assignedTeacherName || "未記錄")}</strong></span>
           <span>評核教師：<strong>${escapeHTML(record.teacherName || "未填寫")}</strong></span>
         </div>
         <div class="core-epa-print-guide" aria-label="信賴程度說明">${guide}</div>
@@ -4014,33 +4125,37 @@
 
     function resultSummary(assessment) {
       const metrics = teacherDomainMetrics(assessment.teacher.itemScores);
-      const total = metrics.reduce((sum, metric) => sum + metric.score, 0);
+      const total = teacherFormTotal(metrics);
+      const nominalMax = metrics.reduce((sum, metric) => sum + metric.nominalMax, 0);
+      const notApplicable = metrics.reduce((sum, metric) => sum + metric.notApplicable, 0);
       return `
         <div class="result-summary">
           <div class="result-row head"><span>核心能力</span><span>教師分項</span><span>學生／教師 Level</span></div>
           ${metrics.map((metric, index) => `
             <div class="result-row">
-              <span>${metric.code} ${metric.name}</span>
-              <span>${metric.score}/${metric.max} · ${metric.percent}%</span>
+              <span>${metric.code} ${metric.name}（滿分${metric.nominalMax}）</span>
+              <span>${teacherMetricResultText(metric)}</span>
               <span>L${assessment.student.levels[index]} ／ L${assessment.teacher.levels[index]}</span>
             </div>
           `).join("")}
-          <div class="result-row total"><span>總分</span><span>${total}/100</span><span>—</span></div>
+          <div class="result-row total"><span>有效總分（滿分${nominalMax}）</span><span>${total.score}/${total.max}（${formatCCCScore(total.percent)} 分）｜N/A ${notApplicable}項</span><span>N/A 不列入分母</span></div>
         </div>
       `;
     }
 
     function printSummaryTable(assessment) {
       const metrics = teacherDomainMetrics(assessment.teacher.itemScores);
-      const total = metrics.reduce((sum, metric) => sum + metric.score, 0);
+      const total = teacherFormTotal(metrics);
+      const nominalMax = metrics.reduce((sum, metric) => sum + metric.nominalMax, 0);
+      const notApplicable = metrics.reduce((sum, metric) => sum + metric.notApplicable, 0);
       return `
         <table aria-label="最後評分彙整">
           <thead><tr><th>核心能力</th><th>小項總分</th><th>百分比</th><th>教師評核分數</th><th>學生自評</th></tr></thead>
           <tbody>
             ${metrics.map((metric, index) => `
-              <tr><td>${metric.name}</td><td>${metric.score}/${metric.max}</td><td>${metric.percent}%</td><td>L${assessment.teacher.levels[index]}</td><td>L${assessment.student.levels[index]}</td></tr>
+              <tr><td>${metric.code} ${metric.name}<small>（滿分${metric.nominalMax}）</small></td><td>${metric.max > 0 ? `${metric.score}/${metric.max}` : "有效滿分0"}<small>N/A ${metric.notApplicable}項</small></td><td>${metric.percent === null ? "N/A" : `${formatCCCScore(metric.percent)}%`}</td><td>L${assessment.teacher.levels[index]}</td><td>L${assessment.student.levels[index]}</td></tr>
             `).join("")}
-            <tr class="formal-total"><td>總分</td><td colspan="4">${total}/100</td></tr>
+            <tr class="formal-total"><td>有效總分<small>（滿分${nominalMax}）</small></td><td colspan="4">${total.score}/${total.max}＝${formatCCCScore(total.percent)} 分；N/A ${notApplicable}項不列入分母</td></tr>
           </tbody>
         </table>
       `;
@@ -4067,8 +4182,8 @@
               <tr>
                 ${firstInGroup ? `<td class="domain" rowspan="${domainItemCount}">${escapeHTML(competency.name)}</td>` : ""}
                 <td><span class="item-code-print">${item.code}</span>　${escapeHTML(item.description)}</td>
-                <td class="allocation">5</td>
-                <td class="score">${score}</td>
+                <td class="allocation">${score === ITEM_NOT_APPLICABLE ? "—" : "5"}</td>
+                <td class="score">${score === ITEM_NOT_APPLICABLE ? "N/A" : score}</td>
               </tr>
             `;
           }).join("")}</tbody>
@@ -4081,13 +4196,14 @@
         <section class="formal-print-report" aria-label="${escapeHTML(resident.level)} ${escapeHTML(resident.name || "未命名")} ${escapeHTML(assessment.assessmentDate)} 正式評分表">
           <div class="formal-print-title">
             <h1>三軍總醫院 放射腫瘤部住院醫師訓練考核表</h1>
-            <p>ACGME Milestones 2.0 暨 100分制雙軌評核</p>
+            <p>ACGME Milestones 2.0 暨有效分項 100 分制雙軌評核</p>
           </div>
           <div class="formal-print-meta">
             <span><strong>評核期別</strong>${escapeHTML(period.name)}</span>
             <span><strong>評核日期</strong>${escapeHTML(assessment.assessmentDate)}</span>
             <span><strong>受評醫師</strong>${escapeHTML(resident.name || "未命名")}</span>
             <span><strong>年級</strong>${escapeHTML(resident.level)}</span>
+            <span><strong>指定教師</strong>${escapeHTML(assessment.assignedTeacherName || "未記錄")}</span>
             <span><strong>評核教師</strong>${escapeHTML(assessment.teacher.teacherName || "未記錄")}</span>
             <span><strong>完成時間</strong>${escapeHTML(formatReadableTime(assessment.teacher.submittedAt))}</span>
           </div>
@@ -4111,7 +4227,7 @@
             </section>
           </div>
           <section>
-            <div class="formal-detail-heading"><h2>原始表單詳細評分表</h2><span>各小項滿分 5 分；總滿分 100 分</span></div>
+            <div class="formal-detail-heading"><h2>原始表單詳細評分表</h2><span>各有效小項滿分 5 分；N/A 不列入總分分母</span></div>
             <div class="formal-item-tables">${printItemTables(assessment)}</div>
           </section>
           <div class="formal-print-footer"><span>本表由 CCC 核心能力評分系統依鎖定資料產出</span><span>評核教師：${escapeHTML(assessment.teacher.teacherName || "未記錄")}</span></div>
@@ -4121,19 +4237,19 @@
 
     function scoreDetailMarkup(assessment) {
       const metrics = teacherDomainMetrics(assessment.teacher.itemScores);
-      const total = metrics.reduce((sum, metric) => sum + metric.score, 0);
+      const total = teacherFormTotal(metrics);
       let itemIndex = 0;
       return `
-        <div class="score-detail-summary"><span>20 項原始評分</span><span>總分 ${total}/100</span></div>
+        <div class="score-detail-summary"><span>20 項原始評分；N/A 不列入分母</span><span>有效總分 ${total.score}/${total.max}＝${formatCCCScore(total.percent)} 分</span></div>
         <div class="score-detail-groups">${COMPETENCIES.map((competency, competencyIndex) => {
           const metric = metrics[competencyIndex];
           const rows = competency.items.map((item) => {
             const score = assessment.teacher.itemScores[itemIndex++];
-            return `<tr><td><strong>${item.code}</strong>　${escapeHTML(item.description)}</td><td>${score} / 5</td></tr>`;
+            return `<tr><td><strong>${item.code}</strong>　${escapeHTML(item.description)}</td><td>${score === ITEM_NOT_APPLICABLE ? "N/A" : `${score} / 5`}</td></tr>`;
           }).join("");
           return `
             <section class="score-detail-group">
-              <h3>${competency.code} ${competency.name}　${metric.score}/${metric.max}（${metric.percent}%）</h3>
+              <h3>${competency.code} ${competency.name}　${metric.max > 0 ? `${metric.score}/${metric.max}（${metric.percent}%）` : "N/A"}</h3>
               <table class="score-detail-table"><thead><tr><th>評估要點與實證標準</th><th>原始評分</th></tr></thead><tbody>${rows}</tbody></table>
             </section>
           `;
@@ -4162,7 +4278,10 @@
         validLevels(form.teacher.levels || []) && validItemScores(form.teacher.itemScores || []);
       const result = sixCoreFormResult(form);
       const submissionTimes = ["student", "teacher"].filter((role) => form[role]).map((role) => {
-        const teacher = role === "teacher" ? `（${form.teacher.teacherName || "教師未記錄"}）` : "";
+        const actualTeacherName = form.teacher?.teacherName || "教師未記錄";
+        const teacher = role === "teacher"
+          ? `（${form.assignedTeacherName && form.assignedTeacherName !== actualTeacherName ? `指定 ${form.assignedTeacherName}；實際 ` : ""}${actualTeacherName}）`
+          : "";
         return `${ROLE_LABELS[role]} ${formatAuditTime(form[role].submittedAt)}${teacher}`;
       });
       if (teacherDraft) submissionTimes.push(`教師暫存 ${formatAuditTime(form.teacherDraft.savedAt)}`);
@@ -4388,8 +4507,8 @@
       const parts = [];
       if (Array.isArray(itemScores)) {
         const metrics = teacherDomainMetrics(itemScores);
-        const total = metrics.reduce((sum, metric) => sum + metric.score, 0);
-        parts.push(`分項：${metrics.map((metric) => `${metric.code} ${metric.score}/${metric.max}`).join("、")}；總分 ${total}/100`);
+        const total = teacherFormTotal(metrics);
+        parts.push(`分項：${metrics.map((metric) => `${metric.code} ${metric.max > 0 ? `${metric.score}/${metric.max}` : "N/A"}`).join("、")}；有效總分 ${total.score}/${total.max}＝${formatCCCScore(total.percent)} 分`);
       }
       if (Array.isArray(levels)) {
         parts.push(`Level：${levels.map((level, index) => `${COMPETENCIES[index].code} L${level}`).join("、")}`);
@@ -4446,7 +4565,7 @@
               <td>${escapeHTML(event.periodName)}</td>
               <td>${event.residentId ? `<strong>${escapeHTML(event.residentLevel)}</strong> ${escapeHTML(event.residentName || "未命名")}` : "—"}</td>
               <td>${event.type === "period-deletion" ? "期別" : event.role ? `<span class="status ${event.role === "student" ? "student-done" : "teacher-done"}">${ROLE_LABELS[event.role] || event.role}</span>${event.assessmentDate ? `<br><small>${escapeHTML(event.assessmentDate)}</small>` : ""}` : "整份評分表"}</td>
-              <td class="teacher-name">${escapeHTML(event.teacherName || event.actorName || "—")}</td>
+              <td class="teacher-name">${escapeHTML(event.assignedTeacherName && event.teacherName && event.assignedTeacherName !== event.teacherName ? `${event.assignedTeacherName} → ${event.teacherName}` : event.teacherName || event.assignedTeacherName || event.actorName || "—")}</td>
               <td><span class="time-code">${formatAuditTime(event.occurredAt)}</span><br><small>${escapeHTML(formatReadableTime(event.occurredAt))}</small></td>
               <td class="score-list">${scoreText(event)}</td>
             </tr>
@@ -4475,7 +4594,8 @@
     }
 
     function itemScoreOptions(selected = null) {
-      return `<option value="">請選擇</option>${[0, 1, 2, 3, 4, 5].map((score) =>
+      const selectedNA = selected === ITEM_NOT_APPLICABLE || Number(selected) === 0;
+      return `<option value="">請選擇</option><option value="${ITEM_NOT_APPLICABLE}"${selectedNA ? " selected" : ""}>N/A</option>${[1, 2, 3, 4, 5].map((score) =>
         `<option value="${score}"${selected !== null && selected !== "" && Number(selected) === score ? " selected" : ""}>${score} 分</option>`
       ).join("")}`;
     }
@@ -4493,7 +4613,6 @@
 
       let itemIndex = 0;
       return COMPETENCIES.map((competency, competencyIndex) => {
-        const max = competency.items.length * ITEM_MAX_SCORE;
         const rows = competency.items.map((item) => {
           const currentIndex = itemIndex;
           itemIndex += 1;
@@ -4507,8 +4626,8 @@
         return `
           <section class="competency-group" data-competency-section="${competencyIndex}">
             <div class="competency-group-head">
-              <div><h3>${competency.code} ${competency.name}</h3><p>${competency.items.length} 小項，每項最高 5 分</p></div>
-              <div class="competency-total"><span data-domain-total="${competencyIndex}">0/${max}</span><small data-domain-percent="${competencyIndex}">0%</small></div>
+              <div><h3>${competency.code} ${competency.name}</h3><p>${competency.items.length} 小項，每項最高 5 分；N/A 不列入分母</p></div>
+              <div class="competency-total"><span data-domain-total="${competencyIndex}">—</span><small data-domain-percent="${competencyIndex}">—</small></div>
             </div>
             <div class="item-score-list">${rows}</div>
             <div class="teacher-levels">
@@ -4524,18 +4643,20 @@
 
     function readAssessmentFields(form, role, prefix) {
       const numberValue = (field) => field.value === "" ? Number.NaN : Number(field.value);
+      const itemValue = (field) => field.value === ITEM_NOT_APPLICABLE ? ITEM_NOT_APPLICABLE : numberValue(field);
       const levels = COMPETENCIES.map((_, index) => numberValue(form.elements[`${prefix}-level-${index}`]));
       const itemScores = role === "teacher"
-        ? ASSESSMENT_ITEMS.map((_, index) => numberValue(form.elements[`${prefix}-item-${index}`]))
+        ? ASSESSMENT_ITEMS.map((_, index) => itemValue(form.elements[`${prefix}-item-${index}`]))
         : null;
       return { levels, itemScores };
     }
 
     function readTeacherDraftFields(form, prefix) {
       const optionalNumber = (field) => field.value === "" ? null : Number(field.value);
+      const optionalItem = (field) => field.value === "" ? null : field.value === ITEM_NOT_APPLICABLE ? ITEM_NOT_APPLICABLE : Number(field.value);
       return {
         levels: COMPETENCIES.map((_, index) => optionalNumber(form.elements[`${prefix}-level-${index}`])),
-        itemScores: ASSESSMENT_ITEMS.map((_, index) => optionalNumber(form.elements[`${prefix}-item-${index}`]))
+        itemScores: ASSESSMENT_ITEMS.map((_, index) => optionalItem(form.elements[`${prefix}-item-${index}`]))
       };
     }
 
@@ -4543,21 +4664,27 @@
       return values.every((value) => value === null || (Number.isInteger(value) && value >= min && value <= max));
     }
 
+    function validPartialItemScores(values) {
+      return values.every((value) => value === null || value === ITEM_NOT_APPLICABLE || (Number.isInteger(value) && value >= 1 && value <= ITEM_MAX_SCORE));
+    }
+
     function updateTeacherFormSummary(container, summaryElement, prefix) {
       const itemScores = ASSESSMENT_ITEMS.map((_, index) => {
         const value = container.querySelector(`[name="${prefix}-item-${index}"]`)?.value ?? "";
-        return value === "" ? 0 : Number(value);
+        return value === "" ? null : value === ITEM_NOT_APPLICABLE ? ITEM_NOT_APPLICABLE : Number(value);
       });
       const filled = ASSESSMENT_ITEMS.filter((_, index) => container.querySelector(`[name="${prefix}-item-${index}"]`)?.value !== "").length;
       const metrics = teacherDomainMetrics(itemScores);
       metrics.forEach((metric, index) => {
         const total = container.querySelector(`[data-domain-total="${index}"]`);
         const percent = container.querySelector(`[data-domain-percent="${index}"]`);
-        if (total) total.textContent = `${metric.score}/${metric.max}`;
-        if (percent) percent.textContent = `${metric.percent}%`;
+        if (total) total.textContent = metric.max > 0 ? `${metric.score}/${metric.max}` : metric.notApplicable > 0 ? "N/A" : "—";
+        if (percent) percent.textContent = metric.percent === null ? "—" : `${metric.percent}%`;
       });
-      const totalScore = metrics.reduce((sum, metric) => sum + metric.score, 0);
-      summaryElement.innerHTML = `<span>教師分項完成 ${filled}/${ASSESSMENT_ITEMS.length}</span><span>目前總分 ${totalScore}/100</span>`;
+      const total = teacherFormTotal(metrics);
+      const notApplicable = itemScores.filter((score) => score === ITEM_NOT_APPLICABLE).length;
+      const totalText = total.percent === null ? "尚無有效分數" : `目前有效總分 ${total.score}/${total.max}（${formatCCCScore(total.percent)} 分）`;
+      summaryElement.innerHTML = `<span>教師分項完成 ${filled}/${ASSESSMENT_ITEMS.length}${notApplicable ? `；N/A ${notApplicable} 項` : ""}</span><span>${totalText}</span>`;
       summaryElement.hidden = false;
     }
 
@@ -4572,6 +4699,7 @@
       ).join("");
       elements.sixCoreFormMeta.textContent = `${period.name} · 建立新的六大核心評核`;
       elements.sixCoreAssessmentDate.value = localDateValue();
+      elements.sixCoreAssignedTeacherName.value = "";
       elements.sixCoreFormDialog.showModal();
       elements.sixCoreResidentForNewForm.focus();
     }
@@ -4583,9 +4711,11 @@
       const resident = residentFor(period, activeSixCoreCreateResidentId);
       const assessment = period?.assessments?.[activeSixCoreCreateResidentId];
       const assessmentDate = elements.sixCoreAssessmentDate.value;
+      const assignedTeacherName = elements.sixCoreAssignedTeacherName.value.trim();
       if (!period || !resident || !assessment) { showToast("找不到要建立的評核資料。"); return; }
       if (!/^\d{4}-\d{2}-\d{2}$/.test(assessmentDate)) { showToast("請選擇有效的評核日期。"); return; }
-      const form = makeSixCoreForm(assessmentDate);
+      if (!assignedTeacherName) { showToast("請先輸入指定評分教師姓名。"); elements.sixCoreAssignedTeacherName.focus(); return; }
+      const form = makeSixCoreForm(assessmentDate, assignedTeacherName);
       const previousUpdatedAt = assessment.updatedAt;
       assessment.sixCoreForms.push(form);
       assessment.updatedAt = new Date().toISOString();
@@ -4609,6 +4739,7 @@
       activeCoreEPACreateResidentId = resident.id;
       elements.coreEpaFormMeta.textContent = `${period.name} · ${resident.level} ${resident.name || "未命名"}`;
       elements.coreEpaNewAssessmentDate.value = localDateValue();
+      elements.coreEpaAssignedTeacherName.value = "";
       elements.coreEpaFormDialog.showModal();
       elements.coreEpaNewAssessmentDate.focus();
     }
@@ -4619,9 +4750,11 @@
       const resident = residentFor(period, activeCoreEPACreateResidentId);
       const assessment = period?.assessments?.[activeCoreEPACreateResidentId];
       const assessmentDate = elements.coreEpaNewAssessmentDate.value;
+      const assignedTeacherName = elements.coreEpaAssignedTeacherName.value.trim();
       if (!period || !resident || !assessment) { showToast("找不到要建立的 Core EPA 評量資料。"); return; }
       if (!/^\d{4}-\d{2}-\d{2}$/.test(assessmentDate)) { showToast("請選擇有效的評量日期。"); return; }
-      const form = makeCoreEPAForm(assessmentDate);
+      if (!assignedTeacherName) { showToast("請先輸入指定評分教師姓名。"); elements.coreEpaAssignedTeacherName.focus(); return; }
+      const form = makeCoreEPAForm(assessmentDate, assignedTeacherName);
       const previousUpdatedAt = assessment.updatedAt;
       assessment.coreEpaForms.push(form);
       assessment.updatedAt = new Date().toISOString();
@@ -4637,7 +4770,7 @@
       activeCoreEPACreateResidentId = null;
       render();
       showToast(`已建立 ${assessmentDate} 的 Core EPA 評量表。`);
-      requestAnimationFrame(() => elements.coreEpaForm.querySelector("input[type=radio]")?.focus());
+      requestAnimationFrame(() => elements.coreEpaForm.querySelector('input[name="teacherIdentityMode"]:not(:disabled)')?.focus());
     }
 
     function removeEmptySixCoreForm(residentId, formId) {
@@ -4662,6 +4795,44 @@
       showToast("空白六大核心表單已刪除。");
     }
 
+    function activeSixCoreForm() {
+      const context = activeScoreContext;
+      const period = state.periods.find((item) => item.id === context?.periodId);
+      return findSixCoreForm(period?.assessments?.[context?.residentId], context?.formId);
+    }
+
+    function currentSixCoreTeacherName(form = activeSixCoreForm()) {
+      return String(form?.teacherDraft?.teacherName || form?.assignedTeacherName || "").trim();
+    }
+
+    function confirmedSixCoreTeacherName() {
+      if (activeScoreContext?.role !== "teacher") return "";
+      const form = activeSixCoreForm();
+      const mode = elements.scoreForm.elements.teacherIdentityMode?.value;
+      if (mode === "current") return currentSixCoreTeacherName(form);
+      if (mode === "change") return elements.teacherName.value.trim();
+      return "";
+    }
+
+    function refreshSixCoreTeacherIdentity() {
+      const isTeacher = activeScoreContext?.role === "teacher";
+      if (!isTeacher) {
+        elements.scoreFields.querySelectorAll("select").forEach((control) => { control.disabled = false; });
+        elements.submitScoreButton.disabled = false;
+        return;
+      }
+      const mode = elements.scoreForm.elements.teacherIdentityMode?.value;
+      const form = activeSixCoreForm();
+      const currentTeacherName = currentSixCoreTeacherName(form);
+      elements.teacherNameField.hidden = mode !== "change";
+      elements.teacherName.required = mode === "change";
+      if (mode === "current") elements.teacherName.value = currentTeacherName;
+      const confirmed = Boolean(confirmedSixCoreTeacherName());
+      elements.scoreFields.querySelectorAll("select").forEach((control) => { control.disabled = !confirmed; });
+      elements.saveDraftButton.disabled = !confirmed;
+      elements.submitScoreButton.disabled = !confirmed;
+    }
+
     function openScoreDialog(residentId, formId, role) {
       const period = currentPeriod();
       const resident = residentFor(period, residentId);
@@ -4673,12 +4844,17 @@
         return;
       }
       activeScoreContext = { periodId: period.id, residentId, formId, role };
+      elements.scoreForm.reset();
       elements.scoreDialogTitle.textContent = ROLE_LABELS[role];
       elements.scoreDialogMeta.textContent = `${period.name} · ${form.assessmentDate} · ${resident.level} ${resident.name || "未命名"}`;
-      elements.teacherNameField.hidden = role !== "teacher";
-      elements.teacherName.required = role === "teacher";
+      elements.teacherIdentityField.hidden = role !== "teacher";
+      elements.teacherName.required = false;
       const draft = role === "teacher" ? form.teacherDraft : null;
-      elements.teacherName.value = draft?.teacherName || "";
+      const currentTeacherName = currentSixCoreTeacherName(form);
+      elements.teacherName.value = currentTeacherName;
+      elements.currentTeacherNameText.textContent = currentTeacherName || "未指定（請選擇變更並輸入姓名）";
+      elements.assignedTeacherNameText.textContent = form.assignedTeacherName || "未指定";
+      elements.confirmCurrentTeacher.disabled = role === "teacher" && !currentTeacherName;
       elements.scoreFields.innerHTML = renderAssessmentFields(role, "score", draft);
       elements.scoreFormSummary.hidden = role !== "teacher";
       elements.saveDraftButton.hidden = role !== "teacher";
@@ -4691,8 +4867,9 @@
         elements.scoreFields.oninput = refresh;
         refresh();
       }
+      refreshSixCoreTeacherIdentity();
       elements.scoreDialog.showModal();
-      (role === "teacher" ? elements.teacherName : elements.scoreFields.querySelector("select"))?.focus();
+      (role === "teacher" ? elements.confirmCurrentTeacher.disabled ? elements.changeAssignedTeacher : elements.confirmCurrentTeacher : elements.scoreFields.querySelector("select"))?.focus();
     }
 
     function saveTeacherDraft() {
@@ -4707,8 +4884,9 @@
         return;
       }
       const { levels, itemScores } = readTeacherDraftFields(elements.scoreForm, "score");
-      const teacherName = elements.teacherName.value.trim();
-      if (!validPartialScores(itemScores, 0, ITEM_MAX_SCORE)) { showToast("已填的分項分數須為 0–5 的整數。"); return; }
+      const teacherName = confirmedSixCoreTeacherName();
+      if (!teacherName) { showToast("請先確認或變更評分教師姓名。"); return; }
+      if (!validPartialItemScores(itemScores)) { showToast("已填的分項須為 N/A 或 1–5 的整數。"); return; }
       if (!validPartialScores(levels, 1, 5)) { showToast("已填的教師評核分數須為 L1–L5。"); return; }
       const hasContent = teacherName || itemScores.some((score) => score !== null) || levels.some((level) => level !== null);
       if (!hasContent) { showToast("請至少填寫一項內容再暫存。"); return; }
@@ -4734,10 +4912,10 @@
         return;
       }
       const { levels, itemScores } = readAssessmentFields(elements.scoreForm, context.role, "score");
-      const teacherName = context.role === "teacher" ? elements.teacherName.value.trim() : "";
+      const teacherName = context.role === "teacher" ? confirmedSixCoreTeacherName() : "";
       if (!validLevels(levels)) { showToast("六項 Level 皆須選擇 L1–L5。"); return; }
-      if (context.role === "teacher" && !validItemScores(itemScores)) { showToast("20 個分項分數皆須為 0–5 的整數。"); return; }
-      if (context.role === "teacher" && !teacherName) { showToast("請輸入教師姓名。"); elements.teacherName.focus(); return; }
+      if (context.role === "teacher" && !teacherName) { showToast("請先確認或變更評分教師姓名。"); return; }
+      if (context.role === "teacher" && !validItemScores(itemScores)) { showToast("20 個分項皆須選擇 N/A 或 1–5。"); return; }
       const submittedAt = new Date().toISOString();
       form[context.role] = context.role === "teacher"
         ? { itemScores, levels, submittedAt, teacherName }
@@ -4745,7 +4923,7 @@
       if (context.role === "teacher") delete form.teacherDraft;
       addAuditEvent({
         type: "submission", period, resident, sixCoreFormId: form.id, assessmentDate: form.assessmentDate,
-        role: context.role, levels, itemScores, teacherName,
+        role: context.role, levels, itemScores, assignedTeacherName: form.assignedTeacherName || "", teacherName,
         actorName: context.role === "teacher" ? teacherName : resident.name || "未命名"
       });
       persist();
@@ -4781,7 +4959,7 @@
       if (!context || !period || !resident || !form) return;
       if (elements.adminPassword.value !== ADMIN_PASSWORD) { showToast("管理密碼不正確。"); elements.adminPassword.select(); return; }
       context.unlocked = true;
-      addAuditEvent({ type: "unlock", period, resident, sixCoreFormId: form.id, assessmentDate: form.assessmentDate, actorName: "管理者（密碼驗證）" });
+      addAuditEvent({ type: "unlock", period, resident, sixCoreFormId: form.id, assessmentDate: form.assessmentDate, assignedTeacherName: form.assignedTeacherName || "", teacherName: form.teacher?.teacherName || form.teacherDraft?.teacherName || "", actorName: "管理者（密碼驗證）" });
       persist();
       elements.unlockStage.hidden = true;
       elements.modifyStage.hidden = false;
@@ -4824,7 +5002,7 @@
       if (!context?.unlocked || !period || !resident || !submission) { showToast("請先驗證管理密碼。"); return; }
       const { levels, itemScores } = readAssessmentFields(elements.modifyForm, context.role, "modify");
       if (!validLevels(levels)) { showToast("六項 Level 皆須選擇 L1–L5。"); return; }
-      if (context.role === "teacher" && !validItemScores(itemScores)) { showToast("20 個分項分數皆須為 0–5 的整數。"); return; }
+      if (context.role === "teacher" && !validItemScores(itemScores)) { showToast("20 個分項皆須選擇 N/A 或 1–5。"); return; }
       const beforeLevels = [...submission.levels];
       const beforeItemScores = context.role === "teacher" ? [...submission.itemScores] : null;
       const levelsChanged = levels.some((level, index) => level !== beforeLevels[index]);
@@ -4835,7 +5013,7 @@
       submission.updatedAt = new Date().toISOString();
       addAuditEvent({
         type: "modification", period, resident, sixCoreFormId: form.id, assessmentDate: form.assessmentDate,
-        role: context.role, levels, beforeLevels, itemScores, beforeItemScores,
+        role: context.role, levels, beforeLevels, itemScores, beforeItemScores, assignedTeacherName: form.assignedTeacherName || "",
         teacherName: context.role === "teacher" ? submission.teacherName || "未記錄（舊資料）" : "",
         actorName: "管理者（密碼驗證）"
       });
@@ -4985,7 +5163,8 @@
       return [
         ...(Array.isArray(itemScores) ? itemScores : Array(ASSESSMENT_ITEMS.length).fill("")),
         ...(metrics ? metrics.map((metric) => metric.score) : Array(COMPETENCIES.length).fill("")),
-        ...(metrics ? metrics.map((metric) => metric.percent) : Array(COMPETENCIES.length).fill("")),
+        ...(metrics ? metrics.map((metric) => metric.max) : Array(COMPETENCIES.length).fill("")),
+        ...(metrics ? metrics.map((metric) => metric.percent ?? "") : Array(COMPETENCIES.length).fill("")),
         ...(Array.isArray(levels) ? levels : Array(COMPETENCIES.length).fill("")),
         ...(Array.isArray(legacyScores) ? legacyScores : Array(COMPETENCIES.length).fill(""))
       ];
@@ -4994,7 +5173,7 @@
     function auditCoreEPACSVSnapshot(event, before = false) {
       const form = before ? event.beforeCoreEpaForm : event.coreEpaForm;
       return [
-        form?.teacherName || "", form?.submittedAt || "",
+        form?.assignedTeacherName || "", form?.teacherName || "", form?.submittedAt || "",
         ...(form?.levels || Array(CORE_EPA_ITEMS.length).fill("")),
         form?.learnerAdvice || "", form?.mentorAdvice || "", form?.programAdvice || ""
       ];
@@ -5007,16 +5186,17 @@
       const snapshotHeaders = [
         ...ASSESSMENT_ITEMS.map((item) => `${item.code} 分項`),
         ...COMPETENCIES.map((competency) => `${competency.code} 小計`),
+        ...COMPETENCIES.map((competency) => `${competency.code} 有效滿分`),
         ...COMPETENCIES.map((competency) => `${competency.code} 百分比`),
         ...COMPETENCIES.map((competency) => `${competency.code} Level`),
         ...COMPETENCIES.map((competency) => `舊版 ${competency.code}`)
       ];
       const coreEPASnapshotHeaders = [
-        "Core EPA 教師", "Core EPA 提交時間", ...CORE_EPA_ITEMS.map((item) => `${item.code} 信賴程度`),
+        "Core EPA 指定教師", "Core EPA 實際教師", "Core EPA 提交時間", ...CORE_EPA_ITEMS.map((item) => `${item.code} 信賴程度`),
         "Core EPA 對學員建議", "Core EPA 對導師建議", "Core EPA 對科部建議"
       ];
       const header = [
-        "事件", "期別", "級別", "姓名", "六大核心表單 ID", "Core EPA 表單 ID", "評核日期", "評分類型", "教師姓名", "操作者", "完成時間",
+        "事件", "期別", "級別", "姓名", "六大核心表單 ID", "Core EPA 表單 ID", "評核日期", "評分類型", "住院醫師指定教師", "實際教師姓名", "操作者", "完成時間",
         "CCC 納入起日", "CCC 納入迄日", "CCC 納入張數", "CCC 六大核心平均", "CCC 綜合總分", "CCC 結論", "CCC 導師", "CCC 提交時間", "期別刪除摘要", "合併衝突摘要",
         ...coreEPASnapshotHeaders, ...coreEPASnapshotHeaders.map((name) => `修改前 ${name}`),
         ...snapshotHeaders, ...snapshotHeaders.map((name) => `修改前 ${name}`)
@@ -5024,7 +5204,7 @@
       const body = rows.map((event) => [
         EVENT_LABELS[event.type] || event.type, event.periodName, event.residentLevel, event.residentName || "未命名",
         event.sixCoreFormId || "", event.coreEpaFormId || "", event.assessmentDate || "",
-        event.type === "period-deletion" ? "期別" : event.role ? ROLE_LABELS[event.role] : "整份評分表", event.teacherName || "", event.actorName || "", formatAuditTime(event.occurredAt),
+        event.type === "period-deletion" ? "期別" : event.role ? ROLE_LABELS[event.role] : "整份評分表", event.assignedTeacherName || "", event.teacherName || "", event.actorName || "", formatAuditTime(event.occurredAt),
         event.cccForm?.coreDateFrom || "", event.cccForm?.coreDateTo || "", event.cccForm?.coreSourceForms?.length || "",
         event.cccForm?.coreScore ?? event.cccForm?.coreAverage ?? "", event.cccForm?.weightedTotal ?? "",
         event.cccForm ? cccOptionLabel(CCC_CONCLUSION_OPTIONS, event.cccForm.conclusion) : "",
@@ -5092,27 +5272,40 @@
         context.fillText(COMPETENCIES[index].code, labelX, labelY);
       });
       function plot(scores, color, dash = []) {
-        context.beginPath();
-        scores.forEach((score, index) => {
-          const boundedScore = Math.min(maxValue, Math.max(0, Number(score) || 0));
+        const points = scores.map((score, index) => {
+          if (score === null || score === undefined || score === "") return null;
+          const numericScore = Number(score);
+          if (!Number.isFinite(numericScore)) return null;
+          const boundedScore = Math.min(maxValue, Math.max(0, numericScore));
           const pointRadius = radius * boundedScore / maxValue;
-          const x = centerX + Math.cos(angles[index]) * pointRadius;
-          const y = centerY + Math.sin(angles[index]) * pointRadius;
-          index === 0 ? context.moveTo(x, y) : context.lineTo(x, y);
+          return {
+            x: centerX + Math.cos(angles[index]) * pointRadius,
+            y: centerY + Math.sin(angles[index]) * pointRadius
+          };
         });
-        context.closePath();
-        context.fillStyle = `${color}22`;
+        const complete = points.every(Boolean);
+        context.beginPath();
+        points.forEach((point, index) => {
+          if (!point) return;
+          points[index - 1] ? context.lineTo(point.x, point.y) : context.moveTo(point.x, point.y);
+        });
+        if (complete) {
+          context.closePath();
+          context.fillStyle = `${color}22`;
+          context.fill();
+        } else if (points[0] && points.at(-1)) {
+          context.moveTo(points.at(-1).x, points.at(-1).y);
+          context.lineTo(points[0].x, points[0].y);
+        }
         context.strokeStyle = color;
         context.lineWidth = 2.5;
-        context.fill();
         context.setLineDash(dash);
         context.stroke();
         context.setLineDash([]);
-        scores.forEach((score, index) => {
-          const boundedScore = Math.min(maxValue, Math.max(0, Number(score) || 0));
-          const pointRadius = radius * boundedScore / maxValue;
+        points.forEach((point) => {
+          if (!point) return;
           context.beginPath();
-          context.arc(centerX + Math.cos(angles[index]) * pointRadius, centerY + Math.sin(angles[index]) * pointRadius, 3.5, 0, Math.PI * 2);
+          context.arc(point.x, point.y, 3.5, 0, Math.PI * 2);
           context.fillStyle = color;
           context.fill();
         });
@@ -5189,6 +5382,19 @@
       if (actionButton.dataset.coreEpaAction === "unlock") openCoreEPAUnlockDialog();
       if (actionButton.dataset.coreEpaAction === "cancel-modification") cancelCoreEPAModification();
     });
+    elements.coreEpaForm.addEventListener("change", (event) => {
+      if (event.target.name !== "teacherIdentityMode") return;
+      if (event.target.value === "change") {
+        const currentTeacherName = String(elements.coreEpaForm.dataset.currentTeacherName || elements.coreEpaForm.dataset.assignedTeacherName || "").trim();
+        const teacherNameInput = elements.coreEpaForm.elements.teacherName;
+        if (teacherNameInput?.value.trim() === currentTeacherName) teacherNameInput.value = "";
+      }
+      refreshCoreEPATeacherIdentity();
+      if (event.target.value === "change") elements.coreEpaForm.elements.teacherName?.focus();
+    });
+    elements.coreEpaForm.addEventListener("input", (event) => {
+      if (event.target.name === "teacherName") refreshCoreEPATeacherIdentity();
+    });
     elements.coreEpaForm.addEventListener("submit", submitCoreEPAForm);
     elements.coreEpaUnlockForm.addEventListener("submit", unlockCoreEPAForm);
     elements.cccExportButton.addEventListener("click", exportCCCPDF);
@@ -5209,7 +5415,6 @@
     elements.importDataInput.addEventListener("change", importDataBackup);
     elements.openSharedFileButton.addEventListener("click", openSharedDataFile);
     elements.openNetworkSharedFileButton.addEventListener("click", openNetworkSharedDataFile);
-    elements.authorizeNetworkSharedFileButton.addEventListener("click", authorizeNetworkSharedDataFile);
     elements.fallbackSharedFileButton.addEventListener("click", () => {
       elements.fallbackSharedFileInput.value = "";
       elements.fallbackSharedFileInput.click();
@@ -5245,6 +5450,16 @@
     elements.auditAuthForm.addEventListener("submit", unlockAudit);
     elements.exportAuditButton.addEventListener("click", exportAuditCSV);
     elements.scoreForm.addEventListener("submit", submitScores);
+    elements.scoreForm.addEventListener("change", (event) => {
+      if (event.target.name !== "teacherIdentityMode") return;
+      if (event.target.value === "change") {
+        const currentTeacherName = currentSixCoreTeacherName();
+        if (elements.teacherName.value.trim() === currentTeacherName) elements.teacherName.value = "";
+      }
+      refreshSixCoreTeacherIdentity();
+      if (event.target.value === "change") elements.teacherName.focus();
+    });
+    elements.teacherName.addEventListener("input", refreshSixCoreTeacherIdentity);
     elements.saveDraftButton.addEventListener("click", saveTeacherDraft);
     elements.modifyForm.addEventListener("submit", submitModification);
     elements.unlockButton.addEventListener("click", unlockModification);

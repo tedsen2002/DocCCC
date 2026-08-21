@@ -45,11 +45,13 @@ assert.match(html, /const SHARED_DATA_FILENAME = "DocCCC-data\.json"/, "共用�
 assert.match(html, /directoryHandle\.getFileHandle\(SHARED_DATA_FILENAME, \{ create: false \}\)/, "直接模式應只讀取共用資料夾內的固定 JSON 且不得建立其他檔案");
 assert.match(html, /if \(file\.name !== SHARED_DATA_FILENAME\)/, "相容匯入時也應拒絕其他 JSON 檔名");
 assert.match(html, /window\.showDirectoryPicker\(\{[\s\S]*?mode: "readwrite"/, "支援的 Edge 或 Chrome 應在選取共用資料夾時直接要求讀寫模式");
-assert.match(html, /id="openNetworkSharedFileButton" class="btn btn-create"[^>]*>開啟 FTP 共用 JSON<\/button>/, "本機 HTML 應提供醒目的 FTP JSON 安全開啟按鈕");
-assert.match(html, /id="authorizeNetworkSharedFileButton" class="btn btn-export"[^>]*hidden>允許寫入並開始使用<\/button>/, "FTP JSON 應以第二個明確按鈕要求寫入權限");
+assert.match(html, /id="openNetworkSharedFileButton" class="btn btn-create"[^>]*>開啟 FTP 共用檔案<\/button>/, "本機 HTML 應提供單一醒目的 FTP 共用檔案按鈕");
+assert.match(html, /id="sharedFileBackupButton"[^>]*hidden/, "起始畫面應隱藏瀏覽器備份按鈕");
+assert.match(html, /id="openSharedFileButton"[^>]*hidden/, "起始畫面應隱藏共用資料夾按鈕");
+assert.doesNotMatch(html, /id="authorizeNetworkSharedFileButton"|允許寫入並開始使用/, "FTP 開檔流程不得再要求第二個網站內授權按鈕");
 assert.match(html, /window\.showOpenFilePicker\(\{[\s\S]*?id: "docccc-network-json"/, "FTP JSON 應使用開啟既有檔案的選擇器");
 assert.doesNotMatch(html, /showSaveFilePicker|openSharedJsonFileButton/, "不得用儲存選擇器連結既有共用 JSON，以免確認儲存時先將原檔截成 0 KB");
-assert.match(html, /permissionPromise = handle\.requestPermission\(\{ mode: "readwrite" \}\)/, "FTP JSON 寫入權限只能由第二次明確點擊要求");
+assert.match(html, /const permission = await handle\.requestPermission\(\{ mode: "readwrite" \}\)/, "選取 FTP JSON 後應在同一開檔流程要求讀寫權限");
 assert.doesNotMatch(html, /queryPermission/, "選取資料夾後不得再以額外權限查詢阻塞遠端檔案載入");
 assert.match(html, /id="sharedFileProgress"[^>]*aria-live="polite"/, "選取資料夾後應持續顯示目前讀取階段");
 assert.match(html, /withSharedFileTimeout\([\s\S]*?getFileHandle/, "遠端資料夾讀取卡住時應有逾時回饋");
@@ -79,15 +81,19 @@ assert.match(html, /data-qr-value="\$\{CCC_SCORE_LOOKUP_URL\}"/, "QR Code 應保
 assert.match(html, /conturing\/journal分數查詢<br><small>密碼artd12345!<\/small>/, "CCC 表頭應顯示指定的查詢說明與密碼");
 assert.match(html, /<svg viewBox="0 0 37 37"[^>]*>[\s\S]*CCC_SCORE_LOOKUP_QR_PATH/, "分數查詢 QR Code 應完整內嵌，不得依賴外網圖片服務");
 assert.match(html, /elements\.importDataInput\.addEventListener\("change", importDataBackup\)/, "選取備份檔後應啟動匯入流程");
-assert.match(html, /const SCHEMA_VERSION = 12/, "Core EPA 正式提交與稽核快照加入後應使用 schema v12");
+assert.match(html, /const SCHEMA_VERSION = 13/, "指定教師與 N\/A 計分加入後應使用 schema v13");
 assert.match(html, /const ITEM_MAX_SCORE = 5/, "每個教師分項滿分應為 5 分");
-assert.match(html, /function itemScoreOptions\(selected = null\)/, "教師 0–5 分應由共用下拉選項產生");
-assert.match(html, /<select class="item-score-select"[^>]+required>/, "教師分項應使用 0–5 下拉選單");
+assert.match(html, /const ITEM_NOT_APPLICABLE = "NA"/, "教師分項應以固定 NA 值保存不適用");
+assert.match(html, /function itemScoreOptions\(selected = null\)/, "教師 N\/A 或 1–5 分應由共用下拉選項產生");
+assert.match(html, /<option value="\$\{ITEM_NOT_APPLICABLE\}"[^>]*>N\/A<\/option>/, "教師分項應提供 N\/A 選項");
+assert.doesNotMatch(html, /\[0, 1, 2, 3, 4, 5\]/, "教師分項不得再提供 0 分選項");
+assert.match(html, /<select class="item-score-select"[^>]+required>/, "教師分項應使用 N\/A 或 1–5 下拉選單");
 assert.doesNotMatch(html, /name="\$\{prefix\}-item-\$\{currentIndex\}" type="number"/, "教師分項不得再使用數字輸入框");
 assert.match(html, /level >= 1 && level <= 5/, "學生與教師 Level 應限制為 1–5");
 assert.match(html, /form\[role\] \|\| \(role === "teacher" && !form\.student\)/, "每張表的教師評分應等待該張學生自評完成");
 assert.match(html, /const submittedAt = new Date\(\)\.toISOString\(\)/, "提交時應保存完成時間");
-assert.match(html, /elements\.teacherName\.required = role === "teacher"/, "教師評分應要求教師姓名");
+assert.match(html, /id="teacherIdentityField"[\s\S]*目前評分教師[\s\S]*確定我是評分教師[\s\S]*變更評分教師/, "教師評分開始前應確認目前教師或變更姓名");
+assert.match(html, /elements\.scoreFields\.querySelectorAll\("select"\)[\s\S]*control\.disabled = !confirmed/, "教師完成身分確認前應鎖住六大核心評分欄位");
 assert.match(html, /residents: rosterSnapshot/, "每個期別應保存獨立名單快照");
 assert.match(html, /const RESIDENT_LEVELS = \["R1", "R2", "R3", "R4"\]/, "名單應支援四種住院醫師年級");
 assert.match(html, /data-add-resident-level/, "名單設定應可依年級新增人員");
@@ -96,6 +102,8 @@ assert.match(html, /id="addSixCoreFormButton" class="btn btn-create"[^>]*>＋ �
 assert.match(html, /id="printButton" class="btn btn-export"[^>]*>匯出 PDF<\/button>/, "六大核心頁右上應有醒目的 PDF 按鈕");
 assert.match(html, /id="sixCoreResidentForNewForm" name="residentId" required/, "從固定操作列新增六大核心表單時應選擇住院醫師");
 assert.match(html, /name="assessmentDate" type="date" required/, "新增六大核心評核時應要求選擇日期");
+assert.match(html, /id="sixCoreAssignedTeacherName" name="assignedTeacherName"[^>]*required/, "新增六大核心表單時應先輸入指定教師");
+assert.match(html, /id="coreEpaAssignedTeacherName" name="assignedTeacherName"[^>]*required/, "新增 Core EPA 表單時應先輸入指定教師");
 assert.match(html, /delete period\.assessments\[residentId\]/, "移除未評核人員時應同步移除空白評分表");
 assert.match(html, /function residentHasProtectedData/, "移除前應檢查評核與稽核資料");
 assert.match(html, /sixCoreFormsFor\(assessment\)\.some\(\(form\) => form\.student \|\| form\.teacher \|\| form\.teacherDraft\)/, "任一六大核心表單已有資料時不得移除名單人員");
@@ -124,10 +132,10 @@ assert.match(html, /\.resident-card\.complete::before \{ display: none !importan
 assert.match(html, /\.formal-print-report \{[^}]*padding-top: 3mm;/, "正式列印表頭應保留上方安全距離");
 assert.match(html, /class="formal-print-report"/, "每位學生應有獨立正式列印表");
 assert.match(html, /三軍總醫院 放射腫瘤部住院醫師訓練考核表/, "列印標題應採用 Word 正式表名");
-assert.match(html, /ACGME Milestones 2\.0 暨 100分制雙軌評核/, "列印副標題應採用 Word 表名");
+assert.match(html, /ACGME Milestones 2\.0 暨有效分項 100 分制雙軌評核/, "列印副標題應說明有效分項換算 100 分");
 assert.match(html, /class="formal-code-legend"/, "正式列印表應醒目說明六角圖縮寫");
 assert.match(html, /六角圖縮寫對照/, "縮寫對照應有清楚標題");
-assert.match(html, /<td>\$\{metric\.name\}<\/td>/, "最後評分表的核心能力應顯示中文全名");
+assert.match(html, /<td>\$\{metric\.code\} \$\{metric\.name\}<small>（滿分\$\{metric\.nominalMax\}）<\/small><\/td>/, "最後評分表的核心能力應顯示代碼、中文全名與原始滿分");
 assert.match(html, /const firstInGroup = rowIndex === 0 \|\| column\[rowIndex - 1\]\.competency\.code !== competency\.code/, "原始詳細評分表應辨識每個能力群組的第一列");
 assert.match(html, /<td class="domain" rowspan="\$\{domainItemCount\}">\$\{escapeHTML\(competency\.name\)\}<\/td>/, "核心能力中文全名應依題數合併儲存格");
 assert.match(html, /data-radar-kind="print-absolute"/, "列印表應包含教師分項六角圖");
@@ -152,6 +160,9 @@ assert.match(html, /<span class="student">學生<\/span><span class="teacher">�
 assert.match(html, /<strong>教師評分<\/strong>/, "綠色百分比六角圖標題應為教師評分");
 assert.match(html, /teacherDomainMetrics/, "教師分項應換算各能力小計與百分比");
 assert.match(html, /score \/ max \* 100/, "絕對六角圖應依各能力滿分換算百分比");
+assert.match(html, /function teacherMetricResultText\(metric\)/, "六角圖下方應以共用格式顯示有效分母與 N\/A 數量");
+assert.match(html, /\$\{metric\.code\} \$\{metric\.name\}（滿分\$\{metric\.nominalMax\}）/, "網頁評分表應在能力名稱後顯示精簡原始滿分");
+assert.match(html, /<small>N\/A \$\{metric\.notApplicable\}項<\/small>/, "列印彙整表應顯示各能力 N\/A 數量");
 assert.match(html, /#e5484d/, "學生圖形應使用紅色");
 assert.match(html, /#1769ff/, "教師圖形應使用藍色");
 assert.match(html, /#1d6b50/, "絕對百分比圖形應使用綠色");
@@ -167,14 +178,14 @@ assert.match(html, /itemScores: itemScores \? \[\.\.\.itemScores\]/, "稽核事�
 assert.match(html, /levels: levels \? \[\.\.\.levels\]/, "稽核事件應保存 Level 快照");
 assert.match(html, /ASSESSMENT_ITEMS\.map\(\(item\) => `\$\{item\.code\} 分項`\)/, "CSV 應匯出 20 個分項");
 assert.match(html, /localStorage\.setItem/, "公開預覽版應在瀏覽器保存資料");
-assert.match(html, /載入完成後，暫存、提交與其他正式資料變更都會寫回同一檔案/, "頁面應清楚說明共用 JSON 的直接儲存行為");
+assert.match(html, /暫存、提交與其他正式資料變更會自動寫回同一檔案/, "頁面應清楚說明共用 JSON 的自動儲存行為");
 
 assert.match(html, /function renderCCCForm\(period\)/, "CCC 評核表應依目前期別名單產生表單");
 assert.match(html, /period\?\.residents \|\| \[\]/, "CCC 評核表學生選項應來自該期名單快照");
 assert.match(html, /function sixCoreAggregate\(assessment, dateFrom = "", dateTo = ""\)/, "CCC 六大核心分數應依日期範圍彙整多張表單");
 assert.match(html, /teacherDomainMetrics\(teacher\.itemScores\)/, "每張六大核心表單應沿用綠色六角圖的教師百分比");
-assert.match(html, /score: rawMetrics\.reduce\(\(total, metric\) => total \+ metric\.score, 0\)/, "每張六大核心總分應直接加總教師 20 小項");
-assert.match(html, /每張表先依 20 個教師評分小項取得滿分 100 的原始總分/, "CCC 頁面應明示先算單張總分再做等權平均");
+assert.match(html, /percent: max > 0 \? Math\.round\(score \/ max \* 1000\) \/ 10 : null/, "每張六大核心總分應以有效得分除以有效滿分換算至 100 分");
+assert.match(html, /N\/A 不列入分子與分母/, "CCC 頁面應明示 N\/A 不參與單張分數計算");
 assert.doesNotMatch(html, /未加權六項平均/, "CCC 頁面不得再把六軸算術平均誤稱為核心總分");
 assert.match(html, /name="coreDateFrom" type="date"/, "CCC 應提供六大核心納入起日");
 assert.match(html, /name="coreDateTo" type="date"/, "CCC 應提供六大核心納入迄日");
@@ -220,7 +231,8 @@ assert.match(html, /name="mentorAdvice" maxlength="4000"/, "Core EPAs 應提供�
 assert.match(html, /name="programAdvice" maxlength="4000"/, "Core EPAs 應提供對訓練計畫與科部的建議欄");
 assert.match(html, /assessment\.coreEpaForms\[formIndex\] = \{/, "Core EPA 暫存應只更新目前選取的表單");
 assert.match(html, /data-core-epa-action="draft">暫存目前表單<\/button>/, "Core EPAs 應提供可繼續編輯的暫存按鈕");
-assert.match(html, /name="teacherName" type="text" maxlength="30"[^>]*required[^>]*placeholder="請輸入評核教師姓名"/, "Core EPA 應要求填寫教師姓名");
+assert.match(html, /data-core-epa-identity[\s\S]*目前評分教師[\s\S]*確定我是評分教師[\s\S]*變更評分教師/, "Core EPA 應先要求確認目前教師或變更姓名");
+assert.match(html, /function confirmedCoreEPATeacherName/, "Core EPA 應以已確認的實際教師姓名提交");
 assert.match(html, /type="submit">確定並提交<\/button>/, "Core EPA 表單底部應提供確定並提交按鈕");
 assert.match(html, /function submitCoreEPAForm\(event\)/, "Core EPA 應有獨立正式提交流程");
 assert.match(html, /submittedAt: form\.submittedAt \|\| timestamp/, "Core EPA 第一次提交後應保存固定提交時間");
@@ -289,10 +301,10 @@ new Function(milestoneScripts[0][1]);
 
 const mergeCoreMatch = scripts[0][1].match(/\/\/ MERGE_CORE_START([\s\S]*?)\/\/ MERGE_CORE_END/);
 assert.ok(mergeCoreMatch, "應可抽取三方合併核心做實際邏輯驗證");
-const mergeCore = new Function("SCHEMA_VERSION", "MERGE_AMBIGUITY_MS", `${mergeCoreMatch[1]}; return { mergeSharedStates };`)(12, 5 * 60 * 1000);
+const mergeCore = new Function("SCHEMA_VERSION", "MERGE_AMBIGUITY_MS", `${mergeCoreMatch[1]}; return { mergeSharedStates };`)(13, 5 * 60 * 1000);
 const cloned = (value) => JSON.parse(JSON.stringify(value));
 const mergeState = (form, auditLog = []) => ({
-  schemaVersion: 12,
+  schemaVersion: 13,
   selectedPeriodId: "p1",
   periods: [{
     id: "p1", name: "第一期", createdAt: "2026-08-14T00:00:00.000Z",
@@ -419,7 +431,7 @@ assert.equal(migratedCoreEPATimestamp, "2026-08-14T10:04:00.000Z", "Core EPA 合
 
 assert.doesNotMatch(extractFunction("renamePeriod"), /password|addAuditEvent/, "更改期別名稱不得要求密碼或新增稽核事件");
 assert.doesNotMatch(extractFunction("openSharedDataFile"), /requestPermission/, "共用資料夾流程不得額外要求會失去使用者手勢的權限");
-assert.match(extractFunction("authorizeNetworkSharedDataFile"), /requestPermission\(\{ mode: "readwrite" \}\)/, "只有 FTP JSON 的第二步授權可要求 readwrite 權限");
+assert.match(extractFunction("openNetworkSharedDataFile"), /requestPermission\(\{ mode: "readwrite" \}\)/, "FTP JSON 應在同一開檔流程要求 readwrite 權限");
 
 const persistSignal = new Function(`
   const state = { marker: "changed" };
@@ -452,8 +464,8 @@ const sharedGateModes = new Function(`
   window.top = window;
   const elements = {
     openSharedFileButton: { hidden: false },
+    sharedFileBackupButton: { hidden: false },
     openNetworkSharedFileButton: { hidden: false },
-    authorizeNetworkSharedFileButton: { hidden: false },
     fallbackSharedFileButton: { hidden: false },
     sharedFileCompatibility: { hidden: false },
     sharedFileDialogTitle: { textContent: "" },
@@ -497,9 +509,10 @@ assert.match(sharedGateModes.remoteFile.gateMessage, /本機資料夾/, "FTP／U
 const backupLogic = new Function(`
   const DATA_BACKUP_APP = "DocCCC";
   const DATA_BACKUP_VERSION = 1;
-  const SCHEMA_VERSION = 12;
+  const SCHEMA_VERSION = 13;
   const RESIDENT_LEVELS = ["R1", "R2", "R3", "R4"];
   const ITEM_MAX_SCORE = 5;
+  const ITEM_NOT_APPLICABLE = "NA";
   const COMPETENCIES = Array.from({ length: 6 }, () => ({}));
   const ASSESSMENT_ITEMS = Array.from({ length: 20 }, () => ({}));
   const CORE_EPA_ITEMS = Array.from({ length: 11 }, (_, index) => ({ code: "EPA" + (index + 1) }));
@@ -511,7 +524,7 @@ const backupLogic = new Function(`
   return { createDataBackup, parseDataBackup };
 `)();
 const backupState = {
-  schemaVersion: 12,
+  schemaVersion: 13,
   periods: [{
     id: "period-1", name: "2026 年第 2 期", residents: [{ id: "r1", level: "R1", name: "測試醫師" }],
     assessments: { r1: {
@@ -545,13 +558,13 @@ const preCoreEpaBackup = structuredClone(backupPayload);
 preCoreEpaBackup.schemaVersion = 7;
 preCoreEpaBackup.data.schemaVersion = 7;
 delete preCoreEpaBackup.data.periods[0].assessments.r1.coreEpaForms;
-assert.equal(backupLogic.parseDataBackup(JSON.stringify(preCoreEpaBackup)).schemaVersion, 12, "舊備份應可遷移到目前 schema v12");
+assert.equal(backupLogic.parseDataBackup(JSON.stringify(preCoreEpaBackup)).schemaVersion, 13, "舊備份應可遷移到目前 schema v13");
 const deletionAuditBackup = structuredClone(backupPayload);
 deletionAuditBackup.data.auditLog.push({ type: "period-deletion", role: null, periodName: "已刪除期別", occurredAt: "2026-08-10T08:30:00.000Z" });
 assert.equal(backupLogic.parseDataBackup(JSON.stringify(deletionAuditBackup)).auditLog.at(-1).type, "period-deletion", "含期別刪除事件的備份應可還原");
 assert.throws(() => backupLogic.parseDataBackup("{}"), /有效的 DocCCC 備份/, "不得匯入其他 JSON 檔案");
 assert.throws(
-  () => backupLogic.parseDataBackup(JSON.stringify({ ...backupPayload, schemaVersion: 13 })),
+  () => backupLogic.parseDataBackup(JSON.stringify({ ...backupPayload, schemaVersion: 14 })),
   /較新版 DocCCC/,
   "不得用舊版網頁匯入較新 schema 的備份"
 );
@@ -563,13 +576,18 @@ invalidCoreEpaBackup.data.periods[0].assessments.r1.coreEpaForms[0].levels[0] = 
 assert.throws(() => backupLogic.parseDataBackup(JSON.stringify(invalidCoreEpaBackup)), /格式不正確/, "匯入時應拒絕超出 1–5 的 Core EPA 信賴程度");
 
 const migratedLegacyAssessment = new Function(`
-  const SCHEMA_VERSION = 12;
+  const SCHEMA_VERSION = 13;
   const RESIDENT_LEVELS = ["R1", "R2", "R3", "R4"];
+  const ITEM_MAX_SCORE = 5;
+  const ITEM_NOT_APPLICABLE = "NA";
   const defaultResidents = () => [];
   const legacyAuditEvents = () => [];
   const CORE_EPA_ITEMS = Array.from({ length: 11 });
   ${extractFunction("localDateValue")}
   ${extractFunction("copyResidents")}
+  ${extractFunction("normalizeItemScore")}
+  ${extractFunction("migrateItemScores")}
+  ${extractFunction("migrateSixCoreScoreRecord")}
   ${extractFunction("inferredSixCoreDate")}
   ${extractFunction("migrateCoreEPAForm")}
   ${extractFunction("migrateResidentAssessment")}
@@ -582,7 +600,7 @@ const migratedLegacyAssessment = new Function(`
       assessments: {
         r1: {
           student: { levels: [3, 3, 3, 3, 3, 3], submittedAt: "2026-01-10T01:00:00.000Z" },
-          teacher: { levels: [4, 4, 4, 4, 4, 4], itemScores: Array(20).fill(4), teacherName: "教師", submittedAt: "2026-01-11T01:00:00.000Z" },
+          teacher: { levels: [4, 4, 4, 4, 4, 4], itemScores: [0, ...Array(19).fill(4)], teacherName: "教師", submittedAt: "2026-01-11T01:00:00.000Z" },
           cccDraft: { comments: "保留" },
           coreEpaDraft: {
             traineeType: "pgy1", assessmentDate: "2026-01-09", levels: ["4", "4", "4", "3", "3", "3", "2", "2", "2", "2", "2"],
@@ -597,9 +615,11 @@ const migratedLegacyAssessment = new Function(`
   return migrateState(saved);
 `)();
 const migratedR1 = migratedLegacyAssessment.periods[0].assessments.r1;
-assert.equal(migratedLegacyAssessment.schemaVersion, 12, "schema v8 應遷移至 v12");
+assert.equal(migratedLegacyAssessment.schemaVersion, 13, "schema v8 應遷移至 v13");
 assert.equal(migratedR1.sixCoreForms.length, 1, "舊版每人單張評核應轉成一張六大核心表單");
 assert.equal(migratedR1.sixCoreForms[0].assessmentDate, "2026-01-11", "舊評核日期應優先取教師提交日期");
+assert.equal(migratedR1.sixCoreForms[0].assignedTeacherName, "教師", "舊六大核心表單應從實際評分教師推定指定教師");
+assert.equal(migratedR1.sixCoreForms[0].teacher.itemScores[0], "NA", "歷史 0 分應在遷移時一律改為 N/A");
 assert.equal("student" in migratedR1, false, "遷移後不得保留會造成雙重來源的頂層學生資料");
 assert.equal(migratedR1.cccDraft.comments, "保留", "遷移多表單時不得遺失 CCC 草稿");
 assert.equal(migratedR1.coreEpaForms.length, 1, "舊版單一 Core EPA 草稿應轉成第一張表單");
@@ -961,24 +981,86 @@ assert.equal(cccMath.cccWeightedTotal(80, "", 70, 100), null, "任一人工成�
 assert.equal(cccMath.cccScoreValue(101), "", "百分制欄位不得接受超過 100 分的值");
 assert.equal(cccMath.cccWeightedContribution(71, 0.3), 21.3, "71 分的核心總分乘 30% 應顯示 21.3 分加權貢獻");
 
+const sixCoreTeacherIdentity = new Function(`
+  let activeScoreContext = { role: "teacher" };
+  let selectedMode = "";
+  const form = { assignedTeacherName: "指定教師甲", teacherDraft: { teacherName: "暫存教師乙" } };
+  const scoreControls = Array.from({ length: 26 }, () => ({ disabled: false }));
+  const elements = {
+    scoreForm: { elements: { teacherIdentityMode: { get value() { return selectedMode; } } } },
+    teacherNameField: { hidden: true },
+    teacherName: { value: "", required: false },
+    scoreFields: { querySelectorAll() { return scoreControls; } },
+    saveDraftButton: { disabled: false },
+    submitScoreButton: { disabled: false }
+  };
+  const activeSixCoreForm = () => form;
+  ${extractFunction("makeSixCoreForm")}
+  ${extractFunction("currentSixCoreTeacherName")}
+  ${extractFunction("confirmedSixCoreTeacherName")}
+  ${extractFunction("refreshSixCoreTeacherIdentity")}
+  const createdForm = makeSixCoreForm("2026-08-21", "指定教師甲");
+  refreshSixCoreTeacherIdentity();
+  const beforeConfirmation = {
+    allDisabled: scoreControls.every((control) => control.disabled),
+    draftDisabled: elements.saveDraftButton.disabled,
+    submitDisabled: elements.submitScoreButton.disabled
+  };
+  selectedMode = "current";
+  refreshSixCoreTeacherIdentity();
+  const assignedConfirmation = {
+    teacherName: confirmedSixCoreTeacherName(),
+    allEnabled: scoreControls.every((control) => !control.disabled),
+    draftEnabled: !elements.saveDraftButton.disabled,
+    submitEnabled: !elements.submitScoreButton.disabled
+  };
+  selectedMode = "change";
+  elements.teacherName.value = "";
+  refreshSixCoreTeacherIdentity();
+  const blankChangeDisabled = scoreControls.every((control) => control.disabled);
+  elements.teacherName.value = "  實際教師乙  ";
+  refreshSixCoreTeacherIdentity();
+  return {
+    createdForm, beforeConfirmation, assignedConfirmation, blankChangeDisabled,
+    changedTeacherName: confirmedSixCoreTeacherName(),
+    changedAllEnabled: scoreControls.every((control) => !control.disabled)
+  };
+`)();
+assert.equal(sixCoreTeacherIdentity.createdForm.assignedTeacherName, "指定教師甲", "新建六大核心表單應保存住院醫師輸入的指定教師");
+assert.deepEqual(sixCoreTeacherIdentity.beforeConfirmation, {
+  allDisabled: true, draftDisabled: true, submitDisabled: true
+}, "六大核心教師尚未確認身分時不得評分、暫存或提交");
+assert.deepEqual(sixCoreTeacherIdentity.assignedConfirmation, {
+  teacherName: "暫存教師乙", allEnabled: true, draftEnabled: true, submitEnabled: true
+}, "再次開啟暫存表單時，確認目前評分教師後即應開放六大核心評分");
+assert.equal(sixCoreTeacherIdentity.blankChangeDisabled, true, "選擇變更教師但未輸入新姓名時仍不得評分");
+assert.equal(sixCoreTeacherIdentity.changedTeacherName, "實際教師乙", "變更教師時應使用整理空白後的新姓名");
+assert.equal(sixCoreTeacherIdentity.changedAllEnabled, true, "輸入新教師姓名後應開放六大核心評分");
+
 const coreScoreLogic = new Function(`
   const ITEM_MAX_SCORE = 5;
+  const ITEM_NOT_APPLICABLE = "NA";
   const COMPETENCIES = [
-    ["PC", 8], ["MK", 2], ["PROF", 2], ["PBLI", 2], ["ICS", 3], ["SBP", 3]
-  ].map(([code, count]) => ({ code, name: code, items: Array.from({ length: count }, () => ({})) }));
+    ["PC", "病人照護", 8], ["MK", "醫學知識", 2], ["PROF", "專業素養", 2], ["PBLI", "從實作中學習及改進", 2], ["ICS", "人際及溝通技巧", 3], ["SBP", "制度下之臨床工作", 3]
+  ].map(([code, name, count]) => ({ code, name, items: Array.from({ length: count }, () => ({})) }));
   const ASSESSMENT_ITEMS = COMPETENCIES.flatMap((competency) => competency.items);
+  ${extractFunction("formatCCCScore")}
   ${extractFunction("sixCoreFormsFor")}
   ${extractFunction("validItemScores")}
   ${extractFunction("teacherDomainMetrics")}
+  ${extractFunction("teacherFormTotal")}
+  ${extractFunction("teacherMetricResultText")}
   ${extractFunction("sixCoreFormResult")}
   ${extractFunction("completedSixCoreResults")}
   ${extractFunction("sixCoreAggregate")}
-  return { teacherDomainMetrics, sixCoreAggregate };
+  ${extractFunction("resultSummary")}
+  ${extractFunction("printSummaryTable")}
+  return { teacherDomainMetrics, sixCoreAggregate, resultSummary, printSummaryTable };
 `)();
 const discrepancyItemScores = [5, 4, 4, 4, 4, 4, 4, 4, 3, 2, 3, 3, 3, 3, 4, 3, 3, 4, 4, 3];
 const discrepancyMetrics = coreScoreLogic.teacherDomainMetrics(discrepancyItemScores);
 const misleadingAxisAverage = Math.round(discrepancyMetrics.reduce((total, metric) => total + metric.percent, 0) / discrepancyMetrics.length * 10) / 10;
-assert.equal(misleadingAxisAverage, 65.5, "六軸百分比等權平均可得到與前頁總分不同的 65.5");
+assert.equal(misleadingAxisAverage, 65.4, "六軸百分比等權平均可得到與前頁總分不同的 65.4");
 const multiFormAssessment = { sixCoreForms: [
   { id: "f1", assessmentDate: "2026-01-10", createdAt: "2026-01-10T01:00:00Z", teacher: { itemScores: discrepancyItemScores } },
   { id: "f2", assessmentDate: "2026-03-15", createdAt: "2026-03-15T01:00:00Z", teacher: { itemScores: Array(20).fill(5) } },
@@ -988,9 +1070,45 @@ assert.equal(coreScoreLogic.sixCoreAggregate(multiFormAssessment, "2026-01-01", 
 assert.equal(coreScoreLogic.sixCoreAggregate(multiFormAssessment).score, 85.5, "兩張正式教師評核應等權平均為 85.5 分");
 assert.equal(coreScoreLogic.sixCoreAggregate(multiFormAssessment).forms.length, 2, "學生單獨完成與教師草稿不得列入平均");
 assert.deepEqual(coreScoreLogic.sixCoreAggregate(multiFormAssessment, "2026-03-01", "2026-03-31").metrics.map((metric) => metric.score), [100, 100, 100, 100, 100, 100], "日期篩選後六項能力平均應來自範圍內表單");
+const notApplicableAssessment = { sixCoreForms: [{
+  id: "na-example", assessmentDate: "2026-04-01", createdAt: "2026-04-01T01:00:00Z",
+  teacher: { itemScores: [5, 5, 5, 5, 5, 5, "NA", "NA", 4, 4, 3, 4, 5, 4, 4, 4, 4, 3, 3, 3] }
+}] };
+const notApplicableAggregate = coreScoreLogic.sixCoreAggregate(notApplicableAssessment);
+assert.equal(notApplicableAggregate.score, 83.3, "兩項 N/A 的範例應以 75/90 換算為 83.3 分");
+assert.equal(coreScoreLogic.teacherDomainMetrics(notApplicableAssessment.sixCoreForms[0].teacher.itemScores)[0].max, 30, "PC 八項中兩項 N/A 時有效滿分應為 30");
+const oneNotApplicableAssessment = {
+  student: { levels: Array(6).fill(3) },
+  teacher: { levels: Array(6).fill(4), itemScores: [...Array(7).fill(5), "NA", ...Array(12).fill(5)] }
+};
+const oneNotApplicableWebSummary = coreScoreLogic.resultSummary(oneNotApplicableAssessment);
+const oneNotApplicablePrintSummary = coreScoreLogic.printSummaryTable(oneNotApplicableAssessment);
+assert.match(oneNotApplicableWebSummary, /PC 病人照護（滿分40）[\s\S]*35\/35（100%）｜N\/A 1項/, "六角圖下方應顯示 PC 原始滿分 40、有效分母 35 與一項 N/A");
+assert.match(oneNotApplicablePrintSummary, /PC 病人照護<small>（滿分40）<\/small>[\s\S]*35\/35<small>N\/A 1項<\/small>/, "列印彙整表應以精簡排版顯示原始滿分、有效分母與 N/A 數量");
+const allNotApplicableAggregate = coreScoreLogic.sixCoreAggregate({ sixCoreForms: [{
+  id: "all-na", assessmentDate: "2026-04-02", createdAt: "2026-04-02T01:00:00Z",
+  teacher: { itemScores: Array(20).fill("NA") }
+}] });
+assert.equal(allNotApplicableAggregate.score, null, "整張表全部 N/A 時不得被當成 0 分");
+assert.equal(allNotApplicableAggregate.forms.length, 0, "整張表全部 N/A 時不得納入後續六大核心平均");
+
+const radarNullHandling = new Function(`
+  const COMPETENCIES = ["PC", "MK", "PROF", "PBLI", "ICS", "SBP"].map((code) => ({ code }));
+  const arcs = [];
+  const context = {
+    clearRect() {}, beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, stroke() {}, fill() {}, fillText() {}, setLineDash() {},
+    arc(x, y) { arcs.push({ x, y }); }
+  };
+  const canvas = { width: 320, height: 320, getContext() { return context; } };
+  ${extractFunction("drawRadarChart")}
+  drawRadarChart(canvas, [{ scores: [null, 80, 70, 60, 50, 40], color: "#000" }], 100);
+  return arcs;
+`)();
+assert.equal(radarNullHandling.length, 5, "整個能力皆為 N/A 時六角圖應留空該軸，不得誤畫成 0 分標記");
 
 const renderedCCC = new Function(`
   const ITEM_MAX_SCORE = 5;
+  const ITEM_NOT_APPLICABLE = "NA";
   const COMPETENCIES = [
     ["PC", 8], ["MK", 2], ["PROF", 2], ["PBLI", 2], ["ICS", 3], ["SBP", 3]
   ].map(([code, count]) => ({ code, name: code, items: Array.from({ length: count }, () => ({})) }));
@@ -1016,6 +1134,7 @@ const renderedCCC = new Function(`
   ${extractFunction("sixCoreFormsFor")}
   ${extractFunction("validItemScores")}
   ${extractFunction("teacherDomainMetrics")}
+  ${extractFunction("teacherFormTotal")}
   ${extractFunction("sixCoreFormResult")}
   ${extractFunction("completedSixCoreResults")}
   ${extractFunction("sixCoreAggregate")}
@@ -1093,6 +1212,7 @@ assert.equal(savedCCC.renderCount, 1, "CCC 草稿保存後應重新渲染目前�
 
 const submittedCCC = new Function(`
   const ITEM_MAX_SCORE = 5;
+  const ITEM_NOT_APPLICABLE = "NA";
   const COMPETENCIES = [
     ["PC", 8], ["MK", 2], ["PROF", 2], ["PBLI", 2], ["ICS", 3], ["SBP", 3]
   ].map(([code, count]) => ({ code, name: code, items: Array.from({ length: count }, () => ({})) }));
@@ -1127,6 +1247,7 @@ const submittedCCC = new Function(`
   ${extractFunction("sixCoreFormsFor")}
   ${extractFunction("validItemScores")}
   ${extractFunction("teacherDomainMetrics")}
+  ${extractFunction("teacherFormTotal")}
   ${extractFunction("sixCoreFormResult")}
   ${extractFunction("completedSixCoreResults")}
   ${extractFunction("sixCoreAggregate")}
@@ -1201,10 +1322,11 @@ const renderedCoreEPA = new Function(`
     addCoreEpaFormButton: { disabled: false },
     coreEpaExportButton: { disabled: false },
     coreEpaEmpty: { hidden: true, innerHTML: "" },
-    coreEpaForm: { hidden: true, innerHTML: "", classList: { toggle() {} }, querySelectorAll() { return []; } }
+    coreEpaForm: { hidden: true, innerHTML: "", dataset: {}, classList: { toggle() {} }, querySelectorAll() { return []; } }
   };
   const residentFor = (period, residentId) => period.residents.find((resident) => resident.id === residentId);
   const formatReadableTime = (value) => value;
+  const refreshCoreEPATeacherIdentity = () => {};
   ${extractFunction("escapeHTML")}
   ${extractFunction("coreEpaFormsFor")}
   ${extractFunction("findCoreEPAForm")}
@@ -1216,8 +1338,8 @@ const renderedCoreEPA = new Function(`
     name: "2026 年第 1 期",
     residents: [{ id: "r1", level: "R1", name: "測試醫師" }],
     assessments: { r1: { coreEpaForms: [
-      { id: "e1", assessmentDate: "2026-06-01", createdAt: "2026-06-01T01:00:00.000Z", savedAt: "2026-06-01T02:00:00.000Z", levels: Array(11).fill("3"), learnerAdvice: "", mentorAdvice: "", programAdvice: "" },
-      { id: "e2", assessmentDate: "2026-08-14", createdAt: "2026-08-14T01:00:00.000Z", savedAt: null, levels: ["4", "4", "4", "3", "3", "3", "2", "2", "2", "2", "2"], learnerAdvice: "", mentorAdvice: "", programAdvice: "" }
+      { id: "e1", assessmentDate: "2026-06-01", createdAt: "2026-06-01T01:00:00.000Z", assignedTeacherName: "教師甲", teacherName: "教師甲", savedAt: "2026-06-01T02:00:00.000Z", levels: Array(11).fill("3"), learnerAdvice: "", mentorAdvice: "", programAdvice: "" },
+      { id: "e2", assessmentDate: "2026-08-14", createdAt: "2026-08-14T01:00:00.000Z", assignedTeacherName: "教師乙", teacherName: "暫存教師丙", savedAt: "2026-08-14T02:00:00.000Z", levels: ["4", "4", "4", "3", "3", "3", "2", "2", "2", "2", "2"], learnerAdvice: "", mentorAdvice: "", programAdvice: "" }
     ] } }
   };
   renderCoreEPAForm(period);
@@ -1230,7 +1352,17 @@ assert.equal((renderedCoreEPA.elements.coreEpaForm.innerHTML.match(/class="core-
 assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, /name="level-EPA11"/, "Core EPAs 表單應可填寫 EPA11 信賴程度");
 assert.doesNotMatch(renderedCoreEPA.elements.coreEpaForm.innerHTML, /學員類別|traineeType/, "Core EPAs 表單不得再顯示學員類別");
 assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, /對訓練計畫與科部的建議/, "Core EPAs 表單應完整渲染原始建議欄位");
-assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, /name="teacherName"[^>]*required/, "Core EPA 表單應渲染必填教師姓名");
+assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, /目前評分教師：[\s\S]*暫存教師丙[\s\S]*住院醫師指定：[\s\S]*教師乙[\s\S]*確定我是評分教師[\s\S]*變更評分教師/, "Core EPA 暫存後應直接顯示目前教師，重新確認即可續填");
+assert.equal(renderedCoreEPA.elements.coreEpaForm.dataset.currentTeacherName, "暫存教師丙", "Core EPA 應以暫存姓名作為再次確認的目前評分教師");
+const confirmedCoreEPACurrentTeacher = new Function(`
+  ${extractFunction("confirmedCoreEPATeacherName")}
+  const form = {
+    dataset: { assignedTeacherName: "指定教師乙", currentTeacherName: "暫存教師丙" },
+    elements: { teacherIdentityMode: { value: "current" }, teacherName: { value: "" } }
+  };
+  return confirmedCoreEPATeacherName(form);
+`)();
+assert.equal(confirmedCoreEPACurrentTeacher, "暫存教師丙", "Core EPA 點選確定我是評分教師後應直接沿用暫存姓名");
 assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, />確定並提交<\/button>/, "尚未提交的 Core EPA 表單應在底部顯示正式提交按鈕");
 
 const createdCoreEPA = new Function(`
@@ -1241,6 +1373,7 @@ const createdCoreEPA = new Function(`
   const period = { residents: [{ id: "r1", level: "R1", name: "測試醫師" }], assessments: { r1: { coreEpaForms: [] } } };
   const elements = {
     coreEpaNewAssessmentDate: { value: "2026-07-01" },
+    coreEpaAssignedTeacherName: { value: "教師甲", focus() {} },
     coreEpaFormDialog: { close() {} },
     coreEpaForm: { querySelector() { return null; } }
   };
@@ -1257,6 +1390,7 @@ const createdCoreEPA = new Function(`
   createCoreEPAForm({ preventDefault() {} });
   activeCoreEPACreateResidentId = "r1";
   elements.coreEpaNewAssessmentDate.value = "2026-09-15";
+  elements.coreEpaAssignedTeacherName.value = "教師乙";
   createCoreEPAForm({ preventDefault() {} });
   return { forms: period.assessments.r1.coreEpaForms, selectedCoreEPAFormId, persistCount, renderCount };
 `)();
@@ -1264,6 +1398,7 @@ assert.deepEqual(createdCoreEPA.forms.map((form) => form.assessmentDate), ["2026
 assert.notEqual(createdCoreEPA.forms[0].id, createdCoreEPA.forms[1].id, "每張 Core EPA 表單應有獨立識別碼");
 assert.equal(createdCoreEPA.selectedCoreEPAFormId, createdCoreEPA.forms[1].id, "新增後應開啟剛建立的 Core EPA 表單");
 assert.equal(createdCoreEPA.persistCount, 2, "每次新增 Core EPA 表單都應持久化");
+assert.deepEqual(createdCoreEPA.forms.map((form) => form.assignedTeacherName), ["教師甲", "教師乙"], "每張 Core EPA 表單應保存住院醫師指定教師");
 
 const savedCoreEPA = new Function(`
   const CORE_EPA_ITEMS = Array.from({ length: 11 }, (_, index) => ({ code: "EPA" + (index + 1) }));
@@ -1271,16 +1406,17 @@ const savedCoreEPA = new Function(`
   const selectedCoreEPAFormId = "e2";
   const period = { residents: [{ id: "r1", level: "R1", name: "測試醫師" }], assessments: { r1: { coreEpaForms: [
     { id: "e1", assessmentDate: "2026-06-01", createdAt: "2026-06-01T01:00:00.000Z", savedAt: "2026-06-01T02:00:00.000Z", levels: Array(11).fill("2"), learnerAdvice: "舊表", mentorAdvice: "", programAdvice: "" },
-    { id: "e2", assessmentDate: "2026-08-14", createdAt: "2026-08-14T01:00:00.000Z", savedAt: null, levels: Array(11).fill(""), learnerAdvice: "", mentorAdvice: "", programAdvice: "" }
+    { id: "e2", assessmentDate: "2026-08-14", createdAt: "2026-08-14T01:00:00.000Z", assignedTeacherName: "教師甲", savedAt: null, levels: Array(11).fill(""), learnerAdvice: "", mentorAdvice: "", programAdvice: "" }
   ] } } };
   const values = {
+    teacherIdentityMode: "change",
     teacherName: "  教師甲  ",
     learnerAdvice: "  持續精進  ",
     mentorAdvice: "  加強回饋  ", programAdvice: "  增加實作機會  ",
     ...Object.fromEntries(CORE_EPA_ITEMS.map((item, index) => ["level-" + item.code, index === 10 ? "not-assessed" : String(index % 5 + 1)]))
   };
   const FormData = class { get(name) { return values[name] ?? null; } };
-  const elements = { coreEpaForm: {} };
+  const elements = { coreEpaForm: { dataset: { assignedTeacherName: "教師甲" } } };
   const currentPeriod = () => period;
   const residentFor = (targetPeriod, residentId) => targetPeriod.residents.find((resident) => resident.id === residentId);
   let persistCount = 0;
@@ -1288,6 +1424,7 @@ const savedCoreEPA = new Function(`
   const persist = () => { persistCount += 1; return true; };
   const renderCoreEPAForm = () => { renderCount += 1; };
   const showToast = () => {};
+  const confirmedCoreEPATeacherName = () => "教師甲";
   ${extractFunction("coreEpaFormsFor")}
   ${extractFunction("findCoreEPAForm")}
   ${extractFunction("readCoreEPAForm")}
@@ -1312,14 +1449,15 @@ const submittedCoreEPAResult = new Function(`
   let selectedCoreEPAFormId = "e1";
   let unlockedCoreEPAFormId = null;
   const period = { id: "p1", name: "第一期", residents: [{ id: "r1", level: "R1", name: "測試醫師" }], assessments: { r1: { coreEpaForms: [
-    { id: "e1", assessmentDate: "2026-08-14", createdAt: "2026-08-14T01:00:00.000Z", savedAt: null, submittedAt: null, teacherName: "", levels: Array(11).fill(""), learnerAdvice: "", mentorAdvice: "", programAdvice: "" }
+    { id: "e1", assessmentDate: "2026-08-14", createdAt: "2026-08-14T01:00:00.000Z", assignedTeacherName: "指定教師", savedAt: null, submittedAt: null, teacherName: "", levels: Array(11).fill(""), learnerAdvice: "", mentorAdvice: "", programAdvice: "" }
   ] } } };
   const values = {
+    teacherIdentityMode: "change",
     teacherName: "教師甲", learnerAdvice: "學員建議", mentorAdvice: "", programAdvice: "",
     ...Object.fromEntries(CORE_EPA_ITEMS.map((item) => ["level-" + item.code, "4"]))
   };
   const FormData = class { get(name) { return values[name] ?? null; } };
-  const elements = { coreEpaForm: { reportValidity() { return true; }, elements: { teacherName: { focus() {} } } } };
+  const elements = { coreEpaForm: { dataset: { assignedTeacherName: "指定教師" }, reportValidity() { return true; }, elements: { teacherName: { focus() {} } } } };
   const state = { auditLog: [] };
   const currentPeriod = () => period;
   const residentFor = (targetPeriod, residentId) => targetPeriod.residents.find((resident) => resident.id === residentId);
@@ -1329,6 +1467,7 @@ const submittedCoreEPAResult = new Function(`
   const persist = () => { persistCount += 1; return true; };
   const render = () => {};
   const showToast = () => {};
+  const confirmedCoreEPATeacherName = () => "教師甲";
   ${extractFunction("coreEpaFormsFor")}
   ${extractFunction("findCoreEPAForm")}
   ${extractFunction("readCoreEPAForm")}
@@ -1343,6 +1482,7 @@ assert.ok(submittedCoreEPAResult.form.submittedAt, "Core EPA 正式提交應保�
 assert.deepEqual(submittedCoreEPAResult.form.levels, Array(11).fill("4"), "Core EPA 正式提交應保存 EPA1–EPA11 完整快照");
 assert.equal(submittedCoreEPAResult.auditLog[0].type, "core-epa-submission", "Core EPA 正式提交應新增專屬稽核事件");
 assert.equal(submittedCoreEPAResult.auditLog[0].coreEpaForm.teacherName, "教師甲", "Core EPA 稽核事件應保存整張表單快照");
+assert.equal(submittedCoreEPAResult.auditLog[0].assignedTeacherName, "指定教師", "Core EPA 稽核事件應同時保存住院醫師指定教師");
 assert.equal(submittedCoreEPAResult.persistCount, 1, "Core EPA 正式提交應持久化一次");
 
 const modifiedCoreEPAResult = new Function(`
@@ -1353,7 +1493,7 @@ const modifiedCoreEPAResult = new Function(`
   let unlockedCoreEPAFormId = null;
   const originalSubmittedAt = "2026-08-14T09:00:00.000Z";
   const period = { id: "p1", name: "第一期", residents: [{ id: "r1", level: "R1", name: "測試醫師" }], assessments: { r1: { coreEpaForms: [
-    { id: "e1", assessmentDate: "2026-08-14", createdAt: "2026-08-14T01:00:00.000Z", savedAt: originalSubmittedAt, submittedAt: originalSubmittedAt, teacherName: "教師甲", levels: Array(11).fill("3"), learnerAdvice: "原建議", mentorAdvice: "", programAdvice: "" }
+    { id: "e1", assessmentDate: "2026-08-14", createdAt: "2026-08-14T01:00:00.000Z", assignedTeacherName: "指定教師", savedAt: originalSubmittedAt, submittedAt: originalSubmittedAt, teacherName: "教師甲", levels: Array(11).fill("3"), learnerAdvice: "原建議", mentorAdvice: "", programAdvice: "" }
   ] } } };
   const values = {
     teacherName: "教師乙", learnerAdvice: "修改後建議", mentorAdvice: "", programAdvice: "",
@@ -1363,7 +1503,7 @@ const modifiedCoreEPAResult = new Function(`
   const elements = {
     coreEpaUnlockPassword: { value: ADMIN_PASSWORD, select() {} },
     coreEpaUnlockDialog: { close() {} },
-    coreEpaForm: { reportValidity() { return true; }, elements: { teacherName: { focus() {} } } }
+    coreEpaForm: { dataset: { assignedTeacherName: "指定教師" }, reportValidity() { return true; }, elements: { teacherName: { focus() {} } } }
   };
   const state = { auditLog: [] };
   const currentPeriod = () => period;
@@ -1412,6 +1552,7 @@ const coreEPAPDFMarkup = new Function(`
   const resident = { level: "R1", name: "測試醫師" };
   const record = {
     assessmentDate: "2026-08-14",
+    assignedTeacherName: "指定教師",
     teacherName: "教師甲",
     levels: ["4", "4", "4", "3", "3", "3", "2", "2", "2", "2", "5"],
     learnerAdvice: "學員建議", mentorAdvice: "導師建議", programAdvice: "科部建議"
@@ -1422,6 +1563,7 @@ assert.match(coreEPAPDFMarkup, /三軍總醫院 放射腫瘤部 core EPAs 評量
 assert.match(coreEPAPDFMarkup, /EPA11[\s\S]*Level 5/, "Core EPAs PDF 應帶入 EPA11 的信賴程度");
 assert.match(coreEPAPDFMarkup, /住院醫師姓名：[\s\S]*測試醫師[\s\S]*年資：[\s\S]*R1/, "Core EPAs PDF 應帶入住院醫師姓名與年資");
 assert.match(coreEPAPDFMarkup, /評核教師：[\s\S]*教師甲/, "Core EPAs PDF 應帶入具名評核教師");
+assert.match(coreEPAPDFMarkup, /指定教師：[\s\S]*指定教師/, "Core EPAs PDF 應帶入住院醫師原先指定教師");
 assert.doesNotMatch(coreEPAPDFMarkup, /學員類別/, "Core EPAs PDF 不得再顯示學員類別");
 assert.match(coreEPAPDFMarkup, /學員建議[\s\S]*導師建議[\s\S]*科部建議/, "Core EPAs PDF 應帶入三組建議內容");
 assert.match(coreEPAPDFMarkup, /2026 年第 1 期/, "Core EPAs PDF 應帶入評量期別");
