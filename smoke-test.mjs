@@ -1,11 +1,16 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 const html = readFileSync(new URL("./index.html", import.meta.url), "utf8");
 const milestonesHtml = readFileSync(new URL("./milestones.html", import.meta.url), "utf8");
 const manualUrl = new URL("./manual/DocCCC_院內使用手冊.html", import.meta.url);
 const manualHtml = readFileSync(manualUrl, "utf8");
 const manualPdfUrl = new URL("./manual/DocCCC_院內使用手冊.pdf", import.meta.url);
+const browserSmokeUrl = new URL("./browser-smoke-test.html", import.meta.url);
 
 assert.match(html, /<title>CCC 核心能力評分<\/title>/, "頁面標題應存在");
 assert.match(html, /<button class="tab active" data-tab="assessment" type="button">六大核心<\/button>/, "原評分作業頁簽應改名為六大核心");
@@ -128,6 +133,8 @@ assert.match(html, /id="deletePeriodPassword"[^>]*type="password"/, "刪除期�
 assert.match(html, /type: "period-deletion"/, "刪除期別應建立獨立稽核事件");
 assert.match(html, /periodSummary: periodAuditSummary\(period\)/, "期別刪除稽核應保存刪除當下的資料摘要");
 assert.match(html, /const AUDIT_PASSWORD = "DOC12345"/, "稽核紀錄頁應設定獨立檢視密碼");
+assert.match(html, /function commitStateChange\(mutator, persistOptions\)/, "狀態修改應有統一的保存失敗回滾入口");
+assert.match(html, /const nameLocked = protectedData && Boolean\(String\(resident\.name \|\| ""\)\.trim\(\)\)/, "已有保護資料的非空姓名應鎖定");
 assert.match(html, /id="auditAuthForm"/, "稽核紀錄頁應先顯示密碼驗證表單");
 assert.match(html, /if \(!auditUnlocked\) \{\s*elements\.auditContent\.innerHTML = "";/, "稽核頁未解鎖時不得把紀錄渲染到頁面");
 assert.match(html, /if \(!auditUnlocked\) \{ showToast\("請先輸入稽核檢視密碼。"\); return; \}/, "未解鎖時不得匯出稽核 CSV");
@@ -180,7 +187,7 @@ assert.match(html, /點擊查看 20 項原始評分/, "教師六角圖應提示�
 assert.match(html, /舊版資料僅供查看/, "既有 0–100 資料應保留為唯讀資料");
 assert.match(html, /id="saveDraftButton"/, "教師評核表應提供暫存按鈕");
 assert.match(html, /function saveTeacherDraft\(\)/, "教師評核暫存應有獨立儲存流程");
-assert.match(html, /form\.teacherDraft = \{ teacherName, itemScores, levels, savedAt:/, "每張表暫存應保存教師姓名、分項與 Level");
+assert.match(html, /const draft = \{ teacherName, itemScores, levels, savedAt:[\s\S]*form\.teacherDraft = draft/, "每張表暫存應保存教師姓名、分項與 Level");
 assert.match(html, /delete form\.teacherDraft/, "指定表單正式提交後應清除自己的教師暫存");
 assert.match(html, /itemScores: itemScores \? \[\.\.\.itemScores\]/, "稽核事件應保存教師分項快照");
 assert.match(html, /levels: levels \? \[\.\.\.levels\]/, "稽核事件應保存 Level 快照");
@@ -206,7 +213,7 @@ assert.match(html, /name="journalMeetingScore" type="number" min="0" max="100"/,
 assert.match(html, /name="annualExamScore" type="number" min="0" max="100"/, "學會年度考試應提供百分制手動輸入");
 assert.match(html, /CCC_EPA_OPTIONS/, "EPA 臨床授權應提供 L1–L5 勾選項");
 assert.match(html, /name="comments" maxlength="2000"/, "CCC 總評語應提供手動輸入欄位");
-assert.match(html, /assessment\.cccDraft = \{/, "CCC 初稿應保存到該期該學生的評核記錄");
+assert.match(html, /const draft = \{[\s\S]*\.\.\.readCCCForm\(\)[\s\S]*assessment\.cccDraft = draft/, "CCC 初稿應保存到該期該學生的評核記錄");
 assert.match(html, />暫存<\/button>/, "CCC 表單應提供可繼續編輯的暫存按鈕");
 assert.match(html, />提交<\/button>/, "CCC 表單應提供正式提交按鈕");
 assert.match(html, />匯出 PDF<\/button>/, "CCC 表單應提供 PDF 匯出按鈕");
@@ -424,6 +431,13 @@ function extractFunction(name) {
   return match[0];
 }
 
+for (const functionName of [
+  "saveCCCDraft", "submitCCCForm", "addRosterResident", "removeRosterResident",
+  "saveTeacherDraft", "submitScores", "unlockModification", "submitModification", "createPeriod"
+]) {
+  assert.match(extractFunction(functionName), /commitStateChange\(/, `${functionName} 應在保存失敗時回滾狀態`);
+}
+
 const itemScoreOptionsLogic = new Function(`
   const ITEM_NOT_APPLICABLE = "NA";
   ${extractFunction("itemScoreOptions")}
@@ -465,6 +479,20 @@ const persistSignal = new Function(`
 assert.deepEqual(persistSignal, {
   saved: true, scheduledOptions: { explicit: true }
 }, "表單暫存、提交及名單變更的 persist 應把 FTP JSON 視為明確存檔動作");
+
+const failedStateChange = new Function(`
+  let state = { nested: { score: 1 }, auditLog: [{ id: "existing" }] };
+  const persist = () => false;
+  ${extractFunction("cloneMergeValue")}
+  ${extractFunction("commitStateChange")}
+  const committed = commitStateChange(() => {
+    state.nested.score = 5;
+    state.auditLog.push({ id: "new" });
+  });
+  return { committed, state };
+`)();
+assert.equal(failedStateChange.committed, false, "瀏覽器保存失敗時應回報狀態修改未完成");
+assert.deepEqual(failedStateChange.state, { nested: { score: 1 }, auditLog: [{ id: "existing" }] }, "保存失敗時應同時回滾資料與新增稽核事件");
 
 const sharedGateModes = new Function(`
   let sharedFileMode = "locked";
@@ -1207,7 +1235,8 @@ const savedCCC = new Function(`
   const residentFor = (targetPeriod, residentId) => targetPeriod.residents.find((resident) => resident.id === residentId);
   let persistCount = 0;
   let renderCount = 0;
-  const persist = () => { persistCount += 1; };
+  const persist = () => { persistCount += 1; return true; };
+  const commitStateChange = (mutator) => { mutator(); return persist(); };
   const renderCCCForm = () => { renderCount += 1; };
   const showToast = () => {};
   ${extractFunction("cccScoreValue")}
@@ -1258,7 +1287,8 @@ const submittedCCC = new Function(`
   let persistCount = 0;
   let renderCount = 0;
   const addAuditEvent = (event) => { auditEvent = event; };
-  const persist = () => { persistCount += 1; };
+  const persist = () => { persistCount += 1; return true; };
+  const commitStateChange = (mutator) => { mutator(); return persist(); };
   const render = () => { renderCount += 1; };
   const showToast = () => {};
   ${extractFunction("sixCoreFormsFor")}
@@ -1586,5 +1616,36 @@ assert.match(coreEPAPDFMarkup, /學員建議[\s\S]*導師建議[\s\S]*科部建�
 assert.match(coreEPAPDFMarkup, /2026 年第 1 期/, "Core EPAs PDF 應帶入評量期別");
 
 await import("./ftp-write-probe-test.mjs");
+
+if (process.argv.includes("--browser")) {
+  const browserPath = process.env.DOCCCC_BROWSER_PATH;
+  assert.ok(browserPath, "使用 --browser 時必須設定 DOCCCC_BROWSER_PATH");
+  const testPath = fileURLToPath(browserSmokeUrl);
+  const profileDirectory = mkdtempSync(join(tmpdir(), "docccc-browser-"));
+  const toWindowsPath = (path) => {
+    const converted = spawnSync("wslpath", ["-w", path], { encoding: "utf8" });
+    assert.equal(converted.status, 0, converted.stderr || `無法轉換 Windows 路徑：${path}`);
+    return converted.stdout.trim();
+  };
+  const toFileURL = (path) => path.startsWith("\\\\")
+    ? `file:${path.replaceAll("\\", "/")}`
+    : `file:///${path.replaceAll("\\", "/")}`;
+  try {
+    const browserResult = spawnSync(browserPath, [
+      "--headless=new", "--disable-gpu", "--no-first-run", "--allow-file-access-from-files",
+      `--user-data-dir=${toWindowsPath(profileDirectory)}`,
+      "--dump-dom", toFileURL(toWindowsPath(testPath))
+    ], { encoding: "utf8", timeout: 60_000 });
+    assert.equal(browserResult.status, 0, browserResult.stderr || "瀏覽器整合測試無法啟動");
+    assert.match(
+      browserResult.stdout,
+      /<pre id="result">PASS: DocCCC browser integration verified<\/pre>/,
+      browserResult.stdout.match(/<pre id="result">FAIL:[^<]*<\/pre>/)?.[0] || "瀏覽器整合測試未完成"
+    );
+    console.log("PASS: real browser submission rollback and roster locking verified");
+  } finally {
+    rmSync(profileDirectory, { recursive: true, force: true });
+  }
+}
 
 console.log("PASS: static contract and JavaScript syntax verified");

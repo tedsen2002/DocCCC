@@ -968,7 +968,7 @@
     <section id="panel-roster" class="panel" hidden>
       <div class="section-card">
         <h2 class="section-heading">住院醫師名單</h2>
-        <p class="section-help">目前編輯：<strong id="rosterPeriodName"></strong>。可依年級新增或縮減人數；已有評核、暫存或稽核紀錄者不可移除。每個期別保存自己的名單快照，新增期別時會複製目前名單。</p>
+        <p class="section-help">目前編輯：<strong id="rosterPeriodName"></strong>。可依年級新增或縮減人數；已有評核、暫存或稽核紀錄者不可移除，非空姓名也會鎖定。每個期別保存自己的名單快照，新增期別時會複製目前名單。</p>
         <div id="rosterActions" class="roster-actions" aria-label="依年級新增住院醫師"></div>
         <div id="roster" class="roster"></div>
       </div>
@@ -2191,6 +2191,19 @@
       };
     }
     // MERGE_CORE_END
+
+    function commitStateChange(mutator, persistOptions) {
+      const previousState = cloneMergeValue(state);
+      try {
+        mutator();
+      } catch (error) {
+        state = previousState;
+        throw error;
+      }
+      if (persist(persistOptions)) return true;
+      state = previousState;
+      return false;
+    }
 
     function mergeDecodedSegments(path) {
       return path.split("/").slice(1).map((part) => ({ keyed: part.startsWith("@"), value: decodeURIComponent(part.startsWith("@") ? part.slice(1) : part) }));
@@ -3689,11 +3702,11 @@
         showToast("CCC 評核表已正式提交並鎖定。");
         return;
       }
-      assessment.cccDraft = {
+      const draft = {
         ...readCCCForm(),
         savedAt: new Date().toISOString()
       };
-      persist();
+      if (!commitStateChange(() => { assessment.cccDraft = draft; })) return;
       renderCCCForm(period);
       showToast(`已暫存 ${resident.level} ${resident.name || "未命名"} 的 CCC 評核表。`);
     }
@@ -3920,15 +3933,16 @@
         residentLevel: resident.level,
         submittedAt
       };
-      assessment.cccSubmission = submission;
-      delete assessment.cccDraft;
-      addAuditEvent({
-        type: "ccc-submission", period, resident, role: "ccc",
-        teacherName: formValues.mentorName,
-        actorName: formValues.mentorName || "CCC 評核人",
-        cccForm: submission
-      });
-      persist();
+      if (!commitStateChange(() => {
+        assessment.cccSubmission = submission;
+        delete assessment.cccDraft;
+        addAuditEvent({
+          type: "ccc-submission", period, resident, role: "ccc",
+          teacherName: formValues.mentorName,
+          actorName: formValues.mentorName || "CCC 評核人",
+          cccForm: submission
+        });
+      })) return;
       render();
       showToast(`已正式提交 ${resident.level} ${resident.name || "未命名"} 的 CCC 評核表。`);
     }
@@ -4410,11 +4424,12 @@
       const resident = makeResident(level);
       const levelIndex = RESIDENT_LEVELS.indexOf(level);
       const insertAt = period.residents.findIndex((item) => RESIDENT_LEVELS.indexOf(item.level) > levelIndex);
-      period.residents.splice(insertAt === -1 ? period.residents.length : insertAt, 0, resident);
-      period.assessments ||= {};
-      period.assessments[resident.id] = makeResidentAssessment();
-      period.updatedAt = new Date().toISOString();
-      persist();
+      if (!commitStateChange(() => {
+        period.residents.splice(insertAt === -1 ? period.residents.length : insertAt, 0, resident);
+        period.assessments ||= {};
+        period.assessments[resident.id] = makeResidentAssessment();
+        period.updatedAt = new Date().toISOString();
+      })) return;
       render();
       requestAnimationFrame(() => elements.roster.querySelector(`[data-resident-name="${resident.id}"]`)?.focus());
       showToast(`已新增一位 ${level}，評分表已同步建立。`);
@@ -4430,10 +4445,11 @@
       }
       const label = `${resident.level} ${resident.name || "未命名"}`;
       if (!window.confirm(`確定要從本期名單移除「${label}」嗎？`)) return;
-      period.residents = period.residents.filter((item) => item.id !== residentId);
-      delete period.assessments[residentId];
-      period.updatedAt = new Date().toISOString();
-      persist();
+      if (!commitStateChange(() => {
+        period.residents = period.residents.filter((item) => item.id !== residentId);
+        delete period.assessments[residentId];
+        period.updatedAt = new Date().toISOString();
+      })) return;
       render();
       showToast(`已移除「${label}」，評分表已同步更新。`);
     }
@@ -4454,10 +4470,11 @@
       }
       elements.roster.innerHTML = period.residents.map((resident) => {
         const protectedData = residentHasProtectedData(period, resident.id);
+        const nameLocked = protectedData && Boolean(String(resident.name || "").trim());
         return `
           <div class="roster-row">
             <span class="level">${escapeHTML(resident.level)}</span>
-            <input type="text" maxlength="30" value="${escapeHTML(resident.name)}" data-resident-name="${resident.id}" placeholder="輸入住院醫師姓名" aria-label="${escapeHTML(resident.level)} 姓名">
+            <input type="text" maxlength="30" value="${escapeHTML(resident.name)}" data-resident-name="${resident.id}" placeholder="輸入住院醫師姓名" aria-label="${escapeHTML(resident.level)} 姓名"${nameLocked ? " disabled title=\"已有評核、暫存或稽核紀錄，姓名已鎖定\"" : ""}>
             <span class="saved-hint" data-saved-hint="${resident.id}">已保存</span>
             <button class="btn btn-secondary roster-remove" type="button" data-remove-resident="${resident.id}" ${protectedData ? "disabled" : ""} title="${protectedData ? "已有評核、暫存或稽核紀錄，不能移除" : `移除 ${escapeHTML(resident.level)} ${escapeHTML(resident.name || "未命名")}`}">移除</button>
           </div>
@@ -4465,19 +4482,25 @@
       }).join("");
       elements.roster.querySelectorAll("[data-resident-name]").forEach((input) => {
         input.addEventListener("change", () => {
-          const resident = residentFor(period, input.dataset.residentName);
+          const activePeriod = state.periods.find((item) => item.id === period.id);
+          const resident = residentFor(activePeriod, input.dataset.residentName);
           if (!resident) return;
-          resident.name = input.value.trim();
-          resident.updatedAt = new Date().toISOString();
+          const name = input.value.trim();
+          if (!commitStateChange(() => {
+            resident.name = name;
+            resident.updatedAt = new Date().toISOString();
+          })) {
+            renderRoster(currentPeriod());
+            return;
+          }
           input.value = resident.name;
-          persist();
           const hint = elements.roster.querySelector(`[data-saved-hint="${resident.id}"]`);
           hint.classList.add("show");
           setTimeout(() => hint.classList.remove("show"), 1500);
-          renderResidents(period);
-          renderCCCForm(period);
-          renderCoreEPAForm(period);
-          renderScoreSummary(period);
+          renderResidents(activePeriod);
+          renderCCCForm(activePeriod);
+          renderCoreEPAForm(activePeriod);
+          renderScoreSummary(activePeriod);
         });
       });
       elements.roster.querySelectorAll("[data-remove-resident]").forEach((button) => {
@@ -4890,8 +4913,8 @@
       if (!validPartialScores(levels, 1, 5)) { showToast("已填的教師評核分數須為 L1–L5。"); return; }
       const hasContent = teacherName || itemScores.some((score) => score !== null) || levels.some((level) => level !== null);
       if (!hasContent) { showToast("請至少填寫一項內容再暫存。"); return; }
-      form.teacherDraft = { teacherName, itemScores, levels, savedAt: new Date().toISOString() };
-      persist();
+      const draft = { teacherName, itemScores, levels, savedAt: new Date().toISOString() };
+      if (!commitStateChange(() => { form.teacherDraft = draft; })) return;
       elements.scoreDialog.close();
       activeScoreContext = null;
       render();
@@ -4917,16 +4940,17 @@
       if (context.role === "teacher" && !teacherName) { showToast("請先確認或變更評分教師姓名。"); return; }
       if (context.role === "teacher" && !validItemScores(itemScores)) { showToast("20 個分項皆須選擇 N/A 或 1–5。"); return; }
       const submittedAt = new Date().toISOString();
-      form[context.role] = context.role === "teacher"
-        ? { itemScores, levels, submittedAt, teacherName }
-        : { levels, submittedAt };
-      if (context.role === "teacher") delete form.teacherDraft;
-      addAuditEvent({
-        type: "submission", period, resident, sixCoreFormId: form.id, assessmentDate: form.assessmentDate,
-        role: context.role, levels, itemScores, assignedTeacherName: form.assignedTeacherName || "", teacherName,
-        actorName: context.role === "teacher" ? teacherName : resident.name || "未命名"
-      });
-      persist();
+      if (!commitStateChange(() => {
+        form[context.role] = context.role === "teacher"
+          ? { itemScores, levels, submittedAt, teacherName }
+          : { levels, submittedAt };
+        if (context.role === "teacher") delete form.teacherDraft;
+        addAuditEvent({
+          type: "submission", period, resident, sixCoreFormId: form.id, assessmentDate: form.assessmentDate,
+          role: context.role, levels, itemScores, assignedTeacherName: form.assignedTeacherName || "", teacherName,
+          actorName: context.role === "teacher" ? teacherName : resident.name || "未命名"
+        });
+      })) return;
       elements.scoreDialog.close();
       activeScoreContext = null;
       render();
@@ -4958,9 +4982,10 @@
       const form = findSixCoreForm(assessment, context?.formId);
       if (!context || !period || !resident || !form) return;
       if (elements.adminPassword.value !== ADMIN_PASSWORD) { showToast("管理密碼不正確。"); elements.adminPassword.select(); return; }
+      if (!commitStateChange(() => {
+        addAuditEvent({ type: "unlock", period, resident, sixCoreFormId: form.id, assessmentDate: form.assessmentDate, assignedTeacherName: form.assignedTeacherName || "", teacherName: form.teacher?.teacherName || form.teacherDraft?.teacherName || "", actorName: "管理者（密碼驗證）" });
+      })) return;
       context.unlocked = true;
-      addAuditEvent({ type: "unlock", period, resident, sixCoreFormId: form.id, assessmentDate: form.assessmentDate, assignedTeacherName: form.assignedTeacherName || "", teacherName: form.teacher?.teacherName || form.teacherDraft?.teacherName || "", actorName: "管理者（密碼驗證）" });
-      persist();
       elements.unlockStage.hidden = true;
       elements.modifyStage.hidden = false;
       const availableRoles = ["student", "teacher"].filter((role) => form[role]);
@@ -5008,16 +5033,17 @@
       const levelsChanged = levels.some((level, index) => level !== beforeLevels[index]);
       const itemScoresChanged = context.role === "teacher" && itemScores.some((score, index) => score !== beforeItemScores[index]);
       if (!levelsChanged && !itemScoresChanged) { showToast("評核內容沒有變動。"); return; }
-      submission.levels = levels;
-      if (context.role === "teacher") submission.itemScores = itemScores;
-      submission.updatedAt = new Date().toISOString();
-      addAuditEvent({
-        type: "modification", period, resident, sixCoreFormId: form.id, assessmentDate: form.assessmentDate,
-        role: context.role, levels, beforeLevels, itemScores, beforeItemScores, assignedTeacherName: form.assignedTeacherName || "",
-        teacherName: context.role === "teacher" ? submission.teacherName || "未記錄（舊資料）" : "",
-        actorName: "管理者（密碼驗證）"
-      });
-      persist();
+      if (!commitStateChange(() => {
+        submission.levels = levels;
+        if (context.role === "teacher") submission.itemScores = itemScores;
+        submission.updatedAt = new Date().toISOString();
+        addAuditEvent({
+          type: "modification", period, resident, sixCoreFormId: form.id, assessmentDate: form.assessmentDate,
+          role: context.role, levels, beforeLevels, itemScores, beforeItemScores, assignedTeacherName: form.assignedTeacherName || "",
+          teacherName: context.role === "teacher" ? submission.teacherName || "未記錄（舊資料）" : "",
+          actorName: "管理者（密碼驗證）"
+        });
+      })) return;
       elements.modifyDialog.close();
       activeModifyContext = null;
       render();
@@ -5034,9 +5060,10 @@
       }
       const sourceRoster = currentPeriod()?.residents || defaultResidents();
       const period = makePeriod(name, sourceRoster);
-      state.periods.push(period);
-      state.selectedPeriodId = period.id;
-      persist();
+      if (!commitStateChange(() => {
+        state.periods.push(period);
+        state.selectedPeriodId = period.id;
+      })) return;
       elements.periodDialog.close();
       elements.periodForm.reset();
       render();

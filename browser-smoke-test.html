@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <title>DocCCC browser smoke test</title>
+</head>
+<body>
+  <pre id="result">RUNNING: DocCCC browser integration</pre>
+  <iframe id="app" src="index.html" hidden></iframe>
+  <script>
+    const result = document.querySelector("#result");
+    const frame = document.querySelector("#app");
+
+    function assert(condition, message) {
+      if (!condition) throw new Error(message);
+    }
+
+    frame.addEventListener("load", () => {
+      const app = frame.contentWindow;
+      const appDocument = frame.contentDocument;
+      const originalSetItem = app.Storage.prototype.setItem;
+      try {
+        app.eval(`
+          state = makeDefaultState();
+          const period = currentPeriod();
+          const resident = period.residents[0];
+          resident.name = "瀏覽器測試醫師";
+          const form = makeSixCoreForm("2026-08-29", "測試教師");
+          period.assessments[resident.id].sixCoreForms.push(form);
+          render();
+          openScoreDialog(resident.id, form.id, "student");
+        `);
+        appDocument.querySelectorAll("#scoreFields select").forEach((select) => { select.value = "3"; });
+        app.Storage.prototype.setItem = () => { throw new app.DOMException("blocked", "QuotaExceededError"); };
+        appDocument.querySelector("#scoreForm").requestSubmit();
+
+        const rollback = app.eval(`(() => {
+          const period = currentPeriod();
+          const resident = period.residents[0];
+          const form = period.assessments[resident.id].sixCoreForms[0];
+          return {
+            student: form.student,
+            auditLength: state.auditLog.length,
+            dialogOpen: elements.scoreDialog.open,
+            toast: elements.toast.textContent
+          };
+        })()`);
+        assert(rollback.student === null, "保存失敗後學生提交必須回滾");
+        assert(rollback.auditLength === 0, "保存失敗後不得留下提交稽核事件");
+        assert(rollback.dialogOpen, "保存失敗後應保留評分視窗供重試");
+        assert(rollback.toast.includes("無法保存資料"), "保存失敗後應顯示錯誤訊息");
+
+        app.Storage.prototype.setItem = originalSetItem;
+        app.eval(`
+          const period = currentPeriod();
+          const resident = period.residents[0];
+          const form = period.assessments[resident.id].sixCoreForms[0];
+          form.student = { levels: [3, 3, 3, 3, 3, 3], submittedAt: new Date().toISOString() };
+          addAuditEvent({
+            type: "submission", period, resident, sixCoreFormId: form.id,
+            assessmentDate: form.assessmentDate, role: "student", levels: form.student.levels,
+            actorName: resident.name
+          });
+          renderRoster(period);
+        `);
+        assert(appDocument.querySelector("[data-resident-name]").disabled, "已有保護資料的非空姓名必須鎖定");
+
+        app.eval(`
+          const period = currentPeriod();
+          period.residents[0].name = "";
+          renderRoster(period);
+        `);
+        assert(!appDocument.querySelector("[data-resident-name]").disabled, "歷史空白姓名仍應允許補登一次");
+        result.textContent = "PASS: DocCCC browser integration verified";
+      } catch (error) {
+        result.textContent = `FAIL: ${error instanceof Error ? error.message : String(error)}`;
+      } finally {
+        app.Storage.prototype.setItem = originalSetItem;
+      }
+    }, { once: true });
+  </script>
+</body>
+</html>
