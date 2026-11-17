@@ -72,6 +72,27 @@
         `);
         assert(!appDocument.querySelector("[data-resident-name]").disabled, "歷史空白姓名仍應允許補登一次");
 
+        app.eval(`
+          const period = currentPeriod();
+          period.residents[0].name = "瀏覽器測試醫師";
+          renderRoster(period);
+        `);
+        const mentorInput = appDocument.querySelector("[data-resident-mentor]");
+        assert(mentorInput && !mentorInput.disabled && mentorInput.placeholder === "輸入導師姓名", "名單每列應有可輸入的導師欄位，且不因已有評核紀錄而鎖定");
+        assert(appDocument.querySelector(".roster-row .roster-mentor span").textContent === "導師", "導師欄位前應標示「導師」");
+        mentorInput.value = "  導師甲  ";
+        mentorInput.dispatchEvent(new app.Event("change", { bubbles: true }));
+        const savedMentor = app.eval(`currentPeriod().residents[0].mentor`);
+        const storedMentor = JSON.parse(app.localStorage.getItem(app.eval("STORAGE_KEY"))).periods.find((item) => item.id === app.eval("currentPeriod().id")).residents[0].mentor;
+        assert(savedMentor === "導師甲" && storedMentor === "導師甲", `導師姓名應去除前後空白後保存到瀏覽器資料，實際 ${savedMentor} / ${storedMentor}`);
+        app.eval(`renderRoster(currentPeriod());`);
+        assert(appDocument.querySelector("[data-resident-mentor]").value === "導師甲", "重新顯示名單時應帶回已保存的導師姓名");
+        app.eval(`
+          const period = currentPeriod();
+          period.residents[0].name = "";
+          renderRoster(period);
+        `);
+
         const entryTeacherText = () => appDocument.querySelector(".six-core-entry-title .six-core-entry-teacher")?.textContent;
         app.eval(`renderResidents(currentPeriod());`);
         assert(entryTeacherText() === "評核教師：測試教師", "教師尚未評核時，日期旁應顯示住院醫師指定的教師");

@@ -347,7 +347,7 @@
     .roster { display: grid; gap: 12px; }
     .roster-row {
       display: grid;
-      grid-template-columns: 64px minmax(0, 1fr) 52px auto;
+      grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1fr) 52px auto;
       gap: 14px;
       align-items: center;
       padding: 13px;
@@ -356,6 +356,8 @@
       background: #fbfbf7;
     }
     .roster-row input { width: 100%; }
+    .roster-mentor { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .roster-mentor span { flex: none; color: var(--muted); font-size: 13px; font-weight: 800; }
     .saved-hint { min-width: 52px; color: var(--green-2); font-size: 12px; font-weight: 800; opacity: 0; }
     .saved-hint.show { opacity: 1; }
     .roster-remove { min-height: 36px; padding: 6px 10px; font-size: 12px; }
@@ -674,7 +676,8 @@
       .summary-domain-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .summary-form-row { grid-template-columns: 78px minmax(0, 1fr) auto; }
       .roster-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .roster-row { grid-template-columns: 48px minmax(0, 1fr) auto; gap: 8px; }
+      .roster-row { grid-template-columns: 48px minmax(0, 1fr) auto; grid-auto-flow: dense; gap: 8px; }
+      .roster-mentor { grid-column: 2 / -1; }
       .saved-hint { display: none; }
       .score-field { grid-template-columns: minmax(0, 1fr) 82px; }
       .item-score-row, .level-field { grid-template-columns: 1fr 88px; }
@@ -1389,10 +1392,11 @@
     }
 
     function copyResidents(residents) {
-      return residents.map(({ id, level, name, updatedAt }) => ({
+      return residents.map(({ id, level, name, mentor, updatedAt }) => ({
         id,
         level,
         name: name || "",
+        ...(typeof mentor === "string" ? { mentor } : {}),
         ...(typeof updatedAt === "string" && !Number.isNaN(Date.parse(updatedAt)) ? { updatedAt } : {})
       }));
     }
@@ -1875,7 +1879,8 @@
         periodIds.add(period.id);
         const residentIds = new Set();
         return period.residents.every((resident) => {
-          if (!resident || typeof resident !== "object" || !validId(resident.id) || residentIds.has(resident.id) || !RESIDENT_LEVELS.includes(resident.level) || typeof resident.name !== "string") return false;
+          if (!resident || typeof resident !== "object" || !validId(resident.id) || residentIds.has(resident.id) || !RESIDENT_LEVELS.includes(resident.level) || typeof resident.name !== "string" ||
+              (resident.mentor !== undefined && (typeof resident.mentor !== "string" || resident.mentor.length > 30))) return false;
           residentIds.add(resident.id);
           const assessment = period.assessments[resident.id];
           const validSixCoreData = Array.isArray(assessment?.sixCoreForms)
@@ -2243,6 +2248,7 @@
         assessmentDate: "評核日期",
         assignedTeacherName: "住院醫師指定教師",
         teacherName: "教師姓名",
+        mentor: "導師",
         learnerAdvice: "對學員的建議事項",
         mentorAdvice: "對導師的建議事項",
         programAdvice: "對訓練計畫的建議事項",
@@ -4525,6 +4531,7 @@
           <div class="roster-row">
             <span class="level">${escapeHTML(resident.level)}</span>
             <input type="text" maxlength="30" value="${escapeHTML(resident.name)}" data-resident-name="${resident.id}" placeholder="輸入住院醫師姓名" aria-label="${escapeHTML(resident.level)} 姓名"${nameLocked ? " disabled title=\"已有評核、暫存或稽核紀錄，姓名已鎖定\"" : ""}>
+            <label class="roster-mentor"><span>導師</span><input type="text" maxlength="30" value="${escapeHTML(resident.mentor || "")}" data-resident-mentor="${resident.id}" placeholder="輸入導師姓名" aria-label="${escapeHTML(resident.level)} ${escapeHTML(resident.name || "未命名")} 導師"></label>
             <span class="saved-hint" data-saved-hint="${resident.id}">已保存</span>
             <button class="btn btn-secondary roster-remove" type="button" data-remove-resident="${resident.id}" ${protectedData ? "disabled" : ""} title="${protectedData ? "已有評核、暫存或稽核紀錄，不能移除" : `移除 ${escapeHTML(resident.level)} ${escapeHTML(resident.name || "未命名")}`}">移除</button>
           </div>
@@ -4551,6 +4558,25 @@
           renderCCCForm(activePeriod);
           renderCoreEPAForm(activePeriod);
           renderScoreSummary(activePeriod);
+        });
+      });
+      elements.roster.querySelectorAll("[data-resident-mentor]").forEach((input) => {
+        input.addEventListener("change", () => {
+          const activePeriod = state.periods.find((item) => item.id === period.id);
+          const resident = residentFor(activePeriod, input.dataset.residentMentor);
+          if (!resident) return;
+          const mentor = input.value.trim();
+          if (!commitStateChange(() => {
+            resident.mentor = mentor;
+            resident.updatedAt = new Date().toISOString();
+          })) {
+            renderRoster(currentPeriod());
+            return;
+          }
+          input.value = resident.mentor;
+          const hint = elements.roster.querySelector(`[data-saved-hint="${resident.id}"]`);
+          hint.classList.add("show");
+          setTimeout(() => hint.classList.remove("show"), 1500);
         });
       });
       elements.roster.querySelectorAll("[data-remove-resident]").forEach((button) => {

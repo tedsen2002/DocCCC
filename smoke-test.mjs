@@ -621,6 +621,21 @@ assert.throws(() => backupLogic.parseDataBackup(JSON.stringify(unsafeBackup)), /
 const invalidCoreEpaBackup = structuredClone(backupPayload);
 invalidCoreEpaBackup.data.periods[0].assessments.r1.coreEpaForms[0].levels[0] = "6";
 assert.throws(() => backupLogic.parseDataBackup(JSON.stringify(invalidCoreEpaBackup)), /格式不正確/, "匯入時應拒絕超出 1–5 的 Core EPA 信賴程度");
+const mentorBackup = structuredClone(backupPayload);
+mentorBackup.data.periods[0].residents[0].mentor = "導師甲";
+assert.equal(backupLogic.parseDataBackup(JSON.stringify(mentorBackup)).periods[0].residents[0].mentor, "導師甲", "名單的導師姓名應可隨備份還原");
+mentorBackup.data.periods[0].residents[0].mentor = "導".repeat(31);
+assert.throws(() => backupLogic.parseDataBackup(JSON.stringify(mentorBackup)), /格式不正確/, "匯入時應拒絕超過 30 字的導師姓名");
+
+const copiedRoster = new Function(`
+  ${extractFunction("copyResidents")}
+  return copyResidents([
+    { id: "r1", level: "R1", name: "住院醫師甲", mentor: "導師甲", updatedAt: "2026-08-10T00:00:00.000Z" },
+    { id: "r2", level: "R2", name: "住院醫師乙" }
+  ]);
+`)();
+assert.equal(copiedRoster[0].mentor, "導師甲", "新增期別或載入資料時應保留每位住院醫師的導師姓名");
+assert.equal("mentor" in copiedRoster[1], false, "舊資料沒有導師欄位時不得憑空新增欄位，避免改動既有存檔");
 
 const migratedLegacyAssessment = new Function(`
   const SCHEMA_VERSION = 13;
