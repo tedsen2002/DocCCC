@@ -216,6 +216,7 @@
     .btn-secondary { border-color: var(--line); color: var(--ink); background: white; }
     .btn-blue { border-color: rgba(23, 105, 255, 0.22); color: #0f4ec5; background: #edf3ff; }
     .btn-red { border-color: rgba(229, 72, 77, 0.22); color: #b92f35; background: #fff0f0; }
+    .btn-green { border-color: rgba(47, 158, 68, 0.25); color: #1f7a35; background: #ecf8ee; }
     .btn-amber { border-color: #ead4a3; color: #76500d; background: #fff5dc; }
     .btn-create { color: white; background: #e86617; box-shadow: 0 7px 18px rgba(232, 102, 23, 0.22); }
     .btn-export { color: white; background: #1769ff; box-shadow: 0 7px 18px rgba(23, 105, 255, 0.2); }
@@ -246,7 +247,7 @@
       position: absolute;
       inset: 0 0 auto;
       height: 4px;
-      background: linear-gradient(90deg, var(--red) 0 50%, var(--blue) 50%);
+      background: linear-gradient(90deg, #2f9e44 0 50%, var(--blue) 50%);
     }
     .resident-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
     .level {
@@ -269,7 +270,7 @@
     }
     .status.pending { color: var(--amber); background: #fff3d7; }
     .status.draft { color: #76500d; background: #fff0c2; }
-    .status.student-done { color: #a9282e; background: #ffe9e9; }
+    .status.student-done { color: #1f7a35; background: #e6f6ea; }
     .status.teacher-done { color: #124eae; background: #e7efff; }
     .card-actions { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
     .done-time { margin-top: 15px; color: var(--muted); font-size: 12px; }
@@ -314,7 +315,7 @@
     .legend span { white-space: nowrap; }
     .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 50%; }
     .legend .absolute::before { background: var(--green-2); }
-    .legend .student::before { background: var(--red); }
+    .legend .student::before { background: #2f9e44; }
     .legend .teacher::before { background: var(--blue); }
     canvas { display: block; width: 100%; max-width: 360px; height: auto; margin: 0 auto; }
     canvas[data-radar-kind="absolute"] { cursor: pointer; border-radius: 10px; }
@@ -534,6 +535,8 @@
     .ccc-section-number { display: grid; width: 25px; height: 25px; place-items: center; border-radius: 50%; color: var(--green); background: var(--lime); font-size: 12px; }
     .ccc-section-heading.is-teacher { background: #a9282e; }
     .ccc-section-heading.is-teacher .ccc-section-number { color: #a9282e; background: #ffe9e9; }
+    .ccc-section-heading.is-teacher.is-complete { background: #124eae; }
+    .ccc-section-heading.is-teacher.is-complete .ccc-section-number { color: #124eae; background: #e7efff; }
     .ccc-section-body { padding: 15px; }
     .ccc-basic-grid { display: grid; grid-template-columns: 1.2fr 0.65fr 1fr; gap: 12px; }
     .ccc-readonly-field { min-width: 0; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: white; }
@@ -729,8 +732,8 @@
       .formal-chart-legend { display: flex; justify-content: center; gap: 3mm; margin: -0.4mm 0 0.6mm; font-size: 6.5pt; font-weight: 800; }
       .formal-chart-legend span { display: inline-flex; align-items: center; gap: 1mm; }
       .formal-chart-legend span::before { content: ""; display: inline-block; width: 7mm; }
-      .formal-chart-legend .student::before { border-top: 0.6mm dashed #e5484d; }
-      .formal-chart-legend .teacher::before { border-top: 0.6mm solid #1769ff; }
+      .formal-chart-legend .student::before { border-top: 0.6mm solid #2f9e44; }
+      .formal-chart-legend .teacher::before { border-top: 0.6mm dashed #1769ff; }
       .formal-final-score table, .formal-detail-table { min-width: 0; table-layout: fixed; }
       .formal-final-score th, .formal-final-score td { padding: 1.2mm 1.2mm; border: 0.2mm solid #777; font-size: 7pt; text-align: center; }
       .formal-final-score th { color: #111; background: #eee; }
@@ -899,7 +902,7 @@
     <section id="panel-assessment" class="panel">
       <div class="print-header">
         <div><h1>CCC 核心能力評分表</h1><p id="printPeriodName"></p></div>
-        <p>教師分項百分比：綠色　學生 Level：紅色　教師 Level：藍色</p>
+        <p>教師分項百分比：深綠色　學生 Level：綠色實線　教師 Level：藍色虛線</p>
       </div>
       <div class="toolbar">
         <div class="toolbar-group">
@@ -1340,7 +1343,7 @@
     const ASSESSMENT_ITEMS = COMPETENCIES.flatMap((competency) => competency.items);
     const RESIDENT_LEVELS = ["R1", "R2", "R3", "R4"];
     const ROLE_LABELS = { student: "學生自評", teacher: "教師評分", ccc: "CCC 評核表", "core-epa": "Core EPA 教師評量" };
-    const ROLE_COLORS = { student: "#e5484d", teacher: "#1769ff", absolute: "#1d6b50" };
+    const ROLE_COLORS = { student: "#2f9e44", teacher: "#1769ff", absolute: "#1d6b50" };
     const EVENT_LABELS = { submission: "完成提交", "ccc-submission": "CCC 正式提交", "core-epa-submission": "Core EPA 正式提交", unlock: "管理解鎖", modification: "分數修改", "core-epa-modification": "Core EPA 修改", "period-deletion": "期別刪除", "merge-resolution": "合併衝突處理" };
     const CCC_EPA_OPTIONS = [
       ["L1", "L1：無法安全執行"], ["L2", "L2：需指導"], ["L3", "L3：事後確認"],
@@ -3435,7 +3438,7 @@
         </section>
 
         <section class="ccc-section">
-          <h3 class="ccc-section-heading is-teacher"><span class="ccc-section-number">三</span>EPA 臨床授權</h3>
+          <h3 class="ccc-section-heading is-teacher${submitted ? " is-complete" : ""}"><span class="ccc-section-number">三</span>EPA 臨床授權</h3>
           <div class="ccc-section-body">
             ${cccChoiceMarkup("epaLevel", CCC_EPA_OPTIONS, draft.epaLevel, true)}
             <p class="ccc-threshold"><strong>EPA 晉升門檻：</strong>R1：EPA 1–4 達 L4、EPA 5–7 達 L3；R2：EPA 1–7 達 L4、EPA 8 達 L3、EPA 9 達 L2；R3：EPA 1–9 達 L4；R4：EPA 1–9 達 L5。</p>
@@ -3476,7 +3479,7 @@
         </section>
 
         <section class="ccc-section">
-          <h3 class="ccc-section-heading is-teacher"><span class="ccc-section-number">八</span>CCC 結論</h3>
+          <h3 class="ccc-section-heading is-teacher${submitted ? " is-complete" : ""}"><span class="ccc-section-number">八</span>CCC 結論</h3>
           <div class="ccc-section-body">
             ${cccChoiceMarkup("conclusion", CCC_CONCLUSION_OPTIONS, draft.conclusion, true)}
             <div class="ccc-subfield"><span class="field-label">追蹤期限</span>${cccChoiceMarkup("followUp", CCC_FOLLOWUP_OPTIONS, draft.followUp)}</div>
@@ -3484,7 +3487,7 @@
         </section>
 
         <section class="ccc-section">
-          <h3 class="ccc-section-heading is-teacher"><span class="ccc-section-number">九</span>CCC 總評語與簽核</h3>
+          <h3 class="ccc-section-heading is-teacher${submitted ? " is-complete" : ""}"><span class="ccc-section-number">九</span>CCC 總評語與簽核</h3>
           <div class="ccc-section-body">
             <div class="ccc-subfield"><label for="cccComments">CCC 總評語</label><textarea id="cccComments" name="comments" maxlength="2000" placeholder="請輸入整體表現、需持續精進事項與追蹤建議">${escapeHTML(draft.comments)}</textarea></div>
             <div class="ccc-subfield"><label for="cccLearnerFeedback">學員省思與回饋</label><textarea id="cccLearnerFeedback" name="learnerFeedback" maxlength="1600" placeholder="供學員填寫省思、意見與後續學習計畫">${escapeHTML(draft.learnerFeedback)}</textarea></div>
@@ -3615,7 +3618,7 @@
         </div>
 
         <section class="ccc-section">
-          <h3 class="ccc-section-heading"><span class="ccc-section-number">一</span>基本資料</h3>
+          <h3 class="ccc-section-heading is-teacher${submitted && !unlocked ? " is-complete" : ""}"><span class="ccc-section-number">一</span>基本資料</h3>
           <div class="ccc-section-body">
             <div class="core-epa-basic-grid">
               <div class="ccc-readonly-field"><span>住院醫師姓名</span><strong>${escapeHTML(resident.name || "未命名")}</strong></div>
@@ -3627,12 +3630,12 @@
         </section>
 
         <section class="ccc-section">
-          <h3 class="ccc-section-heading"><span class="ccc-section-number">二</span>信賴程度說明</h3>
+          <h3 class="ccc-section-heading is-teacher${submitted && !unlocked ? " is-complete" : ""}"><span class="ccc-section-number">二</span>信賴程度說明</h3>
           <div class="ccc-section-body core-epa-guide">${guide}</div>
         </section>
 
         <section class="ccc-section">
-          <h3 class="ccc-section-heading"><span class="ccc-section-number">三</span>EPA 信賴程度</h3>
+          <h3 class="ccc-section-heading is-teacher${submitted && !unlocked ? " is-complete" : ""}"><span class="ccc-section-number">三</span>EPA 信賴程度</h3>
           <div class="ccc-section-body">
             <div class="core-epa-list">${epaRows}</div>
             <div class="ccc-threshold"><strong>各階段應達標準：</strong>${thresholds}</div>
@@ -3640,7 +3643,7 @@
         </section>
 
         <section class="ccc-section">
-          <h3 class="ccc-section-heading"><span class="ccc-section-number">四</span>學習與訓練建議</h3>
+          <h3 class="ccc-section-heading is-teacher${submitted && !unlocked ? " is-complete" : ""}"><span class="ccc-section-number">四</span>學習與訓練建議</h3>
           <div class="ccc-section-body core-epa-advice-grid">
             <label for="coreEpaLearnerAdvice">對學員的學習建議<textarea id="coreEpaLearnerAdvice" name="learnerAdvice" maxlength="4000" placeholder="請輸入對學員的學習建議">${escapeHTML(draft.learnerAdvice)}</textarea></label>
             <label for="coreEpaMentorAdvice">對導師的建議<textarea id="coreEpaMentorAdvice" name="mentorAdvice" maxlength="4000" placeholder="請輸入對導師的建議">${escapeHTML(draft.mentorAdvice)}</textarea></label>
@@ -4284,7 +4287,7 @@
             </section>
             <section class="formal-chart-panel has-series-legend">
               <h2 class="formal-section-title">學生自評與教師評核分數六角圖</h2>
-              <div class="formal-chart-legend" aria-label="六角圖線型圖例"><span class="student">紅色虛線：學生自評</span><span class="teacher">藍色實線：教師評核分數</span></div>
+              <div class="formal-chart-legend" aria-label="六角圖線型圖例"><span class="student">綠色實線：學生自評</span><span class="teacher">藍色虛線：教師評核分數</span></div>
               <canvas width="360" height="280" data-radar-resident="${resident.id}" data-radar-form="${assessment.id}" data-radar-kind="print-levels" aria-label="學生自評與教師評核分數六角圖"></canvas>
             </section>
             <section class="formal-final-score">
@@ -4358,8 +4361,8 @@
           </div>
           <div class="card-actions">
             ${legacy ? `<button class="btn btn-secondary" type="button" disabled>舊版資料僅供查看</button>` : `
-              <button class="btn btn-red" type="button" data-score-resident="${resident.id}" data-score-form="${form.id}" data-score-role="student" ${form.student ? "disabled" : ""}>${form.student ? "學生自評已鎖定" : "填寫學生自評"}</button>
-              <button class="btn btn-blue" type="button" data-score-resident="${resident.id}" data-score-form="${form.id}" data-score-role="teacher" ${form.teacher || !form.student ? "disabled" : ""}>${form.teacher ? "教師評分已鎖定" : form.student ? teacherDraft ? "繼續教師評核" : "填寫教師完整評核" : "請先完成學生自評"}</button>
+              <button class="btn btn-green" type="button" data-score-resident="${resident.id}" data-score-form="${form.id}" data-score-role="student" ${form.student ? "disabled" : ""}>${form.student ? "學生自評已鎖定" : "填寫學生自評"}</button>
+              <button class="btn ${form.teacher ? "btn-blue" : "btn-red"}" type="button" data-score-resident="${resident.id}" data-score-form="${form.id}" data-score-role="teacher" ${form.teacher || !form.student ? "disabled" : ""}>${form.teacher ? "教師評分已鎖定" : form.student ? teacherDraft ? "繼續教師評核" : "填寫教師完整評核" : "請先完成學生自評"}</button>
               ${form.student || form.teacher ? `<button class="btn btn-amber" type="button" data-modify-resident="${resident.id}" data-modify-form="${form.id}">修改評核</button>` : `<button class="btn btn-secondary" type="button" data-remove-six-core-resident="${resident.id}" data-remove-six-core-form="${form.id}">刪除空白表單</button>`}
             `}
           </div>
@@ -4441,13 +4444,13 @@
           drawRadarChart(canvas, [{ scores: percentages, color: ROLE_COLORS.absolute }], 100);
         } else if (canvas.dataset.radarKind === "levels" || canvas.dataset.radarKind === "print-levels") {
           drawRadarChart(canvas, [
-            { scores: form.student.levels, color: ROLE_COLORS.student, dash: [7, 5] },
-            { scores: form.teacher.levels, color: ROLE_COLORS.teacher }
+            { scores: form.student.levels, color: ROLE_COLORS.student },
+            { scores: form.teacher.levels, color: ROLE_COLORS.teacher, dash: [7, 5] }
           ], 5);
         } else {
           drawRadarChart(canvas, [
-            { scores: form.student.scores, color: ROLE_COLORS.student, dash: [7, 5] },
-            { scores: form.teacher.scores, color: ROLE_COLORS.teacher }
+            { scores: form.student.scores, color: ROLE_COLORS.student },
+            { scores: form.teacher.scores, color: ROLE_COLORS.teacher, dash: [7, 5] }
           ], 100);
         }
       });

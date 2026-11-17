@@ -157,9 +157,11 @@ assert.match(html, /data-radar-kind="print-absolute"/, "列印表應包含教師
 assert.match(html, /data-radar-kind="print-levels"/, "列印表應包含學生與教師 Level 六角圖");
 assert.match(html, /教師評核分數/, "教師 Level 應使用教師評核分數名稱");
 assert.doesNotMatch(html, /教師整體表現|<th>教師整體<\/th>/, "不得再使用語意不清的教師整體表現名稱");
-assert.match(html, /紅色虛線：學生自評/, "列印紅藍六角圖應標示學生自評圖例");
-assert.match(html, /藍色實線：教師評核分數/, "列印紅藍六角圖應標示教師評核圖例");
-assert.match(html, /scores: form\.student\.levels, color: ROLE_COLORS\.student, dash: \[7, 5\]/, "每張表的學生自評六角圖應使用虛線");
+assert.match(html, /綠色實線：學生自評/, "列印六角圖應標示學生自評為綠色實線");
+assert.match(html, /藍色虛線：教師評核分數/, "列印六角圖應標示教師評核為藍色虛線");
+assert.doesNotMatch(html, /紅色虛線：學生自評|藍色實線：教師評核分數/, "列印圖例不得殘留舊的紅藍線型說明");
+assert.match(html, /\.formal-chart-legend \.student::before \{ border-top: 0\.6mm solid #2f9e44; \}\s*\.formal-chart-legend \.teacher::before \{ border-top: 0\.6mm dashed #1769ff; \}/, "列印圖例的線型樣本應與六角圖一致");
+assert.match(html, /scores: form\.student\.levels, color: ROLE_COLORS\.student \},\s*\{ scores: form\.teacher\.levels, color: ROLE_COLORS\.teacher, dash: \[7, 5\] \}/, "Level 比較六角圖應以學生實線、教師虛線繪製");
 assert.match(html, /context\.setLineDash\(dash\)/, "六角圖繪製應套用資料線型");
 assert.match(html, /function printItemTables\(assessment\)/, "列印表應包含 20 項原始詳細評分");
 assert.match(html, /<th class="score">評分<\/th>/, "原始詳細評分表欄名應簡潔顯示評分");
@@ -178,7 +180,7 @@ assert.match(html, /score \/ max \* 100/, "絕對六角圖應依各能力滿分�
 assert.match(html, /function teacherMetricResultText\(metric\)/, "六角圖下方應以共用格式顯示有效分母與 N\/A 數量");
 assert.match(html, /\$\{metric\.code\} \$\{metric\.name\}（滿分\$\{metric\.nominalMax\}）/, "網頁評分表應在能力名稱後顯示精簡原始滿分");
 assert.match(html, /<small>N\/A \$\{metric\.notApplicable\}項<\/small>/, "列印彙整表應顯示各能力 N\/A 數量");
-assert.match(html, /#e5484d/, "學生圖形應使用紅色");
+assert.match(html, /const ROLE_COLORS = \{ student: "#2f9e44", teacher: "#1769ff", absolute: "#1d6b50" \}/, "學生圖形應使用綠色、教師藍色、教師分項百分比深綠色");
 assert.match(html, /#1769ff/, "教師圖形應使用藍色");
 assert.match(html, /#1d6b50/, "絕對百分比圖形應使用綠色");
 assert.match(html, /id="scoreDetailDialog"/, "教師六角圖應能開啟原始分項明細");

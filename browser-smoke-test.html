@@ -82,6 +82,10 @@
           renderResidents(period);
         `);
         assert(entryTeacherText() === "評核教師：暫存教師乙", "教師暫存時變更的評核教師應同步顯示在日期旁");
+        const roleButton = (role) => appDocument.querySelector(`.six-core-entry [data-score-role="${role}"]`);
+        assert(roleButton("student").classList.contains("btn-green") && !roleButton("student").classList.contains("btn-red"), "學生自評按鈕應為綠色");
+        assert(roleButton("teacher").classList.contains("btn-red") && !roleButton("teacher").classList.contains("btn-blue"), "教師尚未完成時，教師評核按鈕應為紅色");
+        assert(appDocument.querySelector(".six-core-entry .status.student-done") && app.getComputedStyle(appDocument.querySelector(".six-core-entry .status.student-done")).color === "rgb(31, 122, 53)", "學生已完成小標籤應為綠色");
         const teacherSubmittedAt = "2026-08-29T03:04:05.000Z";
         const teacherTimeLabels = app.eval(`[formatAuditTime("${teacherSubmittedAt}"), formatReadableTime("${teacherSubmittedAt}")]`);
         app.eval(`
@@ -92,6 +96,7 @@
           renderResidents(period);
         `);
         assert(entryTeacherText() === "評核教師：實際教師丙", "教師完成後日期旁應顯示實際評核教師");
+        assert(roleButton("teacher").classList.contains("btn-blue") && !roleButton("teacher").classList.contains("btn-red") && roleButton("student").classList.contains("btn-green"), "教師完成後教師按鈕應自動變藍色，學生按鈕維持綠色");
         const doneTime = appDocument.querySelector(".six-core-entry .done-time").textContent;
         const formalMeta = appDocument.querySelector(".formal-print-report .formal-print-meta");
         assert(formalMeta, "教師完成後應產生可列印的正式評分表");
@@ -142,6 +147,38 @@
         `);
         const summaryHead = appDocument.querySelector(".summary-epa-form-head")?.textContent || "";
         assert(summaryHead.includes("已提交") && coreEpaTimeLabels.every((label) => !summaryHead.includes(label)), `分數統計頁的 Core EPA 已提交表單不得顯示教師完成時間，實際：${summaryHead}`);
+
+        const GREEN = "rgb(19, 78, 58)", RED = "rgb(169, 40, 46)", BLUE = "rgb(18, 78, 174)";
+        const headingColors = (selector) => Array.from(appDocument.querySelectorAll(`${selector} .ccc-section-heading`)).map((heading) => app.getComputedStyle(heading).backgroundColor);
+        const expectedCCC = (teacherColor) => [GREEN, GREEN, teacherColor, GREEN, GREEN, GREEN, GREEN, teacherColor, teacherColor];
+        app.eval(`renderCCCForm(currentPeriod());`);
+        assert(JSON.stringify(headingColors("#cccForm")) === JSON.stringify(expectedCCC(RED)), `CCC 暫存時第三、八、九項應為紅色，其餘綠色，實際 ${headingColors("#cccForm")}`);
+        app.eval(`
+          const assessment = currentPeriod().assessments[selectedCCCResidentId];
+          assessment.cccSubmission = { ...assessment.cccDraft, submittedAt: "2026-08-31T01:00:00.000Z", weightedTotal: 80 };
+          renderCCCForm(currentPeriod());
+        `);
+        assert(JSON.stringify(headingColors("#cccForm")) === JSON.stringify(expectedCCC(BLUE)), `CCC 正式提交後第三、八、九項應自動變藍色，實際 ${headingColors("#cccForm")}`);
+
+        app.eval(`
+          selectedCoreEPAResidentId = currentPeriod().residents[0].id;
+          selectedCoreEPAFormId = currentPeriod().assessments[selectedCoreEPAResidentId].coreEpaForms[0].id;
+          unlockedCoreEPAFormId = null;
+          renderCoreEPAForm(currentPeriod());
+        `);
+        assert(JSON.stringify(headingColors("#coreEpaForm")) === JSON.stringify([BLUE, BLUE, BLUE, BLUE]), `Core EPA 正式提交後四個表頭應為藍色，實際 ${headingColors("#coreEpaForm")}`);
+        app.eval(`
+          unlockedCoreEPAFormId = selectedCoreEPAFormId;
+          renderCoreEPAForm(currentPeriod());
+        `);
+        assert(JSON.stringify(headingColors("#coreEpaForm")) === JSON.stringify([RED, RED, RED, RED]), `Core EPA 解鎖修改期間表頭應回到紅色，實際 ${headingColors("#coreEpaForm")}`);
+        app.eval(`
+          const form = currentPeriod().assessments[selectedCoreEPAResidentId].coreEpaForms[0];
+          form.submittedAt = null;
+          unlockedCoreEPAFormId = null;
+          renderCoreEPAForm(currentPeriod());
+        `);
+        assert(JSON.stringify(headingColors("#coreEpaForm")) === JSON.stringify([RED, RED, RED, RED]), `Core EPA 未提交時四個表頭應為紅色，實際 ${headingColors("#coreEpaForm")}`);
         result.textContent = "PASS: DocCCC browser integration verified";
       } catch (error) {
         result.textContent = `FAIL: ${error instanceof Error ? error.message : String(error)}`;
