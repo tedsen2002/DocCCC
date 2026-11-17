@@ -3553,7 +3553,7 @@
         unlockedCoreEPAFormId = null;
       }
       elements.coreEpaFormSelect.innerHTML = forms.length
-        ? forms.map((form, index) => `<option value="${escapeHTML(form.id)}"${form.id === selectedCoreEPAFormId ? " selected" : ""}>第 ${index + 1} 張 · ${escapeHTML(form.assessmentDate)}${form.submittedAt ? " · 已提交" : form.savedAt ? " · 已暫存" : " · 未暫存"}</option>`).join("")
+        ? forms.map((form, index) => `<option value="${escapeHTML(form.id)}"${form.id === selectedCoreEPAFormId ? " selected" : ""}>第 ${index + 1} 張 · ${escapeHTML(form.assessmentDate)} · ${escapeHTML(form.teacherName || form.assignedTeacherName || "未指定")}</option>`).join("")
         : `<option value="">尚未建立評量表</option>`;
       elements.coreEpaFormSelect.disabled = forms.length === 0;
       elements.coreEpaExportButton.disabled = forms.length === 0;
