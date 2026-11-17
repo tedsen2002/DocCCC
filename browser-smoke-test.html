@@ -166,19 +166,19 @@
           unlockedCoreEPAFormId = null;
           renderCoreEPAForm(currentPeriod());
         `);
-        assert(JSON.stringify(headingColors("#coreEpaForm")) === JSON.stringify([BLUE, BLUE, BLUE, BLUE]), `Core EPA 正式提交後四個表頭應為藍色，實際 ${headingColors("#coreEpaForm")}`);
+        assert(JSON.stringify(headingColors("#coreEpaForm")) === JSON.stringify([BLUE, BLUE, BLUE]), `Core EPA 正式提交後三個表頭應為藍色，實際 ${headingColors("#coreEpaForm")}`);
         app.eval(`
           unlockedCoreEPAFormId = selectedCoreEPAFormId;
           renderCoreEPAForm(currentPeriod());
         `);
-        assert(JSON.stringify(headingColors("#coreEpaForm")) === JSON.stringify([RED, RED, RED, RED]), `Core EPA 解鎖修改期間表頭應回到紅色，實際 ${headingColors("#coreEpaForm")}`);
+        assert(JSON.stringify(headingColors("#coreEpaForm")) === JSON.stringify([RED, RED, RED]), `Core EPA 解鎖修改期間表頭應回到紅色，實際 ${headingColors("#coreEpaForm")}`);
         app.eval(`
           const form = currentPeriod().assessments[selectedCoreEPAResidentId].coreEpaForms[0];
           form.submittedAt = null;
           unlockedCoreEPAFormId = null;
           renderCoreEPAForm(currentPeriod());
         `);
-        assert(JSON.stringify(headingColors("#coreEpaForm")) === JSON.stringify([RED, RED, RED, RED]), `Core EPA 未提交時四個表頭應為紅色，實際 ${headingColors("#coreEpaForm")}`);
+        assert(JSON.stringify(headingColors("#coreEpaForm")) === JSON.stringify([RED, RED, RED]), `Core EPA 未提交時三個表頭應為紅色，實際 ${headingColors("#coreEpaForm")}`);
         result.textContent = "PASS: DocCCC browser integration verified";
       } catch (error) {
         result.textContent = `FAIL: ${error instanceof Error ? error.message : String(error)}`;

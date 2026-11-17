@@ -1447,6 +1447,12 @@ assert.match(renderedCoreEPA.elements.coreEpaFormSelect.innerHTML, /第 1 張 ·
 assert.equal(renderedCoreEPA.selectedCoreEPAFormId, "e2", "進入 Core EPA 頁時應預設開啟最新建立的表單");
 assert.equal((renderedCoreEPA.elements.coreEpaForm.innerHTML.match(/class="core-epa-row"/g) || []).length, 11, "Core EPAs 表單應渲染 11 個評量項目");
 assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, /name="level-EPA11"/, "Core EPAs 表單應可填寫 EPA11 信賴程度");
+assert.deepEqual(
+  Array.from(renderedCoreEPA.elements.coreEpaForm.innerHTML.matchAll(/<span class="ccc-section-number">([^<]+)<\/span>([^<]+)<\/h3>/g), (match) => `${match[1]} ${match[2]}`),
+  ["一 基本資料", "二 EPA 信賴程度", "三 學習與訓練建議"],
+  "信賴程度說明只是說明，不應單獨成為需填寫的區塊"
+);
+assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, /二<\/span>EPA 信賴程度<\/h3>\s*<div class="ccc-section-body">\s*<div class="core-epa-guide" aria-label="信賴程度說明">[\s\S]*?<\/div>\s*<div class="core-epa-list">[\s\S]*?name="level-EPA1"/, "信賴程度說明應放在 EPA 信賴程度區塊內、EPA1 上方");
 assert.doesNotMatch(renderedCoreEPA.elements.coreEpaForm.innerHTML, /學員類別|traineeType/, "Core EPAs 表單不得再顯示學員類別");
 assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, /對訓練計畫與科部的建議/, "Core EPAs 表單應完整渲染原始建議欄位");
 assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, /目前評分教師：[\s\S]*暫存教師丙[\s\S]*住院醫師指定：[\s\S]*教師乙[\s\S]*確定我是評分教師[\s\S]*變更評分教師/, "Core EPA 暫存後應直接顯示目前教師，重新確認即可續填");

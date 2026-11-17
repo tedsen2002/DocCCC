@@ -597,7 +597,7 @@
     .core-epa-teacher-field { display: grid; gap: 5px; min-width: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 11px; background: white; }
     .core-epa-teacher-field span { color: var(--muted); font-size: 11px; font-weight: 800; }
     .core-epa-teacher-field input { width: 100%; min-width: 0; min-height: 34px; padding: 6px 8px; }
-    .core-epa-guide { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
+    .core-epa-guide { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; margin-bottom: 12px; }
     .core-epa-guide div { padding: 9px 10px; border: 1px solid #dfe3db; border-radius: 10px; background: white; font-size: 12px; line-height: 1.45; }
     .core-epa-guide strong { display: block; color: var(--green); font-size: 13px; }
     .core-epa-list { display: grid; gap: 8px; }
@@ -3630,20 +3630,16 @@
         </section>
 
         <section class="ccc-section">
-          <h3 class="ccc-section-heading is-teacher${submitted && !unlocked ? " is-complete" : ""}"><span class="ccc-section-number">二</span>信賴程度說明</h3>
-          <div class="ccc-section-body core-epa-guide">${guide}</div>
-        </section>
-
-        <section class="ccc-section">
-          <h3 class="ccc-section-heading is-teacher${submitted && !unlocked ? " is-complete" : ""}"><span class="ccc-section-number">三</span>EPA 信賴程度</h3>
+          <h3 class="ccc-section-heading is-teacher${submitted && !unlocked ? " is-complete" : ""}"><span class="ccc-section-number">二</span>EPA 信賴程度</h3>
           <div class="ccc-section-body">
+            <div class="core-epa-guide" aria-label="信賴程度說明">${guide}</div>
             <div class="core-epa-list">${epaRows}</div>
             <div class="ccc-threshold"><strong>各階段應達標準：</strong>${thresholds}</div>
           </div>
         </section>
 
         <section class="ccc-section">
-          <h3 class="ccc-section-heading is-teacher${submitted && !unlocked ? " is-complete" : ""}"><span class="ccc-section-number">四</span>學習與訓練建議</h3>
+          <h3 class="ccc-section-heading is-teacher${submitted && !unlocked ? " is-complete" : ""}"><span class="ccc-section-number">三</span>學習與訓練建議</h3>
           <div class="ccc-section-body core-epa-advice-grid">
             <label for="coreEpaLearnerAdvice">對學員的學習建議<textarea id="coreEpaLearnerAdvice" name="learnerAdvice" maxlength="4000" placeholder="請輸入對學員的學習建議">${escapeHTML(draft.learnerAdvice)}</textarea></label>
             <label for="coreEpaMentorAdvice">對導師的建議<textarea id="coreEpaMentorAdvice" name="mentorAdvice" maxlength="4000" placeholder="請輸入對導師的建議">${escapeHTML(draft.mentorAdvice)}</textarea></label>
