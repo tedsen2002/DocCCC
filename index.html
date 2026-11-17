@@ -569,6 +569,9 @@
     .ccc-exam-label { display: grid; gap: 4px; }
     .ccc-score-row .ccc-exam-toggle { display: inline-flex; align-items: center; gap: 6px; width: fit-content; color: var(--muted); font-size: 12px; font-weight: 750; cursor: pointer; }
     .ccc-exam-toggle input { accent-color: var(--green); }
+    .ccc-subfield.is-not-applicable { opacity: 0.55; }
+    .ccc-subfield.is-not-applicable textarea:disabled, .ccc-subfield.is-not-applicable input[type="text"]:disabled { background: #e6e8e3; cursor: not-allowed; }
+    .ccc-subfield.is-not-applicable .ccc-choice { background: #e6e8e3; cursor: not-allowed; }
     .ccc-score-contribution { color: var(--green); text-align: right; font-size: 16px; font-weight: 900; }
     .ccc-total-row { display: flex; align-items: center; justify-content: flex-end; gap: 18px; margin-top: 11px; padding: 12px 14px; border-radius: 11px; color: white; background: var(--ink); }
     .ccc-total-row span { font-size: 13px; font-weight: 800; }
@@ -3052,11 +3055,26 @@
       return options.find(([optionValue]) => optionValue === value)?.[1] || "—";
     }
 
-    function cccChoiceMarkup(name, options, selectedValue, required = false) {
+    function cccChoiceMarkup(name, options, selectedValue, required = false, disabled = false) {
       return `<div class="ccc-choice-grid">${options.map(([value, label]) => {
         const id = `ccc-${name}-${value}`;
-        return `<label class="ccc-choice" for="${id}"><input id="${id}" name="${name}" type="radio" value="${escapeHTML(value)}"${selectedValue === value ? " checked" : ""}${required ? " required" : ""}>${escapeHTML(label)}</label>`;
+        return `<label class="ccc-choice" for="${id}"><input id="${id}" name="${name}" type="radio" value="${escapeHTML(value)}"${selectedValue === value ? " checked" : ""}${required ? " required" : ""}${disabled ? " disabled" : ""}>${escapeHTML(label)}</label>`;
       }).join("")}</div>`;
+    }
+
+    const CCC_CONDITIONAL_FIELDS = {
+      teaching: ["teachingNote"],
+      research: ["researchNote"],
+      safety: ["safetyDescription", "safetySeverity", "safetyImprovement"]
+    };
+
+    function syncCCCConditionalFields(form = elements.cccForm) {
+      if (form.classList.contains("is-submitted")) return;
+      Object.entries(CCC_CONDITIONAL_FIELDS).forEach(([choice, names]) => {
+        const notApplicable = form.querySelector(`input[name="${choice}"]:checked`)?.value === "none";
+        names.forEach((name) => form.querySelectorAll(`[name="${name}"]`).forEach((control) => { control.disabled = notApplicable; }));
+        form.querySelectorAll(`[data-ccc-depends="${choice}"]`).forEach((field) => field.classList.toggle("is-not-applicable", notApplicable));
+      });
     }
 
     function readCCCForm(form = elements.cccForm) {
@@ -3071,14 +3089,14 @@
         annualExamNotHeld,
         epaLevel: formData.get("epaLevel") || "",
         teaching: formData.get("teaching") || "",
-        teachingNote: String(formData.get("teachingNote") || "").trim(),
+        teachingNote: formData.get("teaching") === "none" ? "" : String(formData.get("teachingNote") || "").trim(),
         research: formData.get("research") || "",
-        researchNote: String(formData.get("researchNote") || "").trim(),
+        researchNote: formData.get("research") === "none" ? "" : String(formData.get("researchNote") || "").trim(),
         passport: formData.get("passport") || "",
         safety: formData.get("safety") || "",
-        safetyDescription: String(formData.get("safetyDescription") || "").trim(),
-        safetySeverity: formData.get("safetySeverity") || "",
-        safetyImprovement: String(formData.get("safetyImprovement") || "").trim(),
+        safetyDescription: formData.get("safety") === "none" ? "" : String(formData.get("safetyDescription") || "").trim(),
+        safetySeverity: formData.get("safety") === "none" ? "" : formData.get("safetySeverity") || "",
+        safetyImprovement: formData.get("safety") === "none" ? "" : String(formData.get("safetyImprovement") || "").trim(),
         conclusion: formData.get("conclusion") || "",
         followUp: formData.get("followUp") || "",
         comments: String(formData.get("comments") || "").trim(),
@@ -3350,6 +3368,9 @@
         ? assessment.cccSubmission.coreSourceForms || []
         : liveAggregate.forms.map(sixCoreSourceSnapshot);
       const examNotHeld = Boolean(draft.annualExamNotHeld);
+      const teachingNA = draft.teaching === "none";
+      const researchNA = draft.research === "none";
+      const safetyNA = draft.safety === "none";
       const weights = cccWeights(examNotHeld);
       const weightedTotal = assessment.cccSubmission?.weightedTotal ?? cccWeightedTotal(coreScore, draft.treatmentPlanScore, draft.journalMeetingScore, draft.annualExamScore, examNotHeld);
       const coreContribution = cccWeightedContribution(coreScore, weights.core);
@@ -3456,14 +3477,14 @@
             <h3 class="ccc-section-heading"><span class="ccc-section-number">四</span>教學</h3>
             <div class="ccc-section-body">
               ${cccChoiceMarkup("teaching", CCC_BOOLEAN_OPTIONS, draft.teaching, true)}
-              <div class="ccc-subfield"><label for="cccTeachingNote">教學內容簡述</label><textarea id="cccTeachingNote" name="teachingNote" maxlength="500" placeholder="如選擇「有」，請簡述教學內容">${escapeHTML(draft.teachingNote)}</textarea></div>
+              <div class="ccc-subfield${teachingNA ? " is-not-applicable" : ""}" data-ccc-depends="teaching"><label for="cccTeachingNote">教學內容簡述</label><textarea id="cccTeachingNote" name="teachingNote" maxlength="500" placeholder="如選擇「有」，請簡述教學內容"${teachingNA ? " disabled" : ""}>${escapeHTML(draft.teachingNote)}</textarea></div>
             </div>
           </section>
           <section class="ccc-section">
             <h3 class="ccc-section-heading"><span class="ccc-section-number">五</span>研究</h3>
             <div class="ccc-section-body">
               ${cccChoiceMarkup("research", CCC_BOOLEAN_OPTIONS, draft.research, true)}
-              <div class="ccc-subfield"><label for="cccResearchNote">研究內容簡述</label><textarea id="cccResearchNote" name="researchNote" maxlength="500" placeholder="如選擇「有」，請簡述研究進度">${escapeHTML(draft.researchNote)}</textarea></div>
+              <div class="ccc-subfield${researchNA ? " is-not-applicable" : ""}" data-ccc-depends="research"><label for="cccResearchNote">研究內容簡述</label><textarea id="cccResearchNote" name="researchNote" maxlength="500" placeholder="如選擇「有」，請簡述研究進度"${researchNA ? " disabled" : ""}>${escapeHTML(draft.researchNote)}</textarea></div>
               <p class="ccc-threshold"><strong>晉升門檻：</strong>R1 參與研究；R2 訂研究主題與方法；R3 完成論文。</p>
             </div>
           </section>
@@ -3478,9 +3499,9 @@
           <h3 class="ccc-section-heading"><span class="ccc-section-number">七</span>病人安全與事件</h3>
           <div class="ccc-section-body">
             ${cccChoiceMarkup("safety", CCC_BOOLEAN_OPTIONS, draft.safety, true)}
-            <div class="ccc-subfield"><label for="cccSafetyDescription">事件說明</label><textarea id="cccSafetyDescription" name="safetyDescription" maxlength="800" placeholder="如有事件，請說明經過">${escapeHTML(draft.safetyDescription)}</textarea></div>
-            <div class="ccc-subfield"><span class="field-label">嚴重性</span>${cccChoiceMarkup("safetySeverity", CCC_SEVERITY_OPTIONS, draft.safetySeverity)}</div>
-            <div class="ccc-subfield"><label for="cccSafetyImprovement">是否改善／改善情形</label><input id="cccSafetyImprovement" name="safetyImprovement" type="text" maxlength="300" value="${escapeHTML(draft.safetyImprovement)}" placeholder="請輸入改善情形"></div>
+            <div class="ccc-subfield${safetyNA ? " is-not-applicable" : ""}" data-ccc-depends="safety"><label for="cccSafetyDescription">事件說明</label><textarea id="cccSafetyDescription" name="safetyDescription" maxlength="800" placeholder="如有事件，請說明經過"${safetyNA ? " disabled" : ""}>${escapeHTML(draft.safetyDescription)}</textarea></div>
+            <div class="ccc-subfield${safetyNA ? " is-not-applicable" : ""}" data-ccc-depends="safety"><span class="field-label">嚴重性</span>${cccChoiceMarkup("safetySeverity", CCC_SEVERITY_OPTIONS, draft.safetySeverity, false, safetyNA)}</div>
+            <div class="ccc-subfield${safetyNA ? " is-not-applicable" : ""}" data-ccc-depends="safety"><label for="cccSafetyImprovement">是否改善／改善情形</label><textarea id="cccSafetyImprovement" name="safetyImprovement" maxlength="300" placeholder="請輸入改善情形"${safetyNA ? " disabled" : ""}>${escapeHTML(draft.safetyImprovement)}</textarea></div>
           </div>
         </section>
 
@@ -4030,13 +4051,13 @@
       const coreBreakdown = metrics
         ? `${rangeLabel}；納入 ${sourceCount} 張；${metrics.map((metric) => `${metric.code} ${formatCCCScore(metric.score)}%`).join("　")}`
         : "教師評分尚未完成";
-      const teaching = cccPrintText(cccOptionLabel(CCC_BOOLEAN_OPTIONS, record.teaching), record.teachingNote);
-      const research = cccPrintText(cccOptionLabel(CCC_BOOLEAN_OPTIONS, record.research), record.researchNote);
+      const teaching = cccPrintText(cccOptionLabel(CCC_BOOLEAN_OPTIONS, record.teaching), record.teaching === "none" ? "" : record.teachingNote);
+      const research = cccPrintText(cccOptionLabel(CCC_BOOLEAN_OPTIONS, record.research), record.research === "none" ? "" : record.researchNote);
       const safetyParts = [
         cccOptionLabel(CCC_BOOLEAN_OPTIONS, record.safety),
-        record.safetySeverity ? `嚴重性：${cccOptionLabel(CCC_SEVERITY_OPTIONS, record.safetySeverity)}` : "",
-        record.safetyDescription,
-        record.safetyImprovement ? `改善：${record.safetyImprovement}` : ""
+        record.safety !== "none" && record.safetySeverity ? `嚴重性：${cccOptionLabel(CCC_SEVERITY_OPTIONS, record.safetySeverity)}` : "",
+        record.safety !== "none" ? record.safetyDescription : "",
+        record.safety !== "none" && record.safetyImprovement ? `改善：${record.safetyImprovement}` : ""
       ].filter(Boolean).join("；");
       const conclusion = cccPrintText(
         cccOptionLabel(CCC_CONCLUSION_OPTIONS, record.conclusion),
@@ -5470,6 +5491,7 @@
     elements.cccForm.addEventListener("input", updateCCCWeightedTotal);
     elements.cccForm.addEventListener("change", (event) => {
       if (event.target.matches('[name="coreDateFrom"], [name="coreDateTo"]')) updateCCCAggregate();
+      if (event.target.matches('[name="teaching"], [name="research"], [name="safety"]')) syncCCCConditionalFields();
     });
     elements.cccForm.addEventListener("click", (event) => {
       const actionButton = event.target.closest("[data-ccc-action]");

@@ -1231,7 +1231,8 @@ const renderedCCC = new Function(`
   };
   renderCCCForm(period);
   const standardMarkup = elements.cccForm.innerHTML;
-  period.assessments.r1.cccDraft = { treatmentPlanScore: 90, journalMeetingScore: 70, annualExamScore: "", annualExamNotHeld: true };
+  period.assessments.r1.cccDraft = { treatmentPlanScore: 90, journalMeetingScore: 70, annualExamScore: "", annualExamNotHeld: true,
+    teaching: "none", teachingNote: "殘留教學", research: "yes", researchNote: "研究進度", safety: "none", safetySeverity: "mild" };
   renderCCCForm(period);
   return { ...elements, cccForm: { ...elements.cccForm, innerHTML: standardMarkup }, notHeldMarkup: elements.cccForm.innerHTML };
 `)();
@@ -1254,6 +1255,13 @@ assert.match(renderedCCC.notHeldMarkup, /id="cccAnnualExamNotHeld"[^>]*checked>/
 assert.match(renderedCCC.notHeldMarkup, /data-ccc-weight="core">40%[\s\S]*data-ccc-weight="treatment">30%[\s\S]*data-ccc-weight="journal">30%[\s\S]*data-ccc-weight="exam">0%/, "學會考試未實施時配分應改為 40/30/30/0");
 assert.match(renderedCCC.notHeldMarkup, /id="cccAnnualExamScore" class="ccc-score-input is-not-held"[^>]*type="text"[^>]*value="—"[^>]*disabled>/, "學會考試未實施時考試分數應成為灰色橫線且不能輸入");
 assert.doesNotMatch(renderedCCC.notHeldMarkup, /id="cccAnnualExamScore"[^>]*required/, "學會考試未實施時不得要求填寫考試分數");
+assert.match(renderedCCC.cccForm.innerHTML, /<textarea id="cccSafetyImprovement" name="safetyImprovement" maxlength="300" placeholder="請輸入改善情形">/, "病人安全的改善情形應為可多行輸入的文字框");
+assert.doesNotMatch(renderedCCC.cccForm.innerHTML, /is-not-applicable|name="(?:teachingNote|researchNote|safetyDescription|safetyImprovement)"[^>]*disabled/, "尚未選擇有或無時，教學、研究、病安說明欄位應可填寫");
+assert.match(renderedCCC.notHeldMarkup, /data-ccc-depends="teaching"><label for="cccTeachingNote">教學內容簡述<\/label><textarea id="cccTeachingNote"[^>]*disabled>/, "教學選無時教學內容簡述應變灰不能填");
+assert.match(renderedCCC.notHeldMarkup, /<div class="ccc-subfield" data-ccc-depends="research">[\s\S]*?<textarea id="cccResearchNote" name="researchNote" maxlength="500" placeholder="[^"]*">研究進度</, "研究選有時研究內容簡述應維持可填寫");
+assert.equal((renderedCCC.notHeldMarkup.match(/class="ccc-subfield is-not-applicable" data-ccc-depends="safety"/g) || []).length, 3, "病安選無時事件說明、嚴重性、改善情形三欄都應變灰");
+assert.match(renderedCCC.notHeldMarkup, /name="safetySeverity" type="radio" value="mild" checked disabled>/, "病安選無時嚴重性選項應不能點選");
+assert.match(renderedCCC.notHeldMarkup, /<textarea id="cccSafetyImprovement"[^>]*disabled>/, "病安選無時改善情形應不能填");
 assert.match(renderedCCC.notHeldMarkup, /綜合加權總分（三項加總）[\s\S]*>76\.4 分</, "71 分核心、90、70 在未實施配分下應得 28.4＋27＋21＝76.4 分");
 
 const savedCCC = new Function(`
@@ -1297,7 +1305,9 @@ assert.equal(savedCCC.renderCount, 1, "CCC 草稿保存後應重新渲染目前�
 assert.equal(savedCCC.draft.annualExamNotHeld, false, "未勾選學會考試未實施時應保存為 false");
 
 const notHeldCCCValues = new Function(`
-  const values = { treatmentPlanScore: "88", journalMeetingScore: "79", annualExamScore: "91", annualExamNotHeld: "yes" };
+  const values = { treatmentPlanScore: "88", journalMeetingScore: "79", annualExamScore: "91", annualExamNotHeld: "yes",
+    teaching: "none", teachingNote: "殘留教學", research: "yes", researchNote: "  研究進度  ",
+    safety: "none", safetyDescription: "殘留事件", safetySeverity: "mild", safetyImprovement: "殘留改善" };
   const FormData = class { get(name) { return values[name] ?? null; } };
   const elements = { cccForm: {} };
   ${extractFunction("cccScoreValue")}
@@ -1306,6 +1316,13 @@ const notHeldCCCValues = new Function(`
 `)();
 assert.equal(notHeldCCCValues.annualExamNotHeld, true, "勾選學會考試未實施應保存為 true");
 assert.equal(notHeldCCCValues.annualExamScore, "", "勾選學會考試未實施時不得保存殘留的考試分數");
+assert.equal(notHeldCCCValues.teachingNote, "", "教學選無時不得保存殘留的教學內容");
+assert.equal(notHeldCCCValues.researchNote, "研究進度", "研究選有時應保存研究內容");
+assert.deepEqual(
+  [notHeldCCCValues.safetyDescription, notHeldCCCValues.safetySeverity, notHeldCCCValues.safetyImprovement],
+  ["", "", ""],
+  "病安選無時不得保存殘留的事件說明、嚴重性與改善情形"
+);
 
 const submittedCCC = new Function(`
   const ITEM_MAX_SCORE = 5;
@@ -1402,7 +1419,7 @@ const cccPDFMarkup = new Function(`
   };
   return {
     standard: cccPrintReportMarkup(period, resident, record),
-    notHeld: cccPrintReportMarkup(period, resident, { ...record, annualExamScore: "", annualExamNotHeld: true, weightedTotal: undefined })
+    notHeld: cccPrintReportMarkup(period, resident, { ...record, annualExamScore: "", annualExamNotHeld: true, weightedTotal: undefined, teaching: "none", teachingNote: "舊殘留教學", safetyDescription: "舊殘留事件", safetyImprovement: "舊殘留改善" })
   };
 `)();
 assert.match(cccPDFMarkup.standard, /住院醫師核心能力適任性評核表/, "評核 PDF 應產生指定的正式標題");
@@ -1414,6 +1431,7 @@ assert.match(cccPDFMarkup.standard, /學員回饋/, "CCC PDF 應帶入學員省�
 assert.match(cccPDFMarkup.standard, /導師：<\/td><td class="name">導師甲[\s\S]*教學訓練官：<\/td><td class="name">負責人乙[\s\S]*部主任：<\/td><td class="name">主任丙/, "CCC PDF 應以導師、教學訓練官、部主任三層簽核欄印出");
 assert.match(cccPDFMarkup.notHeld, /六大核心考核表[\s\S]*40%[\s\S]*80[\s\S]*32[\s\S]*治療計畫平均分數<\/td><td class="weight">30%[\s\S]*Journal meeting 平均分數<\/td><td class="weight">30%/, "學會考試未實施時 PDF 配分應印成 40/30/30");
 assert.match(cccPDFMarkup.notHeld, /學會年度考試分數（未實施）<\/td><td class="weight">0%<\/td><td class="raw">—<\/td><td class="weighted">—<\/td>/, "學會考試未實施時 PDF 考試列應印成 0% 與橫線");
+assert.doesNotMatch(cccPDFMarkup.notHeld, /舊殘留/, "選無的教學與病安項目，PDF 不得印出舊資料殘留的說明文字");
 assert.match(cccPDFMarkup.notHeld, /綜合加權總分<\/td><td class="weighted">80<\/td>/, "80、90、70 在未實施配分下 PDF 總分應為 32＋27＋21＝80");
 
 const renderedCoreEPA = new Function(`
