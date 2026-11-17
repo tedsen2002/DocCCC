@@ -205,7 +205,7 @@ assert.doesNotMatch(html, /未加權六項平均/, "CCC 頁面不得再把六軸
 assert.match(html, /name="coreDateFrom" type="date"/, "CCC 應提供六大核心納入起日");
 assert.match(html, /name="coreDateTo" type="date"/, "CCC 應提供六大核心納入迄日");
 assert.match(html, /coreSourceForms: aggregate\.forms\.map\(sixCoreSourceSnapshot\)/, "CCC 提交應鎖定實際納入的六大核心表單快照");
-assert.match(html, /scores\[0\] \* 0\.3 \+ scores\[1\] \* 0\.25 \+ scores\[2\] \* 0\.25 \+ scores\[3\] \* 0\.2/, "臨床綜合總分應依 Word 權重計算");
+assert.match(html, /\{ core: 0\.4, treatment: 0\.3, journal: 0\.3, exam: 0 \}\s*: \{ core: 0\.3, treatment: 0\.25, journal: 0\.25, exam: 0\.2 \}/, "臨床綜合總分應依 Word 權重 30/25/25/20 計算，學會考試未實施時改為 40/30/30/0");
 assert.match(html, /function cccWeightedContribution\(score, weight\)/, "各項原始分數應個別顯示加權得分以避免誤讀");
 assert.match(html, /原始分數<\/span><span>加權得分/, "CCC 分數表應清楚區分原始分數與加權得分");
 assert.match(html, /name="treatmentPlanScore" type="number" min="0" max="100"/, "治療計畫應提供百分制手動輸入");
@@ -1017,6 +1017,8 @@ assert.equal(auditUnlock.elements.auditAuthForm.resetCount, 1, "成功解鎖後�
 
 const cccMath = new Function(`
   ${extractFunction("cccScoreValue")}
+  ${extractFunction("cccWeights")}
+  ${extractFunction("cccWeightLabel")}
   ${extractFunction("cccWeightedTotal")}
   ${extractFunction("cccWeightedContribution")}
   return { cccScoreValue, cccWeightedTotal, cccWeightedContribution };
@@ -1025,6 +1027,8 @@ assert.equal(cccMath.cccWeightedTotal(80, 90, 70, 100), 84, "加權總分應依 
 assert.equal(cccMath.cccWeightedTotal(80, "", 70, 100), null, "任一人工成績尚未填寫時不應顯示不完整總分");
 assert.equal(cccMath.cccScoreValue(101), "", "百分制欄位不得接受超過 100 分的值");
 assert.equal(cccMath.cccWeightedContribution(71, 0.3), 21.3, "71 分的核心總分乘 30% 應顯示 21.3 分加權貢獻");
+assert.equal(cccMath.cccWeightedTotal(80, 90, 70, "", true), 80, "學會考試未實施時應改用 40/30/30/0 計算，不因考試分數空白而無法得出總分");
+assert.equal(cccMath.cccWeightedTotal(80, 90, 70, 10, true), 80, "學會考試未實施時，殘留的考試分數不得影響總分");
 
 const sixCoreTeacherIdentity = new Function(`
   let activeScoreContext = { role: "teacher" };
@@ -1188,6 +1192,8 @@ const renderedCCC = new Function(`
   ${extractFunction("cccIncludedFormsMarkup")}
   ${extractFunction("cccScoreValue")}
   ${extractFunction("formatCCCScore")}
+  ${extractFunction("cccWeights")}
+  ${extractFunction("cccWeightLabel")}
   ${extractFunction("cccWeightedTotal")}
   ${extractFunction("cccWeightedContribution")}
   ${extractFunction("cccDraftFor")}
@@ -1206,7 +1212,10 @@ const renderedCCC = new Function(`
     } }
   };
   renderCCCForm(period);
-  return elements;
+  const standardMarkup = elements.cccForm.innerHTML;
+  period.assessments.r1.cccDraft = { treatmentPlanScore: 90, journalMeetingScore: 70, annualExamScore: "", annualExamNotHeld: true };
+  renderCCCForm(period);
+  return { ...elements, cccForm: { ...elements.cccForm, innerHTML: standardMarkup }, notHeldMarkup: elements.cccForm.innerHTML };
 `)();
 assert.match(renderedCCC.cccResidentSelect.innerHTML, /R1　測試醫師/, "CCC 學生選單應實際渲染目前期別名單");
 assert.equal((renderedCCC.cccForm.innerHTML.match(/class="ccc-section-heading"/g) || []).length, 9, "CCC 初稿應完整渲染 Word 的九個區塊");
@@ -1216,6 +1225,13 @@ assert.match(renderedCCC.cccForm.innerHTML, /納入 1 張：<\/strong>2026-01-10
 assert.match(renderedCCC.cccForm.innerHTML, /81\.3 分/, "CCC 初稿應使用 71 分核心總分計算綜合加權總分");
 assert.match(renderedCCC.cccForm.innerHTML, /id="cccCoreContribution"[^>]*>21\.3<\/output>/, "CCC 表單應顯示 71 分核心總分的 30% 加權得分");
 assert.match(renderedCCC.cccForm.innerHTML, /https:\/\/rt-linebot\.onrender\.com\/r-rating/, "CCC 表頭應實際渲染分數查詢 QR Code 連結");
+assert.match(renderedCCC.cccForm.innerHTML, /id="cccAnnualExamNotHeld" name="annualExamNotHeld" type="checkbox" value="yes">學會考試未實施/, "學會年度考試列應提供未勾選的「學會考試未實施」選項");
+assert.match(renderedCCC.cccForm.innerHTML, /data-ccc-weight="core">30%[\s\S]*data-ccc-weight="treatment">25%[\s\S]*data-ccc-weight="journal">25%[\s\S]*data-ccc-weight="exam">20%/, "未勾選時配分應維持 30/25/25/20");
+assert.match(renderedCCC.notHeldMarkup, /id="cccAnnualExamNotHeld"[^>]*checked>/, "已保存未實施時，重新開啟表單應保持勾選");
+assert.match(renderedCCC.notHeldMarkup, /data-ccc-weight="core">40%[\s\S]*data-ccc-weight="treatment">30%[\s\S]*data-ccc-weight="journal">30%[\s\S]*data-ccc-weight="exam">0%/, "學會考試未實施時配分應改為 40/30/30/0");
+assert.match(renderedCCC.notHeldMarkup, /id="cccAnnualExamScore" class="ccc-score-input is-not-held"[^>]*type="text"[^>]*value="—"[^>]*disabled>/, "學會考試未實施時考試分數應成為灰色橫線且不能輸入");
+assert.doesNotMatch(renderedCCC.notHeldMarkup, /id="cccAnnualExamScore"[^>]*required/, "學會考試未實施時不得要求填寫考試分數");
+assert.match(renderedCCC.notHeldMarkup, /綜合加權總分（三項加總）[\s\S]*>76\.4 分</, "71 分核心、90、70 在未實施配分下應得 28.4＋27＋21＝76.4 分");
 
 const savedCCC = new Function(`
   const selectedCCCResidentId = "r1";
@@ -1255,6 +1271,18 @@ assert.equal(savedCCC.draft.learnerFeedback, "持續精進", "CCC 草稿應保�
 assert.equal(savedCCC.draft.mentorName, "導師甲", "CCC 草稿應保存正式表需要的導師欄位");
 assert.equal(savedCCC.persistCount, 1, "CCC 草稿應寫入瀏覽器持久狀態一次");
 assert.equal(savedCCC.renderCount, 1, "CCC 草稿保存後應重新渲染目前學生表單");
+assert.equal(savedCCC.draft.annualExamNotHeld, false, "未勾選學會考試未實施時應保存為 false");
+
+const notHeldCCCValues = new Function(`
+  const values = { treatmentPlanScore: "88", journalMeetingScore: "79", annualExamScore: "91", annualExamNotHeld: "yes" };
+  const FormData = class { get(name) { return values[name] ?? null; } };
+  const elements = { cccForm: {} };
+  ${extractFunction("cccScoreValue")}
+  ${extractFunction("readCCCForm")}
+  return readCCCForm();
+`)();
+assert.equal(notHeldCCCValues.annualExamNotHeld, true, "勾選學會考試未實施應保存為 true");
+assert.equal(notHeldCCCValues.annualExamScore, "", "勾選學會考試未實施時不得保存殘留的考試分數");
 
 const submittedCCC = new Function(`
   const ITEM_MAX_SCORE = 5;
@@ -1300,6 +1328,8 @@ const submittedCCC = new Function(`
   ${extractFunction("sixCoreAggregate")}
   ${extractFunction("sixCoreSourceSnapshot")}
   ${extractFunction("cccScoreValue")}
+  ${extractFunction("cccWeights")}
+  ${extractFunction("cccWeightLabel")}
   ${extractFunction("cccWeightedTotal")}
   ${extractFunction("currentCCCContext")}
   ${extractFunction("submitCCCForm")}
@@ -1327,6 +1357,8 @@ const cccPDFMarkup = new Function(`
   ${extractFunction("escapeHTML")}
   ${extractFunction("cccScoreValue")}
   ${extractFunction("formatCCCScore")}
+  ${extractFunction("cccWeights")}
+  ${extractFunction("cccWeightLabel")}
   ${extractFunction("cccWeightedTotal")}
   ${extractFunction("cccWeightedContribution")}
   ${extractFunction("cccOptionLabel")}
@@ -1345,15 +1377,21 @@ const cccPDFMarkup = new Function(`
     mentorName: "導師甲", mentorDate: "2026-08-10", educationLeadName: "負責人乙", educationLeadDate: "2026-08-10",
     chiefName: "主任丙", chiefDate: "2026-08-10", submittedAt: "2026-08-10T02:00:00.000Z"
   };
-  return cccPrintReportMarkup(period, resident, record);
+  return {
+    standard: cccPrintReportMarkup(period, resident, record),
+    notHeld: cccPrintReportMarkup(period, resident, { ...record, annualExamScore: "", annualExamNotHeld: true, weightedTotal: undefined })
+  };
 `)();
-assert.match(cccPDFMarkup, /住院醫師核心能力適任性評核表/, "評核 PDF 應產生指定的正式標題");
-assert.doesNotMatch(cccPDFMarkup, /ccc-score-lookup|rt-linebot|conturing\/journal|artd12345|<svg/i, "CCC PDF 不得包含網頁版 QR Code、查詢網址或密碼");
-assert.doesNotMatch(cccPDFMarkup, /CCC|草稿預覽|正式提交/, "評核 PDF 可見內容不得再出現 CCC 或草稿／提交狀態小字");
-assert.match(cccPDFMarkup, /六大核心考核表[\s\S]*30%[\s\S]*80[\s\S]*24/, "CCC PDF 應同列顯示核心原始總分與 30% 加權得分");
-assert.match(cccPDFMarkup, /綜合加權總分[\s\S]*84/, "CCC PDF 應顯示四項加總後的 84 分");
-assert.match(cccPDFMarkup, /學員回饋/, "CCC PDF 應帶入學員省思與回饋");
-assert.match(cccPDFMarkup, /導師甲[\s\S]*負責人乙[\s\S]*主任丙/, "CCC PDF 應帶入三層簽核欄位");
+assert.match(cccPDFMarkup.standard, /住院醫師核心能力適任性評核表/, "評核 PDF 應產生指定的正式標題");
+assert.doesNotMatch(cccPDFMarkup.standard, /ccc-score-lookup|rt-linebot|conturing\/journal|artd12345|<svg/i, "CCC PDF 不得包含網頁版 QR Code、查詢網址或密碼");
+assert.doesNotMatch(cccPDFMarkup.standard, /CCC|草稿預覽|正式提交/, "評核 PDF 可見內容不得再出現 CCC 或草稿／提交狀態小字");
+assert.match(cccPDFMarkup.standard, /六大核心考核表[\s\S]*30%[\s\S]*80[\s\S]*24/, "CCC PDF 應同列顯示核心原始總分與 30% 加權得分");
+assert.match(cccPDFMarkup.standard, /綜合加權總分[\s\S]*84/, "CCC PDF 應顯示四項加總後的 84 分");
+assert.match(cccPDFMarkup.standard, /學員回饋/, "CCC PDF 應帶入學員省思與回饋");
+assert.match(cccPDFMarkup.standard, /導師甲[\s\S]*負責人乙[\s\S]*主任丙/, "CCC PDF 應帶入三層簽核欄位");
+assert.match(cccPDFMarkup.notHeld, /六大核心考核表[\s\S]*40%[\s\S]*80[\s\S]*32[\s\S]*治療計畫平均分數<\/td><td class="weight">30%[\s\S]*Journal meeting 平均分數<\/td><td class="weight">30%/, "學會考試未實施時 PDF 配分應印成 40/30/30");
+assert.match(cccPDFMarkup.notHeld, /學會年度考試分數（未實施）<\/td><td class="weight">0%<\/td><td class="raw">—<\/td><td class="weighted">—<\/td>/, "學會考試未實施時 PDF 考試列應印成 0% 與橫線");
+assert.match(cccPDFMarkup.notHeld, /綜合加權總分<\/td><td class="weighted">80<\/td>/, "80、90、70 在未實施配分下 PDF 總分應為 32＋27＋21＝80");
 
 const renderedCoreEPA = new Function(`
   const CORE_EPA_ITEMS = Array.from({ length: 11 }, (_, index) => ({ code: "EPA" + (index + 1), name: "評量項目 " + (index + 1) }));
@@ -1390,7 +1428,12 @@ const renderedCoreEPA = new Function(`
     ] } }
   };
   renderCoreEPAForm(period);
-  return { elements, selectedCoreEPAFormId };
+  const draftMarkup = elements.coreEpaForm.innerHTML;
+  const draftDataset = { ...elements.coreEpaForm.dataset };
+  Object.assign(period.assessments.r1.coreEpaForms[1], { savedAt: "2026-08-15T03:04:05.000Z", submittedAt: "2026-08-15T03:04:05.000Z" });
+  renderCoreEPAForm(period);
+  const submittedMarkup = elements.coreEpaForm.innerHTML;
+  return { elements: { ...elements, coreEpaForm: { ...elements.coreEpaForm, innerHTML: draftMarkup, dataset: draftDataset } }, selectedCoreEPAFormId, submittedMarkup };
 `)();
 assert.match(renderedCoreEPA.elements.coreEpaResidentSelect.innerHTML, /R1　測試醫師/, "Core EPAs 住院醫師選單應實際渲染目前期別名單");
 assert.match(renderedCoreEPA.elements.coreEpaFormSelect.innerHTML, /第 1 張 · 2026-06-01[\s\S]*第 2 張 · 2026-08-14/, "Core EPAs 應列出同一人的多張日期表單");
@@ -1401,6 +1444,9 @@ assert.doesNotMatch(renderedCoreEPA.elements.coreEpaForm.innerHTML, /學員類�
 assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, /對訓練計畫與科部的建議/, "Core EPAs 表單應完整渲染原始建議欄位");
 assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, /目前評分教師：[\s\S]*暫存教師丙[\s\S]*住院醫師指定：[\s\S]*教師乙[\s\S]*確定我是評分教師[\s\S]*變更評分教師/, "Core EPA 暫存後應直接顯示目前教師，重新確認即可續填");
 assert.equal(renderedCoreEPA.elements.coreEpaForm.dataset.currentTeacherName, "暫存教師丙", "Core EPA 應以暫存姓名作為再次確認的目前評分教師");
+assert.match(renderedCoreEPA.elements.coreEpaForm.innerHTML, /上次暫存：2026-08-14T02:00:00\.000Z/, "Core EPA 暫存時仍應顯示暫存時間");
+assert.match(renderedCoreEPA.submittedMarkup, /已正式提交；評核教師：暫存教師丙/, "Core EPA 提交後應標示已提交與評核教師");
+assert.doesNotMatch(renderedCoreEPA.submittedMarkup, /2026-08-15T03:04:05/, "Core EPA 表單上不得顯示教師完成時間");
 const confirmedCoreEPACurrentTeacher = new Function(`
   ${extractFunction("confirmedCoreEPATeacherName")}
   const form = {

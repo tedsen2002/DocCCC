@@ -281,6 +281,7 @@
     .six-core-entry-title { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
     .six-core-entry-title strong { font-size: 16px; }
     .six-core-entry-title time { color: var(--muted); font-size: 13px; }
+    .six-core-entry-teacher { color: var(--blue); font-size: 13px; font-weight: 800; }
     .six-core-entry .card-actions { margin-top: 12px; }
     .six-core-total { color: var(--green); font-size: 20px; font-weight: 900; }
     .score-summary-list { display: grid; gap: 16px; }
@@ -557,6 +558,10 @@
     .ccc-score-head span:not(:first-child) { text-align: right; }
     .ccc-score-input { width: 100%; min-height: 42px; padding: 8px 10px; text-align: right; font-weight: 850; }
     .ccc-score-input[readonly] { color: var(--green); background: #f2f6ef; }
+    .ccc-score-input.is-not-held, .ccc-form.is-submitted .ccc-score-input.is-not-held:disabled { color: var(--muted); text-align: center; background: #e6e8e3; -webkit-text-fill-color: var(--muted); cursor: not-allowed; }
+    .ccc-exam-label { display: grid; gap: 4px; }
+    .ccc-score-row .ccc-exam-toggle { display: inline-flex; align-items: center; gap: 6px; width: fit-content; color: var(--muted); font-size: 12px; font-weight: 750; cursor: pointer; }
+    .ccc-exam-toggle input { accent-color: var(--green); }
     .ccc-score-contribution { color: var(--green); text-align: right; font-size: 16px; font-weight: 900; }
     .ccc-total-row { display: flex; align-items: center; justify-content: flex-end; gap: 18px; margin-top: 11px; padding: 12px 14px; border-radius: 11px; color: white; background: var(--ink); }
     .ccc-total-row span { font-size: 13px; font-weight: 800; }
@@ -1834,6 +1839,7 @@
         if (record.coreMetrics && (!Array.isArray(record.coreMetrics) || record.coreMetrics.length !== COMPETENCIES.length)) return false;
         if ((record.coreDateFrom && !validDateOnly(record.coreDateFrom)) || (record.coreDateTo && !validDateOnly(record.coreDateTo))) return false;
         if (record.coreDateFrom && record.coreDateTo && record.coreDateFrom > record.coreDateTo) return false;
+        if (record.annualExamNotHeld !== undefined && typeof record.annualExamNotHeld !== "boolean") return false;
         if (record.coreSourceForms && (!Array.isArray(record.coreSourceForms) || !record.coreSourceForms.every((source) =>
           isRecord(source) && validId(source.formId) && validDateOnly(source.assessmentDate) && typeof source.teacherName === "string" && Number.isFinite(Number(source.score))))) return false;
         return true;
@@ -2240,6 +2246,7 @@
         treatmentPlanScore: "Contouring 分數",
         journalMeetingScore: "Journal 分數",
         annualExamScore: "年度考試分數",
+        annualExamNotHeld: "學會考試未實施",
         conclusion: "CCC 決議",
         mentorName: "CCC 導師",
         teacherDraft: "教師暫存內容",
@@ -2991,10 +2998,21 @@
       return Number.isInteger(score) ? String(score) : score.toFixed(1).replace(/\.0$/, "");
     }
 
-    function cccWeightedTotal(coreScore, treatmentPlanScore, journalMeetingScore, annualExamScore) {
-      const scores = [coreScore, treatmentPlanScore, journalMeetingScore, annualExamScore].map(cccScoreValue);
+    function cccWeights(annualExamNotHeld = false) {
+      return annualExamNotHeld
+        ? { core: 0.4, treatment: 0.3, journal: 0.3, exam: 0 }
+        : { core: 0.3, treatment: 0.25, journal: 0.25, exam: 0.2 };
+    }
+
+    function cccWeightLabel(weight) {
+      return `${Math.round(weight * 100)}%`;
+    }
+
+    function cccWeightedTotal(coreScore, treatmentPlanScore, journalMeetingScore, annualExamScore, annualExamNotHeld = false) {
+      const weights = cccWeights(annualExamNotHeld);
+      const scores = [coreScore, treatmentPlanScore, journalMeetingScore, annualExamNotHeld ? 0 : annualExamScore].map(cccScoreValue);
       if (scores.some((score) => score === "")) return null;
-      return Math.round((scores[0] * 0.3 + scores[1] * 0.25 + scores[2] * 0.25 + scores[3] * 0.2) * 10) / 10;
+      return Math.round((scores[0] * weights.core + scores[1] * weights.treatment + scores[2] * weights.journal + scores[3] * weights.exam) * 10) / 10;
     }
 
     function cccWeightedContribution(score, weight) {
@@ -3005,7 +3023,7 @@
     function cccDraftFor(assessment) {
       return {
         coreDateFrom: "", coreDateTo: "",
-        treatmentPlanScore: "", journalMeetingScore: "", annualExamScore: "", epaLevel: "",
+        treatmentPlanScore: "", journalMeetingScore: "", annualExamScore: "", annualExamNotHeld: false, epaLevel: "",
         teaching: "", teachingNote: "", research: "", researchNote: "", passport: "",
         safety: "", safetyDescription: "", safetySeverity: "", safetyImprovement: "",
         conclusion: "", followUp: "", comments: "", learnerFeedback: "", learnerSignature: "",
@@ -3032,12 +3050,14 @@
 
     function readCCCForm(form = elements.cccForm) {
       const formData = new FormData(form);
+      const annualExamNotHeld = formData.get("annualExamNotHeld") === "yes";
       return {
         coreDateFrom: String(formData.get("coreDateFrom") || ""),
         coreDateTo: String(formData.get("coreDateTo") || ""),
         treatmentPlanScore: cccScoreValue(formData.get("treatmentPlanScore")),
         journalMeetingScore: cccScoreValue(formData.get("journalMeetingScore")),
-        annualExamScore: cccScoreValue(formData.get("annualExamScore")),
+        annualExamScore: annualExamNotHeld ? "" : cccScoreValue(formData.get("annualExamScore")),
+        annualExamNotHeld,
         epaLevel: formData.get("epaLevel") || "",
         teaching: formData.get("teaching") || "",
         teachingNote: String(formData.get("teachingNote") || "").trim(),
@@ -3244,7 +3264,7 @@
         const epaMarkup = coreEPAForms.length
           ? coreEPAForms.map((form, index) => `
               <div class="summary-epa-form">
-                <div class="summary-epa-form-head"><time datetime="${escapeHTML(form.assessmentDate)}">${escapeHTML(form.assessmentDate)}</time><span>第 ${index + 1} 張 · ${escapeHTML(form.teacherName && form.teacherName !== form.assignedTeacherName ? `${form.assignedTeacherName || "未指定"} → ${form.teacherName}` : form.teacherName || form.assignedTeacherName || "未指定教師")}${form.savedAt ? ` · ${escapeHTML(formatReadableTime(form.savedAt))} 暫存` : " · 尚未暫存"}</span></div>
+                <div class="summary-epa-form-head"><time datetime="${escapeHTML(form.assessmentDate)}">${escapeHTML(form.assessmentDate)}</time><span>第 ${index + 1} 張 · ${escapeHTML(form.teacherName && form.teacherName !== form.assignedTeacherName ? `${form.assignedTeacherName || "未指定"} → ${form.teacherName}` : form.teacherName || form.assignedTeacherName || "未指定教師")}${form.submittedAt ? " · 已提交" : form.savedAt ? ` · ${escapeHTML(formatReadableTime(form.savedAt))} 暫存` : " · 尚未暫存"}</span></div>
                 <div class="summary-epa-grid">${CORE_EPA_ITEMS.map((item, itemIndex) => `<div class="summary-epa-item"><span>${escapeHTML(item.code)}</span><strong>${escapeHTML(coreEPALevelLabel(form.levels?.[itemIndex]))}</strong></div>`).join("")}</div>
               </div>
             `).join("")
@@ -3318,11 +3338,13 @@
       const includedForms = submitted
         ? assessment.cccSubmission.coreSourceForms || []
         : liveAggregate.forms.map(sixCoreSourceSnapshot);
-      const weightedTotal = assessment.cccSubmission?.weightedTotal ?? cccWeightedTotal(coreScore, draft.treatmentPlanScore, draft.journalMeetingScore, draft.annualExamScore);
-      const coreContribution = cccWeightedContribution(coreScore, 0.3);
-      const treatmentContribution = cccWeightedContribution(draft.treatmentPlanScore, 0.25);
-      const journalContribution = cccWeightedContribution(draft.journalMeetingScore, 0.25);
-      const examContribution = cccWeightedContribution(draft.annualExamScore, 0.2);
+      const examNotHeld = Boolean(draft.annualExamNotHeld);
+      const weights = cccWeights(examNotHeld);
+      const weightedTotal = assessment.cccSubmission?.weightedTotal ?? cccWeightedTotal(coreScore, draft.treatmentPlanScore, draft.journalMeetingScore, draft.annualExamScore, examNotHeld);
+      const coreContribution = cccWeightedContribution(coreScore, weights.core);
+      const treatmentContribution = cccWeightedContribution(draft.treatmentPlanScore, weights.treatment);
+      const journalContribution = cccWeightedContribution(draft.journalMeetingScore, weights.journal);
+      const examContribution = examNotHeld ? null : cccWeightedContribution(draft.annualExamScore, weights.exam);
       const coreCards = (metrics || COMPETENCIES.map((competency) => ({ code: competency.code, name: competency.name, score: null })))
         .map((metric, index) => `
           <div class="ccc-core-score" title="${escapeHTML(metric.name)}">
@@ -3377,30 +3399,35 @@
               <div class="ccc-score-row ccc-score-head" aria-hidden="true"><span>評分項目</span><span>佔分</span><span>原始分數</span><span>加權得分</span></div>
               <div class="ccc-score-row">
                 <label for="cccCoreScore">六大核心考核表</label>
-                <span class="ccc-score-weight">30%</span>
+                <span class="ccc-score-weight" data-ccc-weight="core">${cccWeightLabel(weights.core)}</span>
                 <input id="cccCoreScore" class="ccc-score-input" type="text" value="${formatCCCScore(coreScore)}" readonly aria-label="六大核心考核表有效分項換算總分">
                 <output id="cccCoreContribution" class="ccc-score-contribution">${formatCCCScore(coreContribution)}</output>
               </div>
               <div class="ccc-score-row">
                 <label for="cccTreatmentPlanScore">治療計畫平均分數</label>
-                <span class="ccc-score-weight">25%</span>
+                <span class="ccc-score-weight" data-ccc-weight="treatment">${cccWeightLabel(weights.treatment)}</span>
                 <input id="cccTreatmentPlanScore" class="ccc-score-input" name="treatmentPlanScore" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${escapeHTML(cccScoreValue(draft.treatmentPlanScore))}" placeholder="0–100" required>
                 <output id="cccTreatmentContribution" class="ccc-score-contribution">${formatCCCScore(treatmentContribution)}</output>
               </div>
               <div class="ccc-score-row">
                 <label for="cccJournalMeetingScore">Journal meeting 平均分數</label>
-                <span class="ccc-score-weight">25%</span>
+                <span class="ccc-score-weight" data-ccc-weight="journal">${cccWeightLabel(weights.journal)}</span>
                 <input id="cccJournalMeetingScore" class="ccc-score-input" name="journalMeetingScore" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${escapeHTML(cccScoreValue(draft.journalMeetingScore))}" placeholder="0–100" required>
                 <output id="cccJournalContribution" class="ccc-score-contribution">${formatCCCScore(journalContribution)}</output>
               </div>
               <div class="ccc-score-row">
-                <label for="cccAnnualExamScore">學會年度考試分數</label>
-                <span class="ccc-score-weight">20%</span>
-                <input id="cccAnnualExamScore" class="ccc-score-input" name="annualExamScore" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${escapeHTML(cccScoreValue(draft.annualExamScore))}" placeholder="0–100" required>
+                <div class="ccc-exam-label">
+                  <label for="cccAnnualExamScore">學會年度考試分數</label>
+                  <label class="ccc-exam-toggle" for="cccAnnualExamNotHeld"><input id="cccAnnualExamNotHeld" name="annualExamNotHeld" type="checkbox" value="yes"${examNotHeld ? " checked" : ""}>學會考試未實施</label>
+                </div>
+                <span class="ccc-score-weight" data-ccc-weight="exam">${cccWeightLabel(weights.exam)}</span>
+                ${examNotHeld
+                  ? `<input id="cccAnnualExamScore" class="ccc-score-input is-not-held" name="annualExamScore" type="text" min="0" max="100" step="0.1" inputmode="decimal" value="—" placeholder="0–100" disabled>`
+                  : `<input id="cccAnnualExamScore" class="ccc-score-input" name="annualExamScore" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${escapeHTML(cccScoreValue(draft.annualExamScore))}" placeholder="0–100" required>`}
                 <output id="cccExamContribution" class="ccc-score-contribution">${formatCCCScore(examContribution)}</output>
               </div>
             </div>
-            <div class="ccc-total-row"><span>綜合加權總分（四項加總）</span><output id="cccWeightedTotal" aria-live="polite">${weightedTotal === null ? "—" : formatCCCScore(weightedTotal) + " 分"}</output></div>
+            <div class="ccc-total-row"><span id="cccWeightedTotalLabel">綜合加權總分（${examNotHeld ? "三" : "四"}項加總）</span><output id="cccWeightedTotal" aria-live="polite">${weightedTotal === null ? "—" : formatCCCScore(weightedTotal) + " 分"}</output></div>
             <p class="ccc-threshold"><strong>綜合評分晉升門檻：</strong>R1 → R2：70 分　／　R2 → R3：75 分　／　R3 → R4：80 分</p>
           </div>
         </section>
@@ -3539,7 +3566,7 @@
       const unlocked = submitted && unlockedCoreEPAFormId === draft.id;
       const editable = !submitted || unlocked;
       const saveMeta = submitted
-        ? `正式提交：${escapeHTML(formatReadableTime(draft.submittedAt))}；評核教師：${escapeHTML(draft.teacherName || "未記錄")}`
+        ? `已正式提交；評核教師：${escapeHTML(draft.teacherName || "未記錄")}`
         : draft.savedAt ? `上次暫存：${escapeHTML(formatReadableTime(draft.savedAt))}` : "尚未暫存";
       const guide = CORE_EPA_LEVEL_GUIDE.map(([level, description]) =>
         `<div><strong>${escapeHTML(level)}</strong>${escapeHTML(description)}</div>`
@@ -3671,17 +3698,39 @@
       const coreScore = elements.cccForm.dataset.coreScore;
       const treatmentPlanScore = elements.cccForm.elements.treatmentPlanScore?.value;
       const journalMeetingScore = elements.cccForm.elements.journalMeetingScore?.value;
-      const annualExamScore = elements.cccForm.elements.annualExamScore?.value;
+      const examNotHeld = Boolean(elements.cccForm.elements.annualExamNotHeld?.checked);
+      const examInput = elements.cccForm.elements.annualExamScore;
+      if (examInput && !elements.cccForm.classList.contains("is-submitted") && examInput.disabled !== examNotHeld) {
+        if (examNotHeld) {
+          examInput.dataset.heldValue = examInput.value;
+          examInput.type = "text";
+          examInput.value = "—";
+        } else {
+          examInput.type = "number";
+          examInput.value = examInput.dataset.heldValue || "";
+        }
+        examInput.disabled = examNotHeld;
+        examInput.required = !examNotHeld;
+        examInput.classList.toggle("is-not-held", examNotHeld);
+      }
+      const annualExamScore = examNotHeld ? "" : examInput?.value;
+      const weights = cccWeights(examNotHeld);
+      Object.entries(weights).forEach(([key, weight]) => {
+        const weightLabel = elements.cccForm.querySelector(`[data-ccc-weight="${key}"]`);
+        if (weightLabel) weightLabel.textContent = cccWeightLabel(weight);
+      });
       [
-        ["#cccCoreContribution", coreScore, 0.3],
-        ["#cccTreatmentContribution", treatmentPlanScore, 0.25],
-        ["#cccJournalContribution", journalMeetingScore, 0.25],
-        ["#cccExamContribution", annualExamScore, 0.2]
+        ["#cccCoreContribution", coreScore, weights.core],
+        ["#cccTreatmentContribution", treatmentPlanScore, weights.treatment],
+        ["#cccJournalContribution", journalMeetingScore, weights.journal],
+        ["#cccExamContribution", annualExamScore, weights.exam]
       ].forEach(([selector, score, weight]) => {
         const contributionOutput = elements.cccForm.querySelector(selector);
         if (contributionOutput) contributionOutput.textContent = formatCCCScore(cccWeightedContribution(score, weight));
       });
-      const total = cccWeightedTotal(coreScore, treatmentPlanScore, journalMeetingScore, annualExamScore);
+      const totalLabel = elements.cccForm.querySelector("#cccWeightedTotalLabel");
+      if (totalLabel) totalLabel.textContent = `綜合加權總分（${examNotHeld ? "三" : "四"}項加總）`;
+      const total = cccWeightedTotal(coreScore, treatmentPlanScore, journalMeetingScore, annualExamScore, examNotHeld);
       if (output) output.textContent = total === null ? "—" : `${formatCCCScore(total)} 分`;
     }
 
@@ -3915,9 +3964,9 @@
       }
       const metrics = aggregate.metrics;
       const coreScore = aggregate.score;
-      const weightedTotal = cccWeightedTotal(coreScore, formValues.treatmentPlanScore, formValues.journalMeetingScore, formValues.annualExamScore);
+      const weightedTotal = cccWeightedTotal(coreScore, formValues.treatmentPlanScore, formValues.journalMeetingScore, formValues.annualExamScore, formValues.annualExamNotHeld);
       if (weightedTotal === null) {
-        showToast("請完整填寫三項人工成績後再提交。");
+        showToast(formValues.annualExamNotHeld ? "請完整填寫兩項人工成績後再提交。" : "請完整填寫三項人工成績後再提交。");
         return;
       }
       if (!window.confirm("正式提交後會鎖定 CCC 評核表並留下稽核紀錄。確定提交嗎？")) return;
@@ -3962,11 +4011,13 @@
       const aggregate = sixCoreAggregate(period.assessments[resident.id], record.coreDateFrom || "", record.coreDateTo || "");
       const metrics = record.coreMetrics || aggregate.metrics;
       const coreScore = record.coreScore ?? record.coreAverage ?? aggregate.score;
-      const weightedTotal = record.weightedTotal ?? cccWeightedTotal(coreScore, record.treatmentPlanScore, record.journalMeetingScore, record.annualExamScore);
-      const coreContribution = cccWeightedContribution(coreScore, 0.3);
-      const treatmentContribution = cccWeightedContribution(record.treatmentPlanScore, 0.25);
-      const journalContribution = cccWeightedContribution(record.journalMeetingScore, 0.25);
-      const examContribution = cccWeightedContribution(record.annualExamScore, 0.2);
+      const examNotHeld = Boolean(record.annualExamNotHeld);
+      const weights = cccWeights(examNotHeld);
+      const weightedTotal = record.weightedTotal ?? cccWeightedTotal(coreScore, record.treatmentPlanScore, record.journalMeetingScore, record.annualExamScore, examNotHeld);
+      const coreContribution = cccWeightedContribution(coreScore, weights.core);
+      const treatmentContribution = cccWeightedContribution(record.treatmentPlanScore, weights.treatment);
+      const journalContribution = cccWeightedContribution(record.journalMeetingScore, weights.journal);
+      const examContribution = examNotHeld ? null : cccWeightedContribution(record.annualExamScore, weights.exam);
       const rangeLabel = record.coreDateFrom && record.coreDateTo ? `${record.coreDateFrom}～${record.coreDateTo}` : "日期範圍未記錄";
       const sourceCount = record.coreSourceForms?.length || aggregate.forms.length;
       const coreBreakdown = metrics
@@ -3996,10 +4047,10 @@
         <table class="ccc-print-score-table" aria-label="臨床綜合評分">
           <thead><tr><th class="item">評分項目</th><th class="weight">佔分</th><th class="raw">原始分數</th><th class="weighted">加權得分</th></tr></thead>
           <tbody>
-            <tr><td class="item">六大核心考核表<span class="ccc-print-core-breakdown">${escapeHTML(coreBreakdown)}</span></td><td class="weight">30%</td><td class="raw">${formatCCCScore(coreScore)}</td><td class="weighted">${formatCCCScore(coreContribution)}</td></tr>
-            <tr><td class="item">治療計畫平均分數</td><td class="weight">25%</td><td class="raw">${formatCCCScore(record.treatmentPlanScore)}</td><td class="weighted">${formatCCCScore(treatmentContribution)}</td></tr>
-            <tr><td class="item">Journal meeting 平均分數</td><td class="weight">25%</td><td class="raw">${formatCCCScore(record.journalMeetingScore)}</td><td class="weighted">${formatCCCScore(journalContribution)}</td></tr>
-            <tr><td class="item">學會年度考試分數</td><td class="weight">20%</td><td class="raw">${formatCCCScore(record.annualExamScore)}</td><td class="weighted">${formatCCCScore(examContribution)}</td></tr>
+            <tr><td class="item">六大核心考核表<span class="ccc-print-core-breakdown">${escapeHTML(coreBreakdown)}</span></td><td class="weight">${cccWeightLabel(weights.core)}</td><td class="raw">${formatCCCScore(coreScore)}</td><td class="weighted">${formatCCCScore(coreContribution)}</td></tr>
+            <tr><td class="item">治療計畫平均分數</td><td class="weight">${cccWeightLabel(weights.treatment)}</td><td class="raw">${formatCCCScore(record.treatmentPlanScore)}</td><td class="weighted">${formatCCCScore(treatmentContribution)}</td></tr>
+            <tr><td class="item">Journal meeting 平均分數</td><td class="weight">${cccWeightLabel(weights.journal)}</td><td class="raw">${formatCCCScore(record.journalMeetingScore)}</td><td class="weighted">${formatCCCScore(journalContribution)}</td></tr>
+            <tr><td class="item">學會年度考試分數${examNotHeld ? "（未實施）" : ""}</td><td class="weight">${cccWeightLabel(weights.exam)}</td><td class="raw">${examNotHeld ? "—" : formatCCCScore(record.annualExamScore)}</td><td class="weighted">${formatCCCScore(examContribution)}</td></tr>
             <tr class="ccc-print-total"><td colspan="3">綜合加權總分</td><td class="weighted">${formatCCCScore(weightedTotal)}</td></tr>
           </tbody>
         </table>
@@ -4048,7 +4099,7 @@
         coreScore: source.coreScore ?? source.coreAverage ?? aggregate.score,
         coreSourceForms: source.coreSourceForms || aggregate.forms.map(sixCoreSourceSnapshot)
       };
-      record.weightedTotal = source.weightedTotal ?? cccWeightedTotal(record.coreScore, record.treatmentPlanScore, record.journalMeetingScore, record.annualExamScore);
+      record.weightedTotal = source.weightedTotal ?? cccWeightedTotal(record.coreScore, record.treatmentPlanScore, record.journalMeetingScore, record.annualExamScore, record.annualExamNotHeld);
       elements.cccPrintReport.innerHTML = cccPrintReportMarkup(period, resident, record);
       elements.cccPrintReport.setAttribute("aria-hidden", "false");
       document.querySelector("#ccc-print-page-style")?.remove();
@@ -4219,7 +4270,6 @@
             <span><strong>年級</strong>${escapeHTML(resident.level)}</span>
             <span><strong>指定教師</strong>${escapeHTML(assessment.assignedTeacherName || "未記錄")}</span>
             <span><strong>評核教師</strong>${escapeHTML(assessment.teacher.teacherName || "未記錄")}</span>
-            <span><strong>完成時間</strong>${escapeHTML(formatReadableTime(assessment.teacher.submittedAt))}</span>
           </div>
           <div class="formal-code-legend">
             <strong>六角圖縮寫對照</strong>
@@ -4291,18 +4341,17 @@
       const modernComplete = complete && !legacy && validLevels(form.student.levels || []) &&
         validLevels(form.teacher.levels || []) && validItemScores(form.teacher.itemScores || []);
       const result = sixCoreFormResult(form);
+      const evaluatingTeacherName = form.teacher?.teacherName || form.teacherDraft?.teacherName || form.assignedTeacherName || "未指定";
       const submissionTimes = ["student", "teacher"].filter((role) => form[role]).map((role) => {
+        if (role === "student") return `${ROLE_LABELS[role]} ${formatAuditTime(form[role].submittedAt)}`;
         const actualTeacherName = form.teacher?.teacherName || "教師未記錄";
-        const teacher = role === "teacher"
-          ? `（${form.assignedTeacherName && form.assignedTeacherName !== actualTeacherName ? `指定 ${form.assignedTeacherName}；實際 ` : ""}${actualTeacherName}）`
-          : "";
-        return `${ROLE_LABELS[role]} ${formatAuditTime(form[role].submittedAt)}${teacher}`;
+        return `${ROLE_LABELS[role]}已完成${form.assignedTeacherName && form.assignedTeacherName !== actualTeacherName ? `（指定 ${form.assignedTeacherName}；實際 ${actualTeacherName}）` : ""}`;
       });
       if (teacherDraft) submissionTimes.push(`教師暫存 ${formatAuditTime(form.teacherDraft.savedAt)}`);
       return `
         <section class="six-core-entry${complete ? " complete" : ""}">
           <div class="six-core-entry-head">
-            <div class="six-core-entry-title"><strong>第 ${index + 1} 次評核</strong><time datetime="${escapeHTML(form.assessmentDate)}">${escapeHTML(form.assessmentDate)}</time></div>
+            <div class="six-core-entry-title"><strong>第 ${index + 1} 次評核</strong><time datetime="${escapeHTML(form.assessmentDate)}">${escapeHTML(form.assessmentDate)}</time><span class="six-core-entry-teacher">評核教師：${escapeHTML(evaluatingTeacherName)}</span></div>
             ${result ? `<span class="six-core-total">${formatCCCScore(result.score)} 分</span>` : `<div class="status-row"><span class="status ${form.student ? "student-done" : "pending"}">學生${form.student ? "已完成" : "待評"}</span><span class="status ${form.teacher ? "teacher-done" : teacherDraft ? "draft" : "pending"}">教師${form.teacher ? "已完成" : teacherDraft ? "已暫存" : "待評"}</span></div>`}
           </div>
           <div class="card-actions">

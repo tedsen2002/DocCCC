@@ -71,6 +71,77 @@
           renderRoster(period);
         `);
         assert(!appDocument.querySelector("[data-resident-name]").disabled, "歷史空白姓名仍應允許補登一次");
+
+        const entryTeacherText = () => appDocument.querySelector(".six-core-entry-title .six-core-entry-teacher")?.textContent;
+        app.eval(`renderResidents(currentPeriod());`);
+        assert(entryTeacherText() === "評核教師：測試教師", "教師尚未評核時，日期旁應顯示住院醫師指定的教師");
+        app.eval(`
+          const period = currentPeriod();
+          const form = period.assessments[period.residents[0].id].sixCoreForms[0];
+          form.teacherDraft = { teacherName: "暫存教師乙", itemScores: Array(20).fill(null), levels: Array(6).fill(null), savedAt: "2026-08-29T02:00:00.000Z" };
+          renderResidents(period);
+        `);
+        assert(entryTeacherText() === "評核教師：暫存教師乙", "教師暫存時變更的評核教師應同步顯示在日期旁");
+        const teacherSubmittedAt = "2026-08-29T03:04:05.000Z";
+        const teacherTimeLabels = app.eval(`[formatAuditTime("${teacherSubmittedAt}"), formatReadableTime("${teacherSubmittedAt}")]`);
+        app.eval(`
+          const period = currentPeriod();
+          const form = period.assessments[period.residents[0].id].sixCoreForms[0];
+          delete form.teacherDraft;
+          form.teacher = { teacherName: "實際教師丙", itemScores: Array(20).fill(4), levels: [3, 3, 3, 3, 3, 3], submittedAt: "${teacherSubmittedAt}" };
+          renderResidents(period);
+        `);
+        assert(entryTeacherText() === "評核教師：實際教師丙", "教師完成後日期旁應顯示實際評核教師");
+        const doneTime = appDocument.querySelector(".six-core-entry .done-time").textContent;
+        const formalMeta = appDocument.querySelector(".formal-print-report .formal-print-meta");
+        assert(formalMeta, "教師完成後應產生可列印的正式評分表");
+        assert(doneTime.includes("教師評分已完成（指定 測試教師；實際 實際教師丙）"), "表單仍應標示教師已完成與指定／實際教師");
+        assert(teacherTimeLabels.every((label) => !doneTime.includes(label)), "表單上不得顯示教師完成時間");
+        assert(teacherTimeLabels.every((label) => !formalMeta.textContent.includes(label)) && !formalMeta.textContent.includes("完成時間"), "列印的正式評分表不得印出教師完成時間");
+
+        app.eval(`
+          selectedCCCResidentId = currentPeriod().residents[0].id;
+          renderCCCForm(currentPeriod());
+        `);
+        const cccForm = appDocument.querySelector("#cccForm");
+        const setScore = (name, value) => {
+          const input = cccForm.elements[name];
+          input.value = value;
+          input.dispatchEvent(new app.Event("input", { bubbles: true }));
+        };
+        setScore("treatmentPlanScore", "90");
+        setScore("journalMeetingScore", "70");
+        setScore("annualExamScore", "100");
+        const weightText = () => Array.from(cccForm.querySelectorAll("[data-ccc-weight]")).map((node) => node.textContent).join("/");
+        const totalText = () => cccForm.querySelector("#cccWeightedTotal").textContent;
+        assert(weightText() === "30%/25%/25%/20%" && totalText() === "84 分", `未勾選時應以 30/25/25/20 算出 84 分，實際 ${weightText()} ${totalText()}`);
+        const notHeldBox = cccForm.querySelector("#cccAnnualExamNotHeld");
+        const examInput = cccForm.elements.annualExamScore;
+        notHeldBox.click();
+        assert(weightText() === "40%/30%/30%/0%" && totalText() === "80 分", `勾選學會考試未實施後應以 40/30/30/0 算出 80 分，實際 ${weightText()} ${totalText()}`);
+        assert(examInput.disabled && examInput.value === "—" && app.getComputedStyle(examInput).backgroundColor === "rgb(230, 232, 227)", "勾選後考試分數應成為不能輸入的灰色橫線");
+        assert(cccForm.querySelector("#cccExamContribution").textContent === "—", "勾選後考試加權得分應顯示橫線");
+        notHeldBox.click();
+        assert(!examInput.disabled && examInput.value === "100" && totalText() === "84 分", "取消勾選後應還原原本輸入的考試分數與配分");
+        notHeldBox.click();
+        app.eval(`saveCCCDraft();`);
+        const savedDraft = app.eval(`(() => { const period = currentPeriod(); return period.assessments[period.residents[0].id].cccDraft; })()`);
+        assert(savedDraft.annualExamNotHeld === true && savedDraft.annualExamScore === "", "暫存時應保存未實施狀態且不保存考試分數");
+        const reopenedExam = appDocument.querySelector("#cccForm").elements.annualExamScore;
+        assert(appDocument.querySelector("#cccAnnualExamNotHeld").checked && reopenedExam.disabled && reopenedExam.value === "—", "暫存後重新渲染應保持未實施狀態");
+
+        const coreEpaSubmittedAt = "2026-08-30T05:06:07.000Z";
+        const coreEpaTimeLabels = app.eval(`[formatAuditTime("${coreEpaSubmittedAt}"), formatReadableTime("${coreEpaSubmittedAt}")]`);
+        app.eval(`
+          const period = currentPeriod();
+          const assessment = period.assessments[period.residents[0].id];
+          const form = makeCoreEPAForm("2026-08-30", "指定教師甲");
+          Object.assign(form, { teacherName: "評核教師丁", levels: form.levels.map(() => "3"), savedAt: "${coreEpaSubmittedAt}", submittedAt: "${coreEpaSubmittedAt}" });
+          assessment.coreEpaForms = [form];
+          renderScoreSummary(period);
+        `);
+        const summaryHead = appDocument.querySelector(".summary-epa-form-head")?.textContent || "";
+        assert(summaryHead.includes("已提交") && coreEpaTimeLabels.every((label) => !summaryHead.includes(label)), `分數統計頁的 Core EPA 已提交表單不得顯示教師完成時間，實際：${summaryHead}`);
         result.textContent = "PASS: DocCCC browser integration verified";
       } catch (error) {
         result.textContent = `FAIL: ${error instanceof Error ? error.message : String(error)}`;
