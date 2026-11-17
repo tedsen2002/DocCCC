@@ -1218,7 +1218,12 @@ const renderedCCC = new Function(`
   return { ...elements, cccForm: { ...elements.cccForm, innerHTML: standardMarkup }, notHeldMarkup: elements.cccForm.innerHTML };
 `)();
 assert.match(renderedCCC.cccResidentSelect.innerHTML, /R1　測試醫師/, "CCC 學生選單應實際渲染目前期別名單");
-assert.equal((renderedCCC.cccForm.innerHTML.match(/class="ccc-section-heading"/g) || []).length, 9, "CCC 初稿應完整渲染 Word 的九個區塊");
+assert.equal((renderedCCC.cccForm.innerHTML.match(/class="ccc-section-heading[ "]/g) || []).length, 9, "CCC 初稿應完整渲染 Word 的九個區塊");
+assert.deepEqual(
+  Array.from(renderedCCC.cccForm.innerHTML.matchAll(/class="ccc-section-heading is-teacher"><span class="ccc-section-number">([^<]+)</g), (match) => match[1]),
+  ["三", "八", "九"],
+  "只有老師填寫的第三、八、九項表頭應標示為紅色，其餘學生填寫區塊維持綠色"
+);
 assert.equal((renderedCCC.cccForm.innerHTML.match(/class="ccc-core-score"/g) || []).length, 6, "CCC 初稿應渲染六項核心能力分數");
 assert.match(renderedCCC.cccForm.innerHTML, /六大核心平均　71 分（1 張）/, "CCC 初稿應顯示日期範圍內一張表單的 71 分平均");
 assert.match(renderedCCC.cccForm.innerHTML, /納入 1 張：<\/strong>2026-01-10/, "CCC 初稿應預覽實際納入的表單日期");

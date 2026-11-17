@@ -532,6 +532,8 @@
     .ccc-section { overflow: hidden; border: 1px solid var(--line); border-radius: 15px; background: #fbfbf7; }
     .ccc-section-heading { display: flex; align-items: center; gap: 9px; margin: 0; padding: 11px 14px; color: white; background: var(--green); font-size: 16px; }
     .ccc-section-number { display: grid; width: 25px; height: 25px; place-items: center; border-radius: 50%; color: var(--green); background: var(--lime); font-size: 12px; }
+    .ccc-section-heading.is-teacher { background: #a9282e; }
+    .ccc-section-heading.is-teacher .ccc-section-number { color: #a9282e; background: #ffe9e9; }
     .ccc-section-body { padding: 15px; }
     .ccc-basic-grid { display: grid; grid-template-columns: 1.2fr 0.65fr 1fr; gap: 12px; }
     .ccc-readonly-field { min-width: 0; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: white; }
@@ -3433,7 +3435,7 @@
         </section>
 
         <section class="ccc-section">
-          <h3 class="ccc-section-heading"><span class="ccc-section-number">三</span>EPA 臨床授權</h3>
+          <h3 class="ccc-section-heading is-teacher"><span class="ccc-section-number">三</span>EPA 臨床授權</h3>
           <div class="ccc-section-body">
             ${cccChoiceMarkup("epaLevel", CCC_EPA_OPTIONS, draft.epaLevel, true)}
             <p class="ccc-threshold"><strong>EPA 晉升門檻：</strong>R1：EPA 1–4 達 L4、EPA 5–7 達 L3；R2：EPA 1–7 達 L4、EPA 8 達 L3、EPA 9 達 L2；R3：EPA 1–9 達 L4；R4：EPA 1–9 達 L5。</p>
@@ -3474,7 +3476,7 @@
         </section>
 
         <section class="ccc-section">
-          <h3 class="ccc-section-heading"><span class="ccc-section-number">八</span>CCC 結論</h3>
+          <h3 class="ccc-section-heading is-teacher"><span class="ccc-section-number">八</span>CCC 結論</h3>
           <div class="ccc-section-body">
             ${cccChoiceMarkup("conclusion", CCC_CONCLUSION_OPTIONS, draft.conclusion, true)}
             <div class="ccc-subfield"><span class="field-label">追蹤期限</span>${cccChoiceMarkup("followUp", CCC_FOLLOWUP_OPTIONS, draft.followUp)}</div>
@@ -3482,7 +3484,7 @@
         </section>
 
         <section class="ccc-section">
-          <h3 class="ccc-section-heading"><span class="ccc-section-number">九</span>CCC 總評語與簽核</h3>
+          <h3 class="ccc-section-heading is-teacher"><span class="ccc-section-number">九</span>CCC 總評語與簽核</h3>
           <div class="ccc-section-body">
             <div class="ccc-subfield"><label for="cccComments">CCC 總評語</label><textarea id="cccComments" name="comments" maxlength="2000" placeholder="請輸入整體表現、需持續精進事項與追蹤建議">${escapeHTML(draft.comments)}</textarea></div>
             <div class="ccc-subfield"><label for="cccLearnerFeedback">學員省思與回饋</label><textarea id="cccLearnerFeedback" name="learnerFeedback" maxlength="1600" placeholder="供學員填寫省思、意見與後續學習計畫">${escapeHTML(draft.learnerFeedback)}</textarea></div>
