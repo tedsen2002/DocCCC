@@ -233,8 +233,9 @@ assert.doesNotMatch(html, /ccc-print-status|草稿預覽/, "評核 PDF 不得顯
 assert.match(html, /document\.title = `住院醫師核心能力適任性評核表_/, "評核 PDF 檔名應使用正式表名");
 assert.match(html, /name="learnerFeedback"/, "參考表所需的學員省思與回饋欄應存在");
 assert.match(html, /name="mentorName"/, "參考表所需的導師簽核欄應存在");
-assert.match(html, /name="educationLeadName"/, "參考表所需的教學負責人簽核欄應存在");
-assert.match(html, /name="chiefName"/, "參考表所需的科主任簽核欄應存在");
+assert.match(html, />教學訓練官<input id="cccEducationLeadName" name="educationLeadName"/, "簽核欄應為教學訓練官");
+assert.match(html, />部主任<input id="cccChiefName" name="chiefName"/, "簽核欄應為部主任");
+assert.doesNotMatch(html, /教學負責人|科主任/, "簽核欄不得殘留舊職稱教學負責人或科主任");
 
 assert.match(html, /function renderCoreEPAForm\(period\)/, "Core EPAs 評量表應依目前期別名單產生表單");
 assert.match(html, /const CORE_EPA_ITEMS = \[/, "應定義原始表單的 Core EPA 項目");
@@ -1410,7 +1411,7 @@ assert.doesNotMatch(cccPDFMarkup.standard, /CCC|草稿預覽|正式提交/, "評
 assert.match(cccPDFMarkup.standard, /六大核心考核表[\s\S]*30%[\s\S]*80[\s\S]*24/, "CCC PDF 應同列顯示核心原始總分與 30% 加權得分");
 assert.match(cccPDFMarkup.standard, /綜合加權總分[\s\S]*84/, "CCC PDF 應顯示四項加總後的 84 分");
 assert.match(cccPDFMarkup.standard, /學員回饋/, "CCC PDF 應帶入學員省思與回饋");
-assert.match(cccPDFMarkup.standard, /導師甲[\s\S]*負責人乙[\s\S]*主任丙/, "CCC PDF 應帶入三層簽核欄位");
+assert.match(cccPDFMarkup.standard, /導師：<\/td><td class="name">導師甲[\s\S]*教學訓練官：<\/td><td class="name">負責人乙[\s\S]*部主任：<\/td><td class="name">主任丙/, "CCC PDF 應以導師、教學訓練官、部主任三層簽核欄印出");
 assert.match(cccPDFMarkup.notHeld, /六大核心考核表[\s\S]*40%[\s\S]*80[\s\S]*32[\s\S]*治療計畫平均分數<\/td><td class="weight">30%[\s\S]*Journal meeting 平均分數<\/td><td class="weight">30%/, "學會考試未實施時 PDF 配分應印成 40/30/30");
 assert.match(cccPDFMarkup.notHeld, /學會年度考試分數（未實施）<\/td><td class="weight">0%<\/td><td class="raw">—<\/td><td class="weighted">—<\/td>/, "學會考試未實施時 PDF 考試列應印成 0% 與橫線");
 assert.match(cccPDFMarkup.notHeld, /綜合加權總分<\/td><td class="weighted">80<\/td>/, "80、90、70 在未實施配分下 PDF 總分應為 32＋27＋21＝80");

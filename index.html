@@ -3504,11 +3504,11 @@
                 <label for="cccMentorDate">日期<input id="cccMentorDate" name="mentorDate" type="date" value="${escapeHTML(draft.mentorDate)}"></label>
               </div>
               <div class="ccc-sign-card">
-                <label for="cccEducationLeadName">教學負責人<input id="cccEducationLeadName" name="educationLeadName" type="text" maxlength="30" value="${escapeHTML(draft.educationLeadName)}" placeholder="教學負責人"></label>
+                <label for="cccEducationLeadName">教學訓練官<input id="cccEducationLeadName" name="educationLeadName" type="text" maxlength="30" value="${escapeHTML(draft.educationLeadName)}" placeholder="教學訓練官"></label>
                 <label for="cccEducationLeadDate">日期<input id="cccEducationLeadDate" name="educationLeadDate" type="date" value="${escapeHTML(draft.educationLeadDate)}"></label>
               </div>
               <div class="ccc-sign-card">
-                <label for="cccChiefName">科主任<input id="cccChiefName" name="chiefName" type="text" maxlength="30" value="${escapeHTML(draft.chiefName)}" placeholder="科主任"></label>
+                <label for="cccChiefName">部主任<input id="cccChiefName" name="chiefName" type="text" maxlength="30" value="${escapeHTML(draft.chiefName)}" placeholder="部主任"></label>
                 <label for="cccChiefDate">日期<input id="cccChiefDate" name="chiefDate" type="date" value="${escapeHTML(draft.chiefDate)}"></label>
               </div>
             </div>
@@ -4074,8 +4074,8 @@
         <table class="ccc-print-signatures" aria-label="簽核欄">
           <tbody>
             <tr><td class="role">導師：</td><td class="name">${escapeHTML(record.mentorName || "")}</td><td class="date">日期：${escapeHTML(formatCCCPrintDate(record.mentorDate))}</td></tr>
-            <tr><td class="role">教學負責人：</td><td class="name">${escapeHTML(record.educationLeadName || "")}</td><td class="date">日期：${escapeHTML(formatCCCPrintDate(record.educationLeadDate))}</td></tr>
-            <tr><td class="role">科主任：</td><td class="name">${escapeHTML(record.chiefName || "")}</td><td class="date">日期：${escapeHTML(formatCCCPrintDate(record.chiefDate))}</td></tr>
+            <tr><td class="role">教學訓練官：</td><td class="name">${escapeHTML(record.educationLeadName || "")}</td><td class="date">日期：${escapeHTML(formatCCCPrintDate(record.educationLeadDate))}</td></tr>
+            <tr><td class="role">部主任：</td><td class="name">${escapeHTML(record.chiefName || "")}</td><td class="date">日期：${escapeHTML(formatCCCPrintDate(record.chiefDate))}</td></tr>
           </tbody>
         </table>
         <div class="ccc-print-footer">本表由住院醫師核心能力評分系統產出</div>
