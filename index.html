@@ -619,6 +619,17 @@
     .core-epa-form.is-submitted input:disabled, .core-epa-form.is-submitted textarea:disabled { color: var(--ink); opacity: 1; background: #f2f3ef; -webkit-text-fill-color: var(--ink); }
     .core-epa-print-report { display: none; }
 
+    .export-groups { display: grid; gap: 14px; }
+    .export-group { min-width: 0; margin: 0; padding: 12px 16px 8px; border: 1px solid var(--line); border-radius: 14px; background: #fbfbf7; }
+    .export-group legend { padding: 0 6px; font-size: 15px; font-weight: 850; }
+    .export-item { display: flex; align-items: center; gap: 10px; padding: 9px 2px; font-weight: 750; cursor: pointer; }
+    .export-item + .export-item { border-top: 1px solid #e8eae4; }
+    .export-item input { flex: none; width: 18px; height: 18px; margin: 0; accent-color: var(--green); }
+    .export-item .status { flex: none; margin-left: auto; }
+    .export-item.is-unavailable { color: var(--muted); cursor: not-allowed; }
+    .export-group-empty { margin: 0; padding: 6px 2px 8px; color: var(--muted); font-size: 13px; }
+    .export-print-report { display: none; }
+
     .toast {
       position: fixed;
       z-index: 50;
@@ -706,7 +717,7 @@
     @media print {
       @page { size: A4 landscape; margin: 7mm; }
       body { background: white; color: #111; }
-      header, .hero, .tabs, .toolbar, .stats, #panel-ccc, #panel-core-epa, #panel-score-summary, #panel-roster, #panel-audit, footer, .toast { display: none !important; }
+      header, .hero, .tabs, .toolbar, .stats, #panel-ccc, #panel-core-epa, #panel-score-summary, #panel-roster, #panel-export, #panel-audit, footer, .toast { display: none !important; }
       .shell { width: 100%; margin: 0; }
       main { width: 100%; }
       #panel-assessment { display: block !important; }
@@ -731,7 +742,7 @@
       .formal-code-legend span { text-align: center; white-space: nowrap; }
       .formal-code-legend b { margin-right: 0.7mm; font-size: 7pt; }
       .formal-print-overview { display: grid; grid-template-columns: 0.8fr 0.8fr 1.4fr; gap: 2mm; margin-top: 1.5mm; }
-      .formal-chart-panel, .formal-final-score { height: 62mm; box-sizing: border-box; padding: 1.7mm; border: 0.25mm solid #666; }
+      .formal-chart-panel, .formal-final-score { min-height: 62mm; box-sizing: border-box; padding: 1.7mm; border: 0.25mm solid #666; }
       .formal-section-title { margin: 0 0 1mm; font-size: 8.5pt; font-weight: 900; text-align: center; }
       .formal-chart-panel canvas { width: 65mm !important; height: 51mm !important; margin: 0 auto; }
       .formal-chart-panel.has-series-legend canvas { height: 46mm !important; }
@@ -741,8 +752,9 @@
       .formal-chart-legend .student::before { border-top: 0.6mm solid #2f9e44; }
       .formal-chart-legend .teacher::before { border-top: 0.6mm dashed #1769ff; }
       .formal-final-score table, .formal-detail-table { min-width: 0; table-layout: fixed; }
-      .formal-final-score th, .formal-final-score td { padding: 1.2mm 1.2mm; border: 0.2mm solid #777; font-size: 7pt; text-align: center; }
+      .formal-final-score th, .formal-final-score td { padding: 0.9mm 1.2mm; border: 0.2mm solid #777; font-size: 7pt; line-height: 1.2; text-align: center; }
       .formal-final-score th { color: #111; background: #eee; }
+      .formal-final-score th:first-child { width: 30%; }
       .formal-final-score td small { display: block; margin-top: 0.3mm; font-size: 5.8pt; line-height: 1.1; }
       .formal-final-score .formal-total td { font-size: 7.5pt; font-weight: 900; }
       .formal-detail-heading { display: flex; align-items: center; justify-content: space-between; margin: 2mm 0 1mm; }
@@ -757,20 +769,21 @@
       .formal-detail-table .item-code-print { font-weight: 900; }
       .formal-print-footer { display: flex; justify-content: space-between; margin-top: 1.5mm; padding-top: 1mm; border-top: 0.25mm solid #777; font-size: 6.5pt; }
 
-      body.print-ccc > header, body.print-ccc > main, body.print-ccc > footer, body.print-ccc > .toast { display: none !important; }
-      body.print-ccc #cccPrintReport {
+      body.print-export > header, body.print-export > main, body.print-export > footer, body.print-export > .toast { display: none !important; }
+      body.print-export #exportPrintReport { display: block !important; }
+      #exportPrintReport .ccc-print-report {
         page: ccc-report;
-        display: flex !important;
+        display: flex;
         width: 100%;
         height: 280mm;
         overflow: hidden;
         box-sizing: border-box;
         flex-direction: column;
+        break-after: page;
         color: #111;
         background: white;
         font-family: "Noto Serif TC", "PMingLiU", "Microsoft JhengHei", serif;
       }
-      body.print-ccc #panel-assessment { display: none !important; }
       .ccc-print-title { margin: 0 0 3mm; text-align: center; font-size: 16pt; letter-spacing: 0.12em; }
       .ccc-print-title-row { padding-top: 2mm; }
       .ccc-print-meta { display: grid; grid-template-columns: 1.2fr 0.65fr 1.15fr; gap: 4mm; margin-bottom: 2.5mm; font-size: 9pt; }
@@ -799,18 +812,17 @@
       .ccc-print-signatures .date { width: 45%; text-align: center; }
       .ccc-print-footer { margin-top: 1.5mm; font-size: 6.5pt; }
 
-      body.print-core-epa > header, body.print-core-epa > main, body.print-core-epa > footer, body.print-core-epa > .toast { display: none !important; }
-      body.print-core-epa #coreEpaPrintReport {
+      #exportPrintReport .core-epa-print-report {
         page: core-epa-report;
-        display: block !important;
+        display: block;
         width: 100%;
         min-height: 280mm;
         box-sizing: border-box;
+        break-after: page;
         color: #111;
         background: white;
         font-family: "Noto Serif TC", "PMingLiU", "Microsoft JhengHei", serif;
       }
-      body.print-core-epa #panel-assessment { display: none !important; }
       .core-epa-print-title { margin: 0 0 2mm; text-align: center; font-size: 15pt; letter-spacing: 0.05em; }
       .core-epa-print-meta { display: grid; grid-template-columns: 1.2fr 0.6fr 0.85fr 1fr; gap: 3mm; margin-bottom: 1.8mm; font-size: 7.5pt; }
       .core-epa-print-meta span { padding-bottom: 0.8mm; border-bottom: 0.25mm solid #333; }
@@ -826,7 +838,7 @@
       .core-epa-print-thresholds { margin: 1.8mm 0; font-size: 5.8pt; line-height: 1.3; }
       .core-epa-print-thresholds div { margin-bottom: 0.4mm; }
       .core-epa-print-advice { display: grid; grid-template-columns: 30mm 1fr; border: 0.25mm solid #333; border-bottom: 0; }
-      .core-epa-print-advice:last-of-type { border-bottom: 0.25mm solid #333; }
+      .core-epa-print-advice:nth-last-of-type(2) { border-bottom: 0.25mm solid #333; }
       .core-epa-print-advice strong { display: grid; min-height: 14mm; place-items: center; padding: 1.2mm; border-right: 0.25mm solid #333; text-align: center; font-size: 7pt; }
       .core-epa-print-advice div { min-height: 14mm; max-height: 18mm; overflow: hidden; padding: 1.5mm; white-space: pre-wrap; font-size: 6.8pt; line-height: 1.25; }
       .core-epa-print-footer { margin-top: 1.5mm; text-align: right; font-size: 6pt; }
@@ -902,6 +914,7 @@
       <button class="tab" data-tab="score-summary" type="button">EPA／六大核心分數統計</button>
       <button class="tab" data-tab="ccc" type="button">CCC 評核表</button>
       <button class="tab" data-tab="roster" type="button">名單設定</button>
+      <button class="tab" data-tab="export" type="button">匯出</button>
       <button class="tab" data-tab="audit" type="button">稽核紀錄</button>
     </nav>
 
@@ -918,7 +931,6 @@
         <div class="toolbar-actions">
           <div class="toolbar-primary-actions">
             <button id="addSixCoreFormButton" class="btn btn-create" type="button">＋ 新增表單</button>
-            <button id="printButton" class="btn btn-export" type="button">匯出 PDF</button>
           </div>
           <div class="toolbar-secondary-actions">
             <button id="renamePeriodButton" class="btn btn-secondary" type="button">更改期別名稱</button>
@@ -942,7 +954,6 @@
         </div>
         <div class="toolbar-actions">
           <div class="ccc-toolbar-note">依 <strong>CCC評核表20260810</strong> 建立的初稿</div>
-          <button id="cccExportButton" class="btn btn-export" type="button">匯出 PDF</button>
         </div>
       </div>
       <div id="cccEmpty" class="empty" hidden></div>
@@ -962,7 +973,6 @@
         <div class="toolbar-actions">
           <div class="toolbar-primary-actions">
             <button id="addCoreEpaFormButton" class="btn btn-create" type="button">＋ 新增表單</button>
-            <button id="coreEpaExportButton" class="btn btn-export" type="button">匯出 PDF</button>
           </div>
         </div>
       </div>
@@ -990,6 +1000,22 @@
       </div>
     </section>
 
+    <section id="panel-export" class="panel" hidden>
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <label class="field-label" for="exportPeriodSelect">匯出期別</label>
+          <select id="exportPeriodSelect" aria-label="選擇匯出期別"></select>
+          <label class="field-label" for="exportResidentSelect">住院醫師</label>
+          <select id="exportResidentSelect" aria-label="選擇要匯出的住院醫師"></select>
+        </div>
+        <div class="toolbar-actions">
+          <button id="exportPersonButton" class="btn btn-export" type="button">匯出 PDF</button>
+        </div>
+      </div>
+      <div id="exportEmpty" class="empty" hidden></div>
+      <div id="exportContent" class="section-card" hidden></div>
+    </section>
+
     <section id="panel-audit" class="panel" hidden>
       <div class="section-card">
         <div class="audit-heading">
@@ -1014,8 +1040,7 @@
 
   </main>
 
-  <section id="cccPrintReport" class="ccc-print-report" aria-hidden="true"></section>
-  <section id="coreEpaPrintReport" class="core-epa-print-report" aria-hidden="true"></section>
+  <section id="exportPrintReport" class="export-print-report" aria-hidden="true"></section>
 
   <footer class="shell">CCC 核心能力評分系統 · 公開流程預覽</footer>
 
@@ -1661,8 +1686,8 @@
     let selectedCoreEPAFormId = null;
     let unlockedCoreEPAFormId = null;
     let auditUnlocked = false;
-    let cccPrintOriginalTitle = null;
-    let coreEpaPrintOriginalTitle = null;
+    let selectedExportResidentId = null;
+    let exportPrintOriginalTitle = null;
     let toastTimer = null;
     let sharedFileHandle = null;
     let sharedFileBaselineText = "";
@@ -1682,7 +1707,6 @@
       addPeriodButton: document.querySelector("#addPeriodButton"),
       renamePeriodButton: document.querySelector("#renamePeriodButton"),
       deletePeriodButton: document.querySelector("#deletePeriodButton"),
-      printButton: document.querySelector("#printButton"),
       printPeriodName: document.querySelector("#printPeriodName"),
       stats: document.querySelector("#stats"),
       residentGrid: document.querySelector("#residentGrid"),
@@ -1690,16 +1714,18 @@
       cccResidentSelect: document.querySelector("#cccResidentSelect"),
       cccEmpty: document.querySelector("#cccEmpty"),
       cccForm: document.querySelector("#cccForm"),
-      cccExportButton: document.querySelector("#cccExportButton"),
-      cccPrintReport: document.querySelector("#cccPrintReport"),
+      exportPeriodSelect: document.querySelector("#exportPeriodSelect"),
+      exportResidentSelect: document.querySelector("#exportResidentSelect"),
+      exportPersonButton: document.querySelector("#exportPersonButton"),
+      exportEmpty: document.querySelector("#exportEmpty"),
+      exportContent: document.querySelector("#exportContent"),
+      exportPrintReport: document.querySelector("#exportPrintReport"),
       coreEpaPeriodSelect: document.querySelector("#coreEpaPeriodSelect"),
       coreEpaResidentSelect: document.querySelector("#coreEpaResidentSelect"),
       coreEpaFormSelect: document.querySelector("#coreEpaFormSelect"),
       addCoreEpaFormButton: document.querySelector("#addCoreEpaFormButton"),
-      coreEpaExportButton: document.querySelector("#coreEpaExportButton"),
       coreEpaEmpty: document.querySelector("#coreEpaEmpty"),
       coreEpaForm: document.querySelector("#coreEpaForm"),
-      coreEpaPrintReport: document.querySelector("#coreEpaPrintReport"),
       scoreSummaryPeriodSelect: document.querySelector("#scoreSummaryPeriodSelect"),
       scoreSummaryContent: document.querySelector("#scoreSummaryContent"),
       rosterActions: document.querySelector("#rosterActions"),
@@ -2903,6 +2929,10 @@
       return isLegacySubmission(assessment?.student) || isLegacySubmission(assessment?.teacher);
     }
 
+    function isPrintableSixCoreForm(form) {
+      return Boolean(form?.student && form?.teacher) && !isLegacyAssessment(form) && validLevels(form.student.levels || []) && validLevels(form.teacher.levels || []) && validItemScores(form.teacher.itemScores || []);
+    }
+
     function validLevels(levels) {
       return levels.length === COMPETENCIES.length && levels.every((level) => Number.isInteger(level) && level >= 1 && level <= 5);
     }
@@ -3232,6 +3262,7 @@
       renderCoreEPAForm(period);
       renderScoreSummary(period);
       renderRoster(period);
+      renderExportPanel(period);
       renderAudit();
       elements.printPeriodName.textContent = period?.name || "尚未建立期別";
     }
@@ -3244,6 +3275,8 @@
       elements.cccPeriodSelect.innerHTML = options;
       elements.coreEpaPeriodSelect.innerHTML = options;
       elements.scoreSummaryPeriodSelect.innerHTML = options;
+      elements.exportPeriodSelect.innerHTML = options;
+      elements.exportPeriodSelect.disabled = state.periods.length === 0;
       elements.periodSelect.disabled = state.periods.length === 0;
       elements.cccPeriodSelect.disabled = state.periods.length === 0;
       elements.coreEpaPeriodSelect.disabled = state.periods.length === 0;
@@ -3345,7 +3378,6 @@
         .map((resident) => `<option value="${escapeHTML(resident.id)}"${resident.id === selectedCCCResidentId ? " selected" : ""}>${escapeHTML(resident.level)}　${escapeHTML(resident.name || "未命名")}</option>`)
         .join("");
       elements.cccResidentSelect.disabled = residents.length === 0;
-      elements.cccExportButton.disabled = residents.length === 0;
 
       if (!period || !selectedCCCResidentId) {
         elements.cccForm.hidden = true;
@@ -3565,7 +3597,6 @@
       if (!period || !selectedCoreEPAResidentId) {
         elements.coreEpaFormSelect.innerHTML = `<option>尚無評量表</option>`;
         elements.coreEpaFormSelect.disabled = true;
-        elements.coreEpaExportButton.disabled = true;
         elements.coreEpaForm.hidden = true;
         elements.coreEpaEmpty.hidden = false;
         elements.coreEpaEmpty.innerHTML = `<strong>本期尚無受評住院醫師</strong>請先到「名單設定」建立本期名單。`;
@@ -3583,7 +3614,6 @@
         ? forms.map((form, index) => `<option value="${escapeHTML(form.id)}"${form.id === selectedCoreEPAFormId ? " selected" : ""}>第 ${index + 1} 張 · ${escapeHTML(form.assessmentDate)} · ${escapeHTML(form.teacherName || form.assignedTeacherName || "未指定")}</option>`).join("")
         : `<option value="">尚未建立評量表</option>`;
       elements.coreEpaFormSelect.disabled = forms.length === 0;
-      elements.coreEpaExportButton.disabled = forms.length === 0;
 
       const draft = coreEPAFormFor(assessment, selectedCoreEPAFormId);
       if (!draft) {
@@ -4090,8 +4120,8 @@
             <tr><th>評核結論</th><td colspan="3">${escapeHTML(conclusion)}</td></tr>
           </tbody>
         </table>
-        <div class="ccc-print-comments"><strong>總評語</strong><div>${escapeHTML(record.comments || "—")}</div></div>
-        <div class="ccc-print-comments learner"><strong>學員省思<br>與回饋</strong><div>${escapeHTML(record.learnerFeedback || "—")}<p class="ccc-print-learner-sign">學員簽名：${escapeHTML(record.learnerSignature || "________________")}</p></div></div>
+        <div class="ccc-print-comments"><strong>總評語</strong><div>${escapeHTML(record.comments || "")}</div></div>
+        <div class="ccc-print-comments learner"><strong>學員省思<br>與回饋</strong><div>${escapeHTML(record.learnerFeedback || "")}<p class="ccc-print-learner-sign">學員簽名：${escapeHTML(record.learnerSignature || "________________")}</p></div></div>
         <table class="ccc-print-signatures" aria-label="簽核欄">
           <tbody>
             <tr><td class="role">導師：</td><td class="name">${escapeHTML(record.mentorName || "")}</td><td class="date">日期：${escapeHTML(formatCCCPrintDate(record.mentorDate))}</td></tr>
@@ -4103,23 +4133,9 @@
       `;
     }
 
-    function finishCCCPrint() {
-      if (!document.body.classList.contains("print-ccc")) return;
-      document.body.classList.remove("print-ccc");
-      document.querySelector("#ccc-print-page-style")?.remove();
-      elements.cccPrintReport.setAttribute("aria-hidden", "true");
-      elements.cccPrintReport.innerHTML = "";
-      if (cccPrintOriginalTitle !== null) document.title = cccPrintOriginalTitle;
-      cccPrintOriginalTitle = null;
-    }
-
-    function exportCCCPDF() {
-      const { period, resident, assessment } = currentCCCContext();
-      if (!period || !resident || !assessment) {
-        showToast("目前沒有可匯出的 CCC 評核表。");
-        return;
-      }
-      const source = assessment.cccSubmission || readCCCForm();
+    function cccExportRecord(assessment) {
+      const source = assessment?.cccSubmission || assessment?.cccDraft;
+      if (!source) return null;
       const aggregate = sixCoreAggregate(assessment, source.coreDateFrom || "", source.coreDateTo || "");
       const record = {
         ...source,
@@ -4128,17 +4144,7 @@
         coreSourceForms: source.coreSourceForms || aggregate.forms.map(sixCoreSourceSnapshot)
       };
       record.weightedTotal = source.weightedTotal ?? cccWeightedTotal(record.coreScore, record.treatmentPlanScore, record.journalMeetingScore, record.annualExamScore, record.annualExamNotHeld);
-      elements.cccPrintReport.innerHTML = cccPrintReportMarkup(period, resident, record);
-      elements.cccPrintReport.setAttribute("aria-hidden", "false");
-      document.querySelector("#ccc-print-page-style")?.remove();
-      const pageStyle = document.createElement("style");
-      pageStyle.id = "ccc-print-page-style";
-      pageStyle.textContent = "@page { size: A4 portrait; margin: 7mm; }";
-      document.head.appendChild(pageStyle);
-      cccPrintOriginalTitle = document.title;
-      document.title = `住院醫師核心能力適任性評核表_${period.name}_${resident.name || resident.level}`.replace(/[\\/:*?"<>|]/g, "_");
-      document.body.classList.add("print-ccc");
-      requestAnimationFrame(() => window.print());
+      return record;
     }
 
     function coreEPALevelLabel(value) {
@@ -4180,34 +4186,111 @@
       `;
     }
 
-    function finishCoreEPAPrint() {
-      if (!document.body.classList.contains("print-core-epa")) return;
-      document.body.classList.remove("print-core-epa");
-      document.querySelector("#core-epa-print-page-style")?.remove();
-      elements.coreEpaPrintReport.setAttribute("aria-hidden", "true");
-      elements.coreEpaPrintReport.innerHTML = "";
-      if (coreEpaPrintOriginalTitle !== null) document.title = coreEpaPrintOriginalTitle;
-      coreEpaPrintOriginalTitle = null;
+    function exportItemMarkup(kind, id, label, available, statusClass, statusText) {
+      return `
+        <label class="export-item${available ? "" : " is-unavailable"}">
+          <input type="checkbox" data-export-kind="${kind}" value="${escapeHTML(id)}"${available ? " checked" : " disabled"}>
+          <span>${escapeHTML(label)}</span>
+          <span class="status ${statusClass}">${statusText}</span>
+        </label>
+      `;
     }
 
-    function exportCoreEPAPDF() {
-      const { period, resident, form } = currentCoreEPAContext();
-      if (!period || !resident || !form) {
-        showToast("目前沒有可匯出的 Core EPAs 評量表。");
+    function renderExportPanel(period) {
+      const residents = period?.residents || [];
+      if (!residents.some((resident) => resident.id === selectedExportResidentId)) {
+        selectedExportResidentId = residents[0]?.id || null;
+      }
+      elements.exportResidentSelect.innerHTML = residents
+        .map((resident) => `<option value="${escapeHTML(resident.id)}"${resident.id === selectedExportResidentId ? " selected" : ""}>${escapeHTML(resident.level)}　${escapeHTML(resident.name || "未命名")}</option>`)
+        .join("");
+      elements.exportResidentSelect.disabled = residents.length === 0;
+
+      if (!period || !selectedExportResidentId) {
+        elements.exportContent.hidden = true;
+        elements.exportEmpty.hidden = false;
+        elements.exportEmpty.innerHTML = `<strong>本期尚無住院醫師</strong>請先到「名單設定」建立本期名單。`;
+        elements.exportPersonButton.disabled = true;
         return;
       }
-      const record = form.submittedAt && unlockedCoreEPAFormId !== form.id ? form : { ...form, ...readCoreEPAForm() };
-      elements.coreEpaPrintReport.innerHTML = coreEPAPrintReportMarkup(period, resident, record);
-      elements.coreEpaPrintReport.setAttribute("aria-hidden", "false");
-      document.querySelector("#core-epa-print-page-style")?.remove();
-      const pageStyle = document.createElement("style");
-      pageStyle.id = "core-epa-print-page-style";
-      pageStyle.textContent = "@page { size: A4 portrait; margin: 7mm; }";
-      document.head.appendChild(pageStyle);
-      coreEpaPrintOriginalTitle = document.title;
-      document.title = `三軍總醫院_放射腫瘤部_core_EPAs_評量表_${period.name}_${resident.name || resident.level}_${record.assessmentDate}`.replace(/[\\/:*?"<>|]/g, "_");
-      document.body.classList.add("print-core-epa");
+
+      const resident = residentFor(period, selectedExportResidentId);
+      const assessment = period.assessments[selectedExportResidentId];
+      const formLabel = (form, index, teacherName) => `第 ${index + 1} 張 · ${form.assessmentDate} · ${teacherName || form.assignedTeacherName || "未記錄教師"}`;
+      const sixCoreItems = sixCoreFormsFor(assessment).map((form, index) => {
+        const available = isPrintableSixCoreForm(form);
+        return exportItemMarkup("six-core", form.id, formLabel(form, index, form.teacher?.teacherName), available,
+          available ? "teacher-done" : "pending", available ? "雙方完成" : isLegacyAssessment(form) ? "舊版格式" : "尚未完成");
+      });
+      const coreEpaItems = coreEpaFormsFor(assessment).map((form, index) => {
+        const available = coreEPAFormHasContent(form);
+        return exportItemMarkup("core-epa", form.id, formLabel(form, index, form.teacherName), available,
+          form.submittedAt ? "teacher-done" : available ? "draft" : "pending", form.submittedAt ? "已提交" : available ? "暫存" : "尚未填寫");
+      });
+      const cccAvailable = Boolean(assessment.cccSubmission || assessment.cccDraft);
+      const cccItem = exportItemMarkup("ccc", "ccc", "CCC 評核表", cccAvailable,
+        assessment.cccSubmission ? "teacher-done" : cccAvailable ? "draft" : "pending", assessment.cccSubmission ? "已提交" : cccAvailable ? "暫存" : "尚未填寫");
+      const group = (title, items) => `
+        <fieldset class="export-group">
+          <legend>${title}</legend>
+          ${items.length ? items.join("") : `<p class="export-group-empty">本期尚未建立表單</p>`}
+        </fieldset>
+      `;
+      elements.exportEmpty.hidden = true;
+      elements.exportContent.hidden = false;
+      elements.exportContent.innerHTML = `
+        <h2 class="section-heading">${escapeHTML(resident.level)} ${escapeHTML(resident.name || "未命名")}</h2>
+        <p class="section-help">勾選的表單會合併成一份 PDF，內容以已暫存或提交的資料為準。</p>
+        <div class="export-groups">
+          ${group("六大核心", sixCoreItems)}
+          ${group("Core EPAs", coreEpaItems)}
+          ${group("CCC 評核表", [cccItem])}
+        </div>
+      `;
+      updateExportButtonState();
+    }
+
+    function updateExportButtonState() {
+      elements.exportPersonButton.disabled = !elements.exportContent.querySelector("input[data-export-kind]:checked");
+    }
+
+    function exportPersonPDF() {
+      const period = currentPeriod();
+      const resident = residentFor(period, selectedExportResidentId);
+      const assessment = period?.assessments?.[selectedExportResidentId];
+      if (!period || !resident || !assessment) {
+        showToast("目前沒有可匯出的資料。");
+        return;
+      }
+      const checkedIds = (kind) => [...elements.exportContent.querySelectorAll(`input[data-export-kind="${kind}"]:checked`)].map((input) => input.value);
+      const sixCoreForms = checkedIds("six-core").map((id) => findSixCoreForm(assessment, id)).filter((form) => form && isPrintableSixCoreForm(form));
+      const coreEpaForms = checkedIds("core-epa").map((id) => coreEPAFormFor(assessment, id)).filter(Boolean);
+      const cccRecord = checkedIds("ccc").length ? cccExportRecord(assessment) : null;
+      const pages = [
+        ...sixCoreForms.map((form) => formalPrintReport(period, resident, form)),
+        ...coreEpaForms.map((form) => `<section class="core-epa-print-report">${coreEPAPrintReportMarkup(period, resident, form)}</section>`),
+        ...(cccRecord ? [`<section class="ccc-print-report">${cccPrintReportMarkup(period, resident, cccRecord)}</section>`] : [])
+      ];
+      if (pages.length === 0) {
+        showToast("請至少勾選一張可匯出的表單。");
+        return;
+      }
+      elements.exportPrintReport.innerHTML = pages.join("");
+      elements.exportPrintReport.setAttribute("aria-hidden", "false");
+      drawRadarCharts(elements.exportPrintReport, period);
+      exportPrintOriginalTitle = document.title;
+      document.title = `住院醫師評核資料_${period.name}_${resident.level}_${resident.name || "未命名"}`.replace(/[\\/:*?"<>|]/g, "_");
+      document.body.classList.add("print-export");
       requestAnimationFrame(() => window.print());
+    }
+
+    function finishExportPrint() {
+      if (!document.body.classList.contains("print-export")) return;
+      document.body.classList.remove("print-export");
+      elements.exportPrintReport.setAttribute("aria-hidden", "true");
+      elements.exportPrintReport.innerHTML = "";
+      if (exportPrintOriginalTitle !== null) document.title = exportPrintOriginalTitle;
+      exportPrintOriginalTitle = null;
     }
 
     function legacyScoreGrid(assessment) {
@@ -4431,7 +4514,7 @@
       elements.residentGrid.innerHTML = period.residents.map((resident) => {
         const assessment = period.assessments[resident.id];
         const forms = sixCoreFormsFor(assessment);
-        const printableForms = forms.filter((form) => form.student && form.teacher && !isLegacyAssessment(form) && validLevels(form.student.levels || []) && validLevels(form.teacher.levels || []) && validItemScores(form.teacher.itemScores || []));
+        const printableForms = forms.filter(isPrintableSixCoreForm);
         const completeCount = forms.filter((form) => Boolean(sixCoreFormResult(form))).length;
         const displayName = resident.name.trim() || "尚未填寫姓名";
         return `
@@ -4458,25 +4541,7 @@
       elements.residentGrid.querySelectorAll("[data-remove-six-core-form]").forEach((button) => {
         button.addEventListener("click", () => removeEmptySixCoreForm(button.dataset.removeSixCoreResident, button.dataset.removeSixCoreForm));
       });
-      elements.residentGrid.querySelectorAll("[data-radar-resident]").forEach((canvas) => {
-        const assessment = period.assessments[canvas.dataset.radarResident];
-        const form = findSixCoreForm(assessment, canvas.dataset.radarForm);
-        if (!form) return;
-        if (canvas.dataset.radarKind === "absolute" || canvas.dataset.radarKind === "print-absolute") {
-          const percentages = teacherDomainMetrics(form.teacher.itemScores).map((metric) => metric.percent);
-          drawRadarChart(canvas, [{ scores: percentages, color: ROLE_COLORS.absolute }], 100);
-        } else if (canvas.dataset.radarKind === "levels" || canvas.dataset.radarKind === "print-levels") {
-          drawRadarChart(canvas, [
-            { scores: form.student.levels, color: ROLE_COLORS.student },
-            { scores: form.teacher.levels, color: ROLE_COLORS.teacher, dash: [7, 5] }
-          ], 5);
-        } else {
-          drawRadarChart(canvas, [
-            { scores: form.student.scores, color: ROLE_COLORS.student },
-            { scores: form.teacher.scores, color: ROLE_COLORS.teacher, dash: [7, 5] }
-          ], 100);
-        }
-      });
+      drawRadarCharts(elements.residentGrid, period);
       elements.residentGrid.querySelectorAll('canvas[data-radar-kind="absolute"]').forEach((canvas) => {
         const open = () => openScoreDetail(canvas.dataset.radarResident, canvas.dataset.radarForm);
         canvas.addEventListener("click", open);
@@ -5348,14 +5413,26 @@
       showToast("稽核紀錄已匯出，可使用 Excel 開啟。");
     }
 
-    function exportPDF() {
-      switchTab("assessment");
-      renderResidents(currentPeriod());
-      if (elements.residentGrid.querySelectorAll(".resident-card.print-ready").length === 0) {
-        showToast("目前沒有已完成且可輸出的評核。");
-        return;
-      }
-      requestAnimationFrame(() => window.print());
+    function drawRadarCharts(root, period) {
+      root.querySelectorAll("[data-radar-resident]").forEach((canvas) => {
+        const assessment = period.assessments[canvas.dataset.radarResident];
+        const form = findSixCoreForm(assessment, canvas.dataset.radarForm);
+        if (!form) return;
+        if (canvas.dataset.radarKind === "absolute" || canvas.dataset.radarKind === "print-absolute") {
+          const percentages = teacherDomainMetrics(form.teacher.itemScores).map((metric) => metric.percent);
+          drawRadarChart(canvas, [{ scores: percentages, color: ROLE_COLORS.absolute }], 100);
+        } else if (canvas.dataset.radarKind === "levels" || canvas.dataset.radarKind === "print-levels") {
+          drawRadarChart(canvas, [
+            { scores: form.student.levels, color: ROLE_COLORS.student },
+            { scores: form.teacher.levels, color: ROLE_COLORS.teacher, dash: [7, 5] }
+          ], 5);
+        } else {
+          drawRadarChart(canvas, [
+            { scores: form.student.scores, color: ROLE_COLORS.student },
+            { scores: form.teacher.scores, color: ROLE_COLORS.teacher, dash: [7, 5] }
+          ], 100);
+        }
+      });
     }
 
     function drawRadarChart(canvas, datasets, maxValue) {
@@ -5455,6 +5532,7 @@
       if (tabName === "core-epa") renderCoreEPAForm(currentPeriod());
       if (tabName === "score-summary") renderScoreSummary(currentPeriod());
       if (tabName === "roster") renderRoster(currentPeriod());
+      if (tabName === "export") renderExportPanel(currentPeriod());
       if (tabName === "audit") {
         renderAudit();
         if (!auditUnlocked) requestAnimationFrame(() => elements.auditPassword.focus());
@@ -5473,6 +5551,13 @@
     elements.cccPeriodSelect.addEventListener("change", () => selectPeriod(elements.cccPeriodSelect.value));
     elements.coreEpaPeriodSelect.addEventListener("change", () => selectPeriod(elements.coreEpaPeriodSelect.value));
     elements.scoreSummaryPeriodSelect.addEventListener("change", () => selectPeriod(elements.scoreSummaryPeriodSelect.value));
+    elements.exportPeriodSelect.addEventListener("change", () => selectPeriod(elements.exportPeriodSelect.value));
+    elements.exportResidentSelect.addEventListener("change", () => {
+      selectedExportResidentId = elements.exportResidentSelect.value;
+      renderExportPanel(currentPeriod());
+    });
+    elements.exportContent.addEventListener("change", updateExportButtonState);
+    elements.exportPersonButton.addEventListener("click", exportPersonPDF);
     elements.cccResidentSelect.addEventListener("change", () => {
       selectedCCCResidentId = elements.cccResidentSelect.value;
       renderCCCForm(currentPeriod());
@@ -5522,9 +5607,7 @@
     });
     elements.coreEpaForm.addEventListener("submit", submitCoreEPAForm);
     elements.coreEpaUnlockForm.addEventListener("submit", unlockCoreEPAForm);
-    elements.cccExportButton.addEventListener("click", exportCCCPDF);
     elements.addCoreEpaFormButton.addEventListener("click", openCoreEPAFormDialog);
-    elements.coreEpaExportButton.addEventListener("click", exportCoreEPAPDF);
     elements.renamePeriodButton.addEventListener("click", openRenamePeriodDialog);
     elements.deletePeriodButton.addEventListener("click", openDeletePeriodDialog);
     elements.addPeriodButton.addEventListener("click", () => {
@@ -5571,7 +5654,6 @@
       activeCoreEPACreateResidentId = null;
       elements.coreEpaFormCreateForm.reset();
     });
-    elements.printButton.addEventListener("click", exportPDF);
     elements.auditAuthForm.addEventListener("submit", unlockAudit);
     elements.exportAuditButton.addEventListener("click", exportAuditCSV);
     elements.scoreForm.addEventListener("submit", submitScores);
@@ -5602,8 +5684,7 @@
       activeDeletePeriodId = null;
       elements.deletePeriodForm.reset();
     });
-    window.addEventListener("afterprint", finishCCCPrint);
-    window.addEventListener("afterprint", finishCoreEPAPrint);
+    window.addEventListener("afterprint", finishExportPrint);
     window.addEventListener("beforeunload", warnIfSharedFileUnsynced);
     document.querySelectorAll("[data-close-dialog]").forEach((button) => {
       button.addEventListener("click", () => document.querySelector(`#${button.dataset.closeDialog}`).close());

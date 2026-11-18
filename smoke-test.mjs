@@ -22,6 +22,7 @@ assert.match(html, /data-tab="assessment"[\s\S]*id="milestonesReferenceLink"[\s\
 assert.match(html, /id="panel-score-summary"/, "應有獨立 EPA／六大核心分數統計頁");
 assert.match(html, /data-tab="roster"/, "應有名單設定分頁");
 assert.match(html, /data-tab="audit"/, "應有稽核紀錄分頁");
+assert.match(html, /data-tab="roster" type="button">名單設定<\/button>\s*<button class="tab" data-tab="export" type="button">匯出<\/button>\s*<button class="tab" data-tab="audit"/, "匯出分頁應排在名單設定與稽核紀錄之間");
 assert.match(html, /id="milestonesReferenceLink" class="tab tab-reference" href="milestones\.html" target="_blank" rel="noopener">美國RT- Milestones<\/a>/, "Milestones 入口應另開獨立離線 HTML");
 assert.doesNotMatch(html, /id="panel-milestones"|data-tab="milestones"/, "主頁不應再內嵌 Milestones 面板");
 
@@ -112,7 +113,8 @@ assert.match(html, /const RESIDENT_LEVELS = \["R1", "R2", "R3", "R4"\]/, "名單
 assert.match(html, /data-add-resident-level/, "名單設定應可依年級新增人員");
 assert.match(html, /period\.assessments\[resident\.id\] = makeResidentAssessment\(\)/, "新增人員時應建立可容納多張六大核心表單的人員記錄");
 assert.match(html, /id="addSixCoreFormButton" class="btn btn-create"[^>]*>＋ 新增表單<\/button>/, "六大核心頁右上應有醒目的新增表單按鈕");
-assert.match(html, /id="printButton" class="btn btn-export"[^>]*>匯出 PDF<\/button>/, "六大核心頁右上應有醒目的 PDF 按鈕");
+assert.match(html, /id="panel-export"[\s\S]*id="exportResidentSelect"[\s\S]*id="exportPersonButton" class="btn btn-export"[^>]*>匯出 PDF<\/button>/, "匯出分頁應先選住院醫師，再用醒目的 PDF 按鈕匯出");
+assert.doesNotMatch(html, /id="printButton"|id="cccExportButton"|id="coreEpaExportButton"/, "PDF 匯出已整合到匯出分頁，各表單頁不得再保留各自的匯出按鈕");
 assert.match(html, /id="sixCoreResidentForNewForm" name="residentId" required/, "從固定操作列新增六大核心表單時應選擇住院醫師");
 assert.match(html, /name="assessmentDate" type="date" required/, "新增六大核心評核時應要求選擇日期");
 assert.match(html, /id="sixCoreAssignedTeacherName" name="assignedTeacherName"[^>]*required/, "新增六大核心表單時應先輸入指定教師");
@@ -139,12 +141,13 @@ assert.match(html, /id="auditAuthForm"/, "稽核紀錄頁應先顯示密碼驗�
 assert.match(html, /if \(!auditUnlocked\) \{\s*elements\.auditContent\.innerHTML = "";/, "稽核頁未解鎖時不得把紀錄渲染到頁面");
 assert.match(html, /if \(!auditUnlocked\) \{ showToast\("請先輸入稽核檢視密碼。"\); return; \}/, "未解鎖時不得匯出稽核 CSV");
 assert.match(html, /function exportAuditCSV\(\)/, "稽核紀錄應可匯出試算表 CSV");
-assert.match(html, /window\.print\(\)/, "六大核心頁應支援列印為 PDF");
+assert.match(html, /window\.print\(\)/, "匯出分頁應以瀏覽器列印產生 PDF");
 assert.match(html, /@page \{ size: A4 landscape/, "列印版應使用 A4 橫式");
 assert.match(html, /\.resident-card:not\(\.complete\) \{ display: none !important; \}/, "列印時應省略尚未完成的學生");
 assert.match(html, /\.formal-print-report \{[^}]*break-after: page;/, "列印版應讓每張已完成的六大核心表單另起一頁");
 assert.match(html, /\.resident-card\.complete::before \{ display: none !important; \}/, "列印時不得讓卡片頂部裝飾線遮住正式標題");
 assert.match(html, /\.formal-print-report \{[^}]*padding-top: 3mm;/, "正式列印表頭應保留上方安全距離");
+assert.match(html, /\.formal-chart-panel, \.formal-final-score \{ min-height: 62mm;/, "最後評分表比框高時應把框撐開，不得用固定高度讓表格溢出壓到下方詳細評分表");
 assert.match(html, /class="formal-print-report"/, "每位學生應有獨立正式列印表");
 assert.match(html, /三軍總醫院 放射腫瘤部住院醫師訓練考核表/, "列印標題應採用 Word 正式表名");
 assert.match(html, /ACGME Milestones 2\.0 暨有效分項 100 分制雙軌評核/, "列印副標題應說明有效分項換算 100 分");
@@ -166,7 +169,7 @@ assert.match(html, /context\.setLineDash\(dash\)/, "六角圖繪製應套用資�
 assert.match(html, /function printItemTables\(assessment\)/, "列印表應包含 20 項原始詳細評分");
 assert.match(html, /<th class="score">評分<\/th>/, "原始詳細評分表欄名應簡潔顯示評分");
 assert.doesNotMatch(html, /<th class="score">小項評分<\/th>/, "原始詳細評分表不得再顯示小項評分欄名");
-assert.match(html, /目前沒有已完成且可輸出的評核/, "沒有完整評核時不應輸出空白 PDF");
+assert.match(html, /if \(pages\.length === 0\) \{\s*showToast\("請至少勾選一張可匯出的表單。"\);\s*return;/, "沒有勾選任何可匯出的表單時不應輸出空白 PDF");
 assert.match(html, /data-radar-kind="absolute"/, "應提供教師絕對百分比六角圖");
 assert.match(html, /data-radar-kind="levels"/, "應提供學生與教師 Level 六角圖");
 assert.match(html, /repeat\(auto-fit, minmax\(min\(240px, 100%\), 1fr\)\)/, "網頁六角圖應依可用寬度自動改為單欄");
@@ -218,19 +221,20 @@ assert.match(html, /name="comments" maxlength="2000"/, "CCC 總評語應提供�
 assert.match(html, /const draft = \{[\s\S]*\.\.\.readCCCForm\(\)[\s\S]*assessment\.cccDraft = draft/, "CCC 初稿應保存到該期該學生的評核記錄");
 assert.match(html, />暫存<\/button>/, "CCC 表單應提供可繼續編輯的暫存按鈕");
 assert.match(html, />提交<\/button>/, "CCC 表單應提供正式提交按鈕");
-assert.match(html, />匯出 PDF<\/button>/, "CCC 表單應提供 PDF 匯出按鈕");
 assert.match(html, /function submitCCCForm\(event\)/, "CCC 正式提交應有獨立流程");
 assert.match(html, /assessment\.cccSubmission = submission/, "CCC 提交應保存不可變的正式快照");
 assert.match(html, /if \(submitted\) \{\s*elements\.cccForm\.querySelectorAll\("input, textarea"\)/, "CCC 正式提交後應鎖定所有可編輯欄位");
 assert.match(html, /type: "ccc-submission"/, "CCC 正式提交應留下稽核事件");
 assert.match(html, /"CCC 納入起日", "CCC 納入迄日", "CCC 納入張數", "CCC 六大核心平均"/, "CCC 日期範圍、表單張數與平均應可隨稽核 CSV 匯出");
 assert.match(html, /@page ccc-report \{ size: A4 portrait/, "CCC PDF 應使用 A4 直式頁面");
-assert.match(html, /pageStyle\.textContent = "@page \{ size: A4 portrait; margin: 7mm; \}"/, "CCC 匯出時應覆寫既有橫式列印設定");
+assert.doesNotMatch(html, /pageStyle\.textContent/, "同一份 PDF 要混合橫式與直式頁面，匯出時不得再覆寫全域 @page");
+assert.match(html, /#exportPrintReport \.ccc-print-report \{[^}]*page: ccc-report;[^}]*break-after: page;/, "CCC 列印內容應套用直式頁面並獨立成頁");
 assert.match(html, /height: 280mm;/, "CCC PDF 內容應保留列印安全距離並限制在 A4 單頁內");
-assert.match(html, /function exportCCCPDF\(\)/, "CCC 表單應能匯出獨立 PDF");
+assert.match(html, /function exportPersonPDF\(\)/, "應能依住院醫師把勾選的表單匯出成一份 PDF");
+assert.match(html, /function cccExportRecord\(assessment\) \{\s*const source = assessment\?\.cccSubmission \|\| assessment\?\.cccDraft;/, "CCC 匯出只取已提交或已暫存的資料，不讀畫面上其他人尚未儲存的表單");
 assert.match(html, /住院醫師核心能力適任性評核表/, "評核 PDF 應使用指定的正式表名");
 assert.doesNotMatch(html, /ccc-print-status|草稿預覽/, "評核 PDF 不得顯示右上或右下的草稿／提交狀態小字");
-assert.match(html, /document\.title = `住院醫師核心能力適任性評核表_/, "評核 PDF 檔名應使用正式表名");
+assert.match(html, /document\.title = `住院醫師評核資料_\$\{period\.name\}_\$\{resident\.level\}_/, "匯出 PDF 檔名應帶期別與住院醫師，方便一人一份歸檔");
 assert.match(html, /name="learnerFeedback"/, "參考表所需的學員省思與回饋欄應存在");
 assert.match(html, /name="mentorName"/, "參考表所需的導師簽核欄應存在");
 assert.match(html, />教學訓練官<input id="cccEducationLeadName" name="educationLeadName"/, "簽核欄應為教學訓練官");
@@ -258,9 +262,8 @@ assert.match(html, /id="coreEpaUnlockPassword"[^>]*type="password"/, "Core EPA �
 assert.match(html, /function unlockCoreEPAForm\(event\)/, "Core EPA 管理解鎖應有獨立流程");
 assert.match(html, /type: modifying \? "core-epa-modification" : "core-epa-submission"/, "Core EPA 提交與修改應留下不同稽核事件");
 assert.match(html, /querySelectorAll\("input, textarea"\)[^;]*control\.disabled = true/, "Core EPA 正式提交後應停用所有可編輯欄位");
-assert.match(html, /id="addCoreEpaFormButton" class="btn btn-create"[^>]*>＋ 新增表單<\/button>[\s\S]*id="coreEpaExportButton" class="btn btn-export"[^>]*>匯出 PDF<\/button>/, "Core EPA 新增與 PDF 按鈕應和六大核心使用相同位置順序及醒目配色");
-assert.match(html, /id="cccExportButton" class="btn btn-export"[^>]*>匯出 PDF<\/button>/, "CCC 的 PDF 按鈕也應固定在頁面右上操作列");
-assert.match(html, /function exportCoreEPAPDF\(\)/, "Core EPAs 應有獨立 PDF 匯出流程");
+assert.match(html, /id="addCoreEpaFormButton" class="btn btn-create"[^>]*>＋ 新增表單<\/button>/, "Core EPA 頁右上應有醒目的新增表單按鈕");
+assert.match(html, /#exportPrintReport \.core-epa-print-report \{[^}]*page: core-epa-report;[^}]*break-after: page;/, "同一人的多張 Core EPA 表應各自成頁");
 assert.match(html, /@page core-epa-report \{ size: A4 portrait/, "Core EPAs PDF 應使用 A4 直式頁面");
 assert.match(html, /page: core-epa-report;/, "Core EPAs 列印內容應套用獨立頁面設定");
 assert.match(html, /三軍總醫院 放射腫瘤部 core EPAs 評量表/, "Core EPAs 網頁與 PDF 應使用原始表名");
@@ -1190,7 +1193,6 @@ const renderedCCC = new Function(`
   let selectedCCCResidentId = null;
   const elements = {
     cccResidentSelect: { innerHTML: "", disabled: false },
-    cccExportButton: { disabled: false },
     cccEmpty: { hidden: true, innerHTML: "" },
     cccForm: { hidden: true, dataset: {}, innerHTML: "", classList: { toggle() {} }, querySelectorAll() { return []; } }
   };
@@ -1419,7 +1421,8 @@ const cccPDFMarkup = new Function(`
   };
   return {
     standard: cccPrintReportMarkup(period, resident, record),
-    notHeld: cccPrintReportMarkup(period, resident, { ...record, annualExamScore: "", annualExamNotHeld: true, weightedTotal: undefined, teaching: "none", teachingNote: "舊殘留教學", safetyDescription: "舊殘留事件", safetyImprovement: "舊殘留改善" })
+    notHeld: cccPrintReportMarkup(period, resident, { ...record, annualExamScore: "", annualExamNotHeld: true, weightedTotal: undefined, teaching: "none", teachingNote: "舊殘留教學", safetyDescription: "舊殘留事件", safetyImprovement: "舊殘留改善" }),
+    blank: cccPrintReportMarkup(period, resident, { ...record, comments: "", learnerFeedback: "" })
   };
 `)();
 assert.match(cccPDFMarkup.standard, /住院醫師核心能力適任性評核表/, "評核 PDF 應產生指定的正式標題");
@@ -1433,6 +1436,9 @@ assert.match(cccPDFMarkup.notHeld, /六大核心考核表[\s\S]*40%[\s\S]*80[\s\
 assert.match(cccPDFMarkup.notHeld, /學會年度考試分數（未實施）<\/td><td class="weight">0%<\/td><td class="raw">—<\/td><td class="weighted">—<\/td>/, "學會考試未實施時 PDF 考試列應印成 0% 與橫線");
 assert.doesNotMatch(cccPDFMarkup.notHeld, /舊殘留/, "選無的教學與病安項目，PDF 不得印出舊資料殘留的說明文字");
 assert.match(cccPDFMarkup.notHeld, /綜合加權總分<\/td><td class="weighted">80<\/td>/, "80、90、70 在未實施配分下 PDF 總分應為 32＋27＋21＝80");
+assert.match(cccPDFMarkup.blank, /<strong>總評語<\/strong><div><\/div>/, "總評語沒有填寫時 PDF 應留白，不得代入橫線或輸入提示");
+assert.match(cccPDFMarkup.blank, /與回饋<\/strong><div><p class="ccc-print-learner-sign">/, "學員省思與回饋沒有填寫時 PDF 應留白");
+assert.doesNotMatch(cccPDFMarkup.blank, /請輸入|供學員填寫/, "PDF 不得印出表單欄位的輸入提示文字");
 
 const renderedCoreEPA = new Function(`
   const CORE_EPA_ITEMS = Array.from({ length: 11 }, (_, index) => ({ code: "EPA" + (index + 1), name: "評量項目 " + (index + 1) }));
@@ -1446,7 +1452,6 @@ const renderedCoreEPA = new Function(`
     coreEpaResidentSelect: { innerHTML: "", disabled: false },
     coreEpaFormSelect: { innerHTML: "", disabled: false },
     addCoreEpaFormButton: { disabled: false },
-    coreEpaExportButton: { disabled: false },
     coreEpaEmpty: { hidden: true, innerHTML: "" },
     coreEpaForm: { hidden: true, innerHTML: "", dataset: {}, classList: { toggle() {} }, querySelectorAll() { return []; } }
   };
@@ -1691,7 +1696,7 @@ assert.equal(modifiedCoreEPAResult.form.levels[0], "4", "Core EPA 解鎖後應�
 assert.equal(modifiedCoreEPAResult.unlockedCoreEPAFormId, null, "Core EPA 修改保存後應立即重新鎖定");
 assert.equal(modifiedCoreEPAResult.persistCount, 2, "Core EPA 解鎖與修改應各自持久化稽核狀態");
 
-const coreEPAPDFMarkup = new Function(`
+const [coreEPAPDFMarkup, coreEPABlankPDFMarkup] = new Function(`
   const CORE_EPA_ITEMS = Array.from({ length: 11 }, (_, index) => ({ code: "EPA" + (index + 1), name: "評量項目 " + (index + 1) }));
   const CORE_EPA_LEVEL_GUIDE = [["Level 1", "共同操作"], ["Level 2", "必要協助"], ["Level 3", "事後確認"], ["Level 4", "必要時知會"], ["Level 5", "獨立執行"]];
   const CORE_EPA_THRESHOLDS = ["第一年住院醫師標準", "第二年住院醫師標準"];
@@ -1708,7 +1713,7 @@ const coreEPAPDFMarkup = new Function(`
     levels: ["4", "4", "4", "3", "3", "3", "2", "2", "2", "2", "5"],
     learnerAdvice: "學員建議", mentorAdvice: "導師建議", programAdvice: "科部建議"
   };
-  return coreEPAPrintReportMarkup(period, resident, record);
+  return [coreEPAPrintReportMarkup(period, resident, record), coreEPAPrintReportMarkup(period, resident, { ...record, learnerAdvice: "", mentorAdvice: "", programAdvice: "" })];
 `)();
 assert.match(coreEPAPDFMarkup, /三軍總醫院 放射腫瘤部 core EPAs 評量表/, "Core EPAs PDF 應產生原始正式標題");
 assert.match(coreEPAPDFMarkup, /EPA11[\s\S]*Level 5/, "Core EPAs PDF 應帶入 EPA11 的信賴程度");
@@ -1718,6 +1723,71 @@ assert.match(coreEPAPDFMarkup, /指定教師：[\s\S]*指定教師/, "Core EPAs 
 assert.doesNotMatch(coreEPAPDFMarkup, /學員類別/, "Core EPAs PDF 不得再顯示學員類別");
 assert.match(coreEPAPDFMarkup, /學員建議[\s\S]*導師建議[\s\S]*科部建議/, "Core EPAs PDF 應帶入三組建議內容");
 assert.match(coreEPAPDFMarkup, /2026 年第 1 期/, "Core EPAs PDF 應帶入評量期別");
+assert.equal((coreEPABlankPDFMarkup.match(/<\/strong><div><\/div><\/div>/g) || []).length, 3, "三組建議都沒有填寫時 PDF 應留白");
+assert.doesNotMatch(coreEPABlankPDFMarkup, /請輸入/, "Core EPAs PDF 不得印出建議欄位的輸入提示文字");
+
+const renderedExportPanel = new Function(`
+  const COMPETENCIES = Array.from({ length: 6 }, () => ({}));
+  const ASSESSMENT_ITEMS = Array.from({ length: 20 }, () => ({}));
+  const ITEM_NOT_APPLICABLE = "NA";
+  const ITEM_MAX_SCORE = 5;
+  let selectedExportResidentId = null;
+  const elements = {
+    exportResidentSelect: { innerHTML: "", disabled: false },
+    exportPersonButton: { disabled: false },
+    exportEmpty: { hidden: false, innerHTML: "" },
+    exportContent: { hidden: true, innerHTML: "", querySelector() { return / checked>/.test(this.innerHTML) ? {} : null; } }
+  };
+  const residentFor = (period, residentId) => period.residents.find((resident) => resident.id === residentId);
+  ${extractFunction("escapeHTML")}
+  ${extractFunction("sixCoreFormsFor")}
+  ${extractFunction("coreEpaFormsFor")}
+  ${extractFunction("coreEPAFormHasContent")}
+  ${extractFunction("isLegacySubmission")}
+  ${extractFunction("isLegacyAssessment")}
+  ${extractFunction("isPrintableSixCoreForm")}
+  ${extractFunction("validLevels")}
+  ${extractFunction("validItemScores")}
+  ${extractFunction("exportItemMarkup")}
+  ${extractFunction("renderExportPanel")}
+  ${extractFunction("updateExportButtonState")}
+  const student = { levels: [3, 3, 3, 3, 3, 3] };
+  const teacher = { teacherName: "教師甲", levels: [4, 4, 4, 4, 4, 4], itemScores: Array(20).fill(4) };
+  const period = {
+    residents: [{ id: "r1", level: "R1", name: "測試醫師" }, { id: "r2", level: "R2", name: "" }],
+    assessments: {
+      r1: {
+        sixCoreForms: [
+          { id: "s1", assessmentDate: "2026-11-10", assignedTeacherName: "指定教師", student, teacher },
+          { id: "s2", assessmentDate: "2026-11-18", assignedTeacherName: "教師乙", student, teacher: null }
+        ],
+        coreEpaForms: [
+          { id: "e1", assessmentDate: "2026-11-12", assignedTeacherName: "教師甲", teacherName: "教師甲", savedAt: "2026-11-12T01:00:00.000Z", submittedAt: null, levels: Array(11).fill("3") },
+          { id: "e2", assessmentDate: "2026-11-19", assignedTeacherName: "教師乙", teacherName: "", savedAt: null, submittedAt: null, levels: Array(11).fill("") }
+        ],
+        cccDraft: { comments: "" }
+      },
+      r2: { sixCoreForms: [], coreEpaForms: [] }
+    }
+  };
+  renderExportPanel(period);
+  const first = { markup: elements.exportContent.innerHTML, buttonDisabled: elements.exportPersonButton.disabled, options: elements.exportResidentSelect.innerHTML };
+  selectedExportResidentId = "r2";
+  renderExportPanel(period);
+  const second = { markup: elements.exportContent.innerHTML, buttonDisabled: elements.exportPersonButton.disabled };
+  renderExportPanel({ residents: [], assessments: {} });
+  return { first, second, emptyHidden: elements.exportEmpty.hidden, contentHidden: elements.exportContent.hidden, emptyButtonDisabled: elements.exportPersonButton.disabled };
+`)();
+assert.match(renderedExportPanel.first.options, /R1　測試醫師[\s\S]*R2　未命名/, "匯出分頁應先列出目前期別的住院醫師供選擇");
+assert.match(renderedExportPanel.first.markup, /data-export-kind="six-core" value="s1" checked>\s*<span>第 1 張 · 2026-11-10 · 教師甲<\/span>/, "雙方完成的六大核心表單應預設勾選");
+assert.match(renderedExportPanel.first.markup, /data-export-kind="six-core" value="s2" disabled>[\s\S]*?尚未完成/, "教師尚未評分的六大核心表單沒有正式表可印，必須停用不可勾選");
+assert.match(renderedExportPanel.first.markup, /data-export-kind="core-epa" value="e1" checked>[\s\S]*?暫存/, "已暫存的 Core EPA 表單應可匯出並標示暫存");
+assert.match(renderedExportPanel.first.markup, /data-export-kind="core-epa" value="e2" disabled>[\s\S]*?尚未填寫/, "完全空白的 Core EPA 表單不應匯出");
+assert.match(renderedExportPanel.first.markup, /data-export-kind="ccc" value="ccc" checked>[\s\S]*?暫存/, "已暫存的 CCC 評核表應可匯出");
+assert.equal(renderedExportPanel.first.buttonDisabled, false, "有可匯出的表單時匯出按鈕應可按");
+assert.match(renderedExportPanel.second.markup, /data-export-kind="ccc" value="ccc" disabled>[\s\S]*?尚未填寫/, "尚未填寫 CCC 的住院醫師不應匯出空白 CCC 評核表");
+assert.equal(renderedExportPanel.second.buttonDisabled, true, "沒有任何可匯出表單的住院醫師，匯出按鈕應停用");
+assert.ok(renderedExportPanel.contentHidden && !renderedExportPanel.emptyHidden && renderedExportPanel.emptyButtonDisabled, "期別沒有名單時匯出分頁應顯示空狀態並停用匯出");
 
 await import("./ftp-write-probe-test.mjs");
 
