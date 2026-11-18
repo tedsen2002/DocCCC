@@ -183,7 +183,10 @@ assert.match(html, /score \/ max \* 100/, "絕對六角圖應依各能力滿分�
 assert.match(html, /function teacherMetricResultText\(metric\)/, "六角圖下方應以共用格式顯示有效分母與 N\/A 數量");
 assert.match(html, /\$\{metric\.code\} \$\{metric\.name\}（滿分\$\{metric\.nominalMax\}）/, "網頁評分表應在能力名稱後顯示精簡原始滿分");
 assert.match(html, /<small>N\/A \$\{metric\.notApplicable\}項<\/small>/, "列印彙整表應顯示各能力 N\/A 數量");
-assert.match(html, /const ROLE_COLORS = \{ student: "#2f9e44", teacher: "#1769ff", absolute: "#1d6b50" \}/, "學生圖形應使用綠色、教師藍色、教師分項百分比深綠色");
+assert.match(html, /const ROLE_COLORS = \{ student: "#2f9e44", teacher: "#1769ff" \}/, "學生圖形應使用綠色、教師藍色");
+assert.match(html, /drawRadarChart\(canvas, \[\{ scores: percentages, color: ROLE_COLORS\.teacher \}\], 100\)/, "教師分項百分比六角圖應和教師 Level 同為藍色，避免深綠色被誤認成學生資料");
+assert.match(html, /\.legend \.absolute::before \{ background: var\(--blue\); \}/, "教師評分圖例的色點應與圖形同為藍色");
+assert.doesNotMatch(html, /ROLE_COLORS\.absolute|教師分項百分比：深綠色/, "不得殘留教師分項百分比的深綠色設定或說明");
 assert.match(html, /#1769ff/, "教師圖形應使用藍色");
 assert.match(html, /#1d6b50/, "絕對百分比圖形應使用綠色");
 assert.match(html, /id="scoreDetailDialog"/, "教師六角圖應能開啟原始分項明細");

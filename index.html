@@ -314,7 +314,7 @@
     .legend { display: flex; flex-wrap: wrap; gap: 5px 12px; color: var(--muted); font-size: 11px; }
     .legend span { white-space: nowrap; }
     .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 50%; }
-    .legend .absolute::before { background: var(--green-2); }
+    .legend .absolute::before { background: var(--blue); }
     .legend .student::before { background: #2f9e44; }
     .legend .teacher::before { background: var(--blue); }
     canvas { display: block; width: 100%; max-width: 360px; height: auto; margin: 0 auto; }
@@ -921,7 +921,7 @@
     <section id="panel-assessment" class="panel">
       <div class="print-header">
         <div><h1>CCC 核心能力評分表</h1><p id="printPeriodName"></p></div>
-        <p>教師分項百分比：深綠色　學生 Level：綠色實線　教師 Level：藍色虛線</p>
+        <p>教師分項百分比：藍色實線　學生 Level：綠色實線　教師 Level：藍色虛線</p>
       </div>
       <div class="toolbar">
         <div class="toolbar-group">
@@ -1374,7 +1374,7 @@
     const ASSESSMENT_ITEMS = COMPETENCIES.flatMap((competency) => competency.items);
     const RESIDENT_LEVELS = ["R1", "R2", "R3", "R4"];
     const ROLE_LABELS = { student: "學生自評", teacher: "教師評分", ccc: "CCC 評核表", "core-epa": "Core EPA 教師評量" };
-    const ROLE_COLORS = { student: "#2f9e44", teacher: "#1769ff", absolute: "#1d6b50" };
+    const ROLE_COLORS = { student: "#2f9e44", teacher: "#1769ff" };
     const EVENT_LABELS = { submission: "完成提交", "ccc-submission": "CCC 正式提交", "core-epa-submission": "Core EPA 正式提交", unlock: "管理解鎖", modification: "分數修改", "core-epa-modification": "Core EPA 修改", "period-deletion": "期別刪除", "merge-resolution": "合併衝突處理" };
     const CCC_EPA_OPTIONS = [
       ["L1", "L1：無法安全執行"], ["L2", "L2：需指導"], ["L3", "L3：事後確認"],
@@ -5438,7 +5438,7 @@
         if (!form) return;
         if (canvas.dataset.radarKind === "absolute" || canvas.dataset.radarKind === "print-absolute") {
           const percentages = teacherDomainMetrics(form.teacher.itemScores).map((metric) => metric.percent);
-          drawRadarChart(canvas, [{ scores: percentages, color: ROLE_COLORS.absolute }], 100);
+          drawRadarChart(canvas, [{ scores: percentages, color: ROLE_COLORS.teacher }], 100);
         } else if (canvas.dataset.radarKind === "levels" || canvas.dataset.radarKind === "print-levels") {
           drawRadarChart(canvas, [
             { scores: form.student.levels, color: ROLE_COLORS.student },
