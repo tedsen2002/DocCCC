@@ -1789,6 +1789,47 @@ assert.match(renderedExportPanel.second.markup, /data-export-kind="ccc" value="c
 assert.equal(renderedExportPanel.second.buttonDisabled, true, "沒有任何可匯出表單的住院醫師，匯出按鈕應停用");
 assert.ok(renderedExportPanel.contentHidden && !renderedExportPanel.emptyHidden && renderedExportPanel.emptyButtonDisabled, "期別沒有名單時匯出分頁應顯示空狀態並停用匯出");
 
+const radioDeselect = new Function(`
+  class HTMLInputElement {
+    constructor(props) { Object.assign(this, { type: "radio", disabled: false, events: [] }, props); }
+    dispatchEvent(event) { this.events.push(event.type); }
+  }
+  class Event { constructor(type) { this.type = type; } }
+  const handlers = {};
+  const form = { addEventListener(type, handler) { handlers[type] = handler; } };
+  ${extractFunction("enableRadioDeselect")}
+  enableRadioDeselect(form);
+  const press = (radio) => { handlers.pointerdown({ target: radio }); handlers.click({ target: radio }); };
+  const saved = new HTMLInputElement({ name: "conclusion", checked: true });
+  press(saved);
+  const fresh = new HTMLInputElement({ name: "conclusion", checked: false });
+  handlers.pointerdown({ target: fresh });
+  fresh.checked = true;
+  handlers.click({ target: fresh });
+  const viaLabel = new HTMLInputElement({ name: "safety", checked: true });
+  const label = { closest: () => ({ control: viaLabel }) };
+  handlers.pointerdown({ target: label });
+  handlers.click({ target: label });
+  handlers.click({ target: viaLabel });
+  const identity = new HTMLInputElement({ name: "teacherIdentityMode", checked: true });
+  press(identity);
+  const locked = new HTMLInputElement({ name: "conclusion", checked: true, disabled: true });
+  press(locked);
+  const abandoned = new HTMLInputElement({ name: "conclusion", checked: true });
+  handlers.pointerdown({ target: abandoned });
+  handlers.keydown({ key: "ArrowRight" });
+  handlers.click({ target: abandoned });
+  return { saved, fresh, viaLabel, identity, locked, abandoned };
+`)();
+assert.equal(radioDeselect.saved.checked, false, "不小心選到又暫存的單選，再點一次應恢復成未勾選");
+assert.deepEqual(radioDeselect.saved.events, ["input", "change"], "取消勾選後應通知表單重新計算總分並同步相依欄位");
+assert.equal(radioDeselect.fresh.checked, true, "原本沒選的選項點一次仍應正常選取");
+assert.equal(radioDeselect.viaLabel.checked, false, "點選項文字也應能取消已選的選項");
+assert.equal(radioDeselect.identity.checked, true, "評分教師身分確認不是作答欄位，不得被再點一次取消");
+assert.equal(radioDeselect.locked.checked, true, "已鎖定的表單不得被取消勾選");
+assert.equal(radioDeselect.abandoned.checked, true, "按下後改用鍵盤移動選項時不得誤清除");
+assert.match(html, /enableRadioDeselect\(elements\.cccForm\);\s*enableRadioDeselect\(elements\.coreEpaForm\);/, "CCC 評核表與 Core EPA 的單選題都應可再點一次取消");
+
 await import("./ftp-write-probe-test.mjs");
 
 if (process.argv.includes("--browser")) {

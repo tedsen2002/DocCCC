@@ -3107,6 +3107,24 @@
       });
     }
 
+    function enableRadioDeselect(form) {
+      let armedRadio = null;
+      const arm = (event) => {
+        const control = event.target instanceof HTMLInputElement ? event.target : event.target.closest?.("label")?.control;
+        const answerRadio = control instanceof HTMLInputElement && control.type === "radio" && control.name !== "teacherIdentityMode";
+        armedRadio = answerRadio && control.checked && !control.disabled ? control : null;
+      };
+      form.addEventListener("pointerdown", arm);
+      form.addEventListener("keydown", () => { armedRadio = null; });
+      form.addEventListener("click", (event) => {
+        if (!armedRadio || event.target !== armedRadio) return;
+        armedRadio = null;
+        event.target.checked = false;
+        event.target.dispatchEvent(new Event("input", { bubbles: true }));
+        event.target.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    }
+
     function readCCCForm(form = elements.cccForm) {
       const formData = new FormData(form);
       const annualExamNotHeld = formData.get("annualExamNotHeld") === "yes";
@@ -5584,6 +5602,8 @@
       if (actionButton.dataset.cccAction === "draft") saveCCCDraft();
     });
     elements.cccForm.addEventListener("submit", submitCCCForm);
+    enableRadioDeselect(elements.cccForm);
+    enableRadioDeselect(elements.coreEpaForm);
     elements.coreEpaForm.addEventListener("click", (event) => {
       const actionButton = event.target.closest("[data-core-epa-action]");
       if (!actionButton) return;
