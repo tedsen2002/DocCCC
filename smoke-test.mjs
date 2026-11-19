@@ -216,8 +216,6 @@ assert.match(html, /coreSourceForms: aggregate\.forms\.map\(sixCoreSourceSnapsho
 assert.match(html, /\{ core: 0\.4, treatment: 0\.3, journal: 0\.3, exam: 0 \}\s*: \{ core: 0\.3, treatment: 0\.25, journal: 0\.25, exam: 0\.2 \}/, "臨床綜合總分應依 Word 權重 30/25/25/20 計算，學會考試未實施時改為 40/30/30/0");
 assert.match(html, /function cccWeightedContribution\(score, weight\)/, "各項原始分數應個別顯示加權得分以避免誤讀");
 assert.match(html, /原始分數<\/span><span>加權得分/, "CCC 分數表應清楚區分原始分數與加權得分");
-assert.match(html, /name="treatmentPlanScore" type="number" min="0" max="100"/, "治療計畫應提供百分制手動輸入");
-assert.match(html, /name="journalMeetingScore" type="number" min="0" max="100"/, "Journal meeting 應提供百分制手動輸入");
 assert.match(html, /name="annualExamScore" type="number" min="0" max="100"/, "學會年度考試應提供百分制手動輸入");
 assert.match(html, /CCC_EPA_OPTIONS/, "EPA 臨床授權應提供 L1–L5 勾選項");
 assert.match(html, /name="comments" maxlength="2000"/, "CCC 總評語應提供手動輸入欄位");
@@ -603,6 +601,15 @@ assert.equal(backupPayload.backupVersion, 1, "完整備份應帶有獨立格式�
 assert.equal(backupPayload.exportedAt, "2026-08-10T08:00:00.000Z", "完整備份應記錄匯出時間");
 assert.deepEqual(backupPayload.data, backupState, "完整備份應包含期別、名單、評分、草稿與稽核狀態");
 assert.deepEqual(backupLogic.parseDataBackup(JSON.stringify(backupPayload)), backupState, "有效備份應可在另一個瀏覽器還原完整狀態");
+const notHeldBackup = structuredClone(backupPayload);
+Object.assign(notHeldBackup.data.periods[0].assessments.r1.cccDraft, { treatmentPlanNotHeld: true, journalMeetingNotHeld: false });
+assert.deepEqual(backupLogic.parseDataBackup(JSON.stringify(notHeldBackup)).periods[0].assessments.r1.cccDraft,
+  notHeldBackup.data.periods[0].assessments.r1.cccDraft, "新增的未實施狀態應可完整備份與還原");
+for (const field of ["treatmentPlanNotHeld", "journalMeetingNotHeld"]) {
+  const invalid = structuredClone(notHeldBackup);
+  invalid.data.periods[0].assessments.r1.cccDraft[field] = "false";
+  assert.throws(() => backupLogic.parseDataBackup(JSON.stringify(invalid)), /格式不正確/, "未實施旗標不得接受會被誤認為勾選的字串");
+}
 assert.equal(
   backupLogic.parseDataBackup(JSON.stringify(backupPayload)).periods[0].assessments.r1.coreEpaForms[0].levels[0],
   "4",
@@ -1045,7 +1052,7 @@ const cccMath = new Function(`
   ${extractFunction("cccWeightLabel")}
   ${extractFunction("cccWeightedTotal")}
   ${extractFunction("cccWeightedContribution")}
-  return { cccScoreValue, cccWeightedTotal, cccWeightedContribution };
+  return { cccScoreValue, cccWeights, cccWeightLabel, cccWeightedTotal, cccWeightedContribution };
 `)();
 assert.equal(cccMath.cccWeightedTotal(80, 90, 70, 100), 84, "加權總分應依 30/25/25/20 權重得到正確結果");
 assert.equal(cccMath.cccWeightedTotal(80, "", 70, 100), null, "任一人工成績尚未填寫時不應顯示不完整總分");
@@ -1053,6 +1060,35 @@ assert.equal(cccMath.cccScoreValue(101), "", "百分制欄位不得接受超過 
 assert.equal(cccMath.cccWeightedContribution(71, 0.3), 21.3, "71 分的核心總分乘 30% 應顯示 21.3 分加權貢獻");
 assert.equal(cccMath.cccWeightedTotal(80, 90, 70, "", true), 80, "學會考試未實施時應改用 40/30/30/0 計算，不因考試分數空白而無法得出總分");
 assert.equal(cccMath.cccWeightedTotal(80, 90, 70, 10, true), 80, "學會考試未實施時，殘留的考試分數不得影響總分");
+const cccNotHeldCases = [
+  { flags: [false, false, false], shares: [30, 25, 25, 20], total: 84 },
+  { flags: [false, true, false], shares: [30, 0, 25, 20], total: 82 },
+  { flags: [false, false, true], shares: [30, 25, 0, 20], total: 88.7 },
+  { flags: [false, true, true], shares: [30, 0, 0, 20], total: 88 },
+  { flags: [true, false, false], shares: [40, 30, 30, 0], total: 80 },
+  { flags: [true, true, false], shares: [40, 0, 30, 0], total: 75.7 },
+  { flags: [true, false, true], shares: [40, 30, 0, 0], total: 84.3 },
+  { flags: [true, true, true], shares: [40, 0, 0, 0], total: 80 }
+];
+for (const { flags, shares, total } of cccNotHeldCases) {
+  const weights = Object.values(cccMath.cccWeights(...flags));
+  const denominator = shares.reduce((sum, share) => sum + share, 0);
+  weights.forEach((weight, index) => assert.ok(Math.abs(weight - shares[index] / denominator) < 1e-12, `未實施 ${flags} 應按既定權重比例分配`));
+  assert.ok(Math.abs(weights.reduce((sum, weight) => sum + weight, 0) - 1) < 1e-12, "排除未實施項目後權重總和仍須為 100%");
+  assert.equal(cccMath.cccWeightedTotal(80, 90, 70, 100, ...flags), total, `未實施 ${flags} 不得計入殘留分數`);
+  const scores = [80, flags[1] ? "" : 90, flags[2] ? "" : 70, flags[0] ? "" : 100];
+  assert.equal(cccMath.cccWeightedTotal(...scores, ...flags), total, "未實施項目空白仍可算出總分");
+  scores.forEach((_, index) => {
+    if (!shares[index]) return;
+    const missing = [...scores];
+    missing[index] = "";
+    assert.equal(cccMath.cccWeightedTotal(...missing, ...flags), null, "有實施但尚未填寫的成績不得當成未實施或零分");
+  });
+  assert.equal(cccMath.cccWeightedTotal(100, 100, 100, 100, ...flags), 100, "所有有效項目滿分時仍須為 100 分");
+  assert.equal(cccMath.cccWeightedTotal(0, 0, 0, 0, ...flags), 0, "有效項目的零分必須計入");
+}
+assert.equal(cccMath.cccWeightLabel(cccMath.cccWeights(true, true).core), "57.14%", "比例顯示到兩位小數，計算仍使用完整精度");
+assert.equal(cccMath.cccWeightedContribution(90, 0), null, "未實施項目不得顯示殘留分數的加權貢獻");
 
 const sixCoreTeacherIdentity = new Function(`
   let activeScoreContext = { role: "teacher" };
@@ -1242,6 +1278,8 @@ const renderedCCC = new Function(`
   return { ...elements, cccForm: { ...elements.cccForm, innerHTML: standardMarkup }, notHeldMarkup: elements.cccForm.innerHTML };
 `)();
 assert.match(renderedCCC.cccResidentSelect.innerHTML, /R1　測試醫師/, "CCC 學生選單應實際渲染目前期別名單");
+assert.match(renderedCCC.cccForm.innerHTML, /name="treatmentPlanScore" type="number" min="0" max="100"/, "有實施的治療計畫應提供百分制手動輸入");
+assert.match(renderedCCC.cccForm.innerHTML, /name="journalMeetingScore" type="number" min="0" max="100"/, "有實施的 Journal meeting 應提供百分制手動輸入");
 assert.equal((renderedCCC.cccForm.innerHTML.match(/class="ccc-section-heading[ "]/g) || []).length, 9, "CCC 初稿應完整渲染 Word 的九個區塊");
 assert.deepEqual(
   Array.from(renderedCCC.cccForm.innerHTML.matchAll(/class="ccc-section-heading is-teacher"><span class="ccc-section-number">([^<]+)</g), (match) => match[1]),
@@ -1308,9 +1346,11 @@ assert.equal(savedCCC.draft.mentorName, "導師甲", "CCC 草稿應保存正式�
 assert.equal(savedCCC.persistCount, 1, "CCC 草稿應寫入瀏覽器持久狀態一次");
 assert.equal(savedCCC.renderCount, 1, "CCC 草稿保存後應重新渲染目前學生表單");
 assert.equal(savedCCC.draft.annualExamNotHeld, false, "未勾選學會考試未實施時應保存為 false");
+assert.equal(savedCCC.draft.treatmentPlanNotHeld, false, "未勾選治療計畫未實施時應保存為 false");
+assert.equal(savedCCC.draft.journalMeetingNotHeld, false, "未勾選 Journal 未實施時應保存為 false");
 
 const notHeldCCCValues = new Function(`
-  const values = { treatmentPlanScore: "88", journalMeetingScore: "79", annualExamScore: "91", annualExamNotHeld: "yes",
+  const values = { treatmentPlanScore: "88", journalMeetingScore: "79", annualExamScore: "91", annualExamNotHeld: "yes", treatmentPlanNotHeld: "yes", journalMeetingNotHeld: "yes",
     teaching: "none", teachingNote: "殘留教學", research: "yes", researchNote: "  研究進度  ",
     safety: "none", safetyDescription: "殘留事件", safetySeverity: "mild", safetyImprovement: "殘留改善" };
   const FormData = class { get(name) { return values[name] ?? null; } };
@@ -1321,6 +1361,10 @@ const notHeldCCCValues = new Function(`
 `)();
 assert.equal(notHeldCCCValues.annualExamNotHeld, true, "勾選學會考試未實施應保存為 true");
 assert.equal(notHeldCCCValues.annualExamScore, "", "勾選學會考試未實施時不得保存殘留的考試分數");
+assert.equal(notHeldCCCValues.treatmentPlanNotHeld, true, "治療計畫未實施狀態應保存");
+assert.equal(notHeldCCCValues.journalMeetingNotHeld, true, "Journal 未實施狀態應保存");
+assert.equal(notHeldCCCValues.treatmentPlanScore, "", "治療計畫未實施時不得保存殘留分數");
+assert.equal(notHeldCCCValues.journalMeetingScore, "", "Journal 未實施時不得保存殘留分數");
 assert.equal(notHeldCCCValues.teachingNote, "", "教學選無時不得保存殘留的教學內容");
 assert.equal(notHeldCCCValues.researchNote, "研究進度", "研究選有時應保存研究內容");
 assert.deepEqual(
@@ -1329,7 +1373,7 @@ assert.deepEqual(
   "病安選無時不得保存殘留的事件說明、嚴重性與改善情形"
 );
 
-const submittedCCC = new Function(`
+const submitCCCFixture = new Function("overrides", `
   const ITEM_MAX_SCORE = 5;
   const ITEM_NOT_APPLICABLE = "NA";
   const COMPETENCIES = [
@@ -1353,7 +1397,7 @@ const submittedCCC = new Function(`
   const residentFor = (targetPeriod, residentId) => targetPeriod.residents.find((resident) => resident.id === residentId);
   const readCCCForm = () => ({
     coreDateFrom: "2026-01-01", coreDateTo: "2026-01-31",
-    treatmentPlanScore: 90, journalMeetingScore: 70, annualExamScore: 100, mentorName: "導師甲", conclusion: "promotion"
+    treatmentPlanScore: 90, journalMeetingScore: 70, annualExamScore: 100, mentorName: "導師甲", conclusion: "promotion", ...overrides
   });
   const window = { confirm: () => true };
   let auditEvent = null;
@@ -1380,7 +1424,8 @@ const submittedCCC = new Function(`
   ${extractFunction("submitCCCForm")}
   submitCCCForm({ preventDefault() {} });
   return { assessment: period.assessments.r1, auditEvent, persistCount, renderCount };
-`)();
+`);
+const submittedCCC = submitCCCFixture({});
 assert.equal(submittedCCC.assessment.cccSubmission.coreScore, 80, "CCC 正式提交應保存前頁六大核心總分快照");
 assert.equal(submittedCCC.assessment.cccSubmission.coreSourceForms.length, 1, "CCC 正式提交應只鎖定日期範圍內的表單");
 assert.equal(submittedCCC.assessment.cccSubmission.coreSourceForms[0].formId, "f1", "CCC 快照應保存實際納入的表單 ID");
@@ -1390,6 +1435,19 @@ assert.equal(submittedCCC.auditEvent.type, "ccc-submission", "CCC 正式提交�
 assert.equal(submittedCCC.auditEvent.role, "ccc", "CCC 稽核事件應標示為 CCC 評核表");
 assert.equal(submittedCCC.persistCount, 1, "CCC 正式提交應持久化一次");
 assert.equal(submittedCCC.renderCount, 1, "CCC 正式提交後應重新渲染為鎖定狀態");
+for (const { flags, total } of cccNotHeldCases) {
+  const [annualExamNotHeld, treatmentPlanNotHeld, journalMeetingNotHeld] = flags;
+  const submitted = submitCCCFixture({
+    annualExamNotHeld, treatmentPlanNotHeld, journalMeetingNotHeld,
+    annualExamScore: annualExamNotHeld ? "" : 100,
+    treatmentPlanScore: treatmentPlanNotHeld ? "" : 90,
+    journalMeetingScore: journalMeetingNotHeld ? "" : 70
+  });
+  assert.equal(submitted.assessment.cccSubmission.weightedTotal, total, "正式提交須保存依未實施狀態計算的總分");
+  assert.equal(submitted.auditEvent.cccForm.weightedTotal, total, "稽核事件須保存相同總分快照");
+  assert.equal(submitted.auditEvent.cccForm.treatmentPlanNotHeld, treatmentPlanNotHeld, "稽核事件須保存治療計畫實施狀態");
+  assert.equal(submitted.auditEvent.cccForm.journalMeetingNotHeld, journalMeetingNotHeld, "稽核事件須保存 Journal 實施狀態");
+}
 
 const cccPDFMarkup = new Function(`
   const CCC_EPA_OPTIONS = [["L4", "L4：可獨立"]];
@@ -1425,6 +1483,9 @@ const cccPDFMarkup = new Function(`
   return {
     standard: cccPrintReportMarkup(period, resident, record),
     notHeld: cccPrintReportMarkup(period, resident, { ...record, annualExamScore: "", annualExamNotHeld: true, weightedTotal: undefined, teaching: "none", teachingNote: "舊殘留教學", safetyDescription: "舊殘留事件", safetyImprovement: "舊殘留改善" }),
+    treatmentNotHeld: cccPrintReportMarkup(period, resident, { ...record, annualExamNotHeld: true, treatmentPlanNotHeld: true, weightedTotal: undefined }),
+    journalNotHeld: cccPrintReportMarkup(period, resident, { ...record, journalMeetingNotHeld: true, weightedTotal: undefined }),
+    allNotHeld: cccPrintReportMarkup(period, resident, { ...record, annualExamNotHeld: true, treatmentPlanNotHeld: true, journalMeetingNotHeld: true, weightedTotal: undefined }),
     blank: cccPrintReportMarkup(period, resident, { ...record, comments: "", learnerFeedback: "" })
   };
 `)();
@@ -1439,6 +1500,11 @@ assert.match(cccPDFMarkup.notHeld, /六大核心考核表[\s\S]*40%[\s\S]*80[\s\
 assert.match(cccPDFMarkup.notHeld, /學會年度考試分數（未實施）<\/td><td class="weight">0%<\/td><td class="raw">—<\/td><td class="weighted">—<\/td>/, "學會考試未實施時 PDF 考試列應印成 0% 與橫線");
 assert.doesNotMatch(cccPDFMarkup.notHeld, /舊殘留/, "選無的教學與病安項目，PDF 不得印出舊資料殘留的說明文字");
 assert.match(cccPDFMarkup.notHeld, /綜合加權總分<\/td><td class="weighted">80<\/td>/, "80、90、70 在未實施配分下 PDF 總分應為 32＋27＋21＝80");
+assert.match(cccPDFMarkup.treatmentNotHeld, /治療計畫平均分數（未實施）<\/td><td class="weight">0%<\/td><td class="raw">—<\/td><td class="weighted">—<\/td>/, "PDF 應標示治療計畫未實施且不顯示殘留分數");
+assert.match(cccPDFMarkup.treatmentNotHeld, /57\.14%[\s\S]*42\.86%[\s\S]*綜合加權總分<\/td><td class="weighted">75\.7<\/td>/, "PDF 應依 40:30 分配核心與 Journal 權重並計算總分");
+assert.match(cccPDFMarkup.journalNotHeld, /Journal meeting 平均分數（未實施）<\/td><td class="weight">0%<\/td><td class="raw">—<\/td><td class="weighted">—<\/td>/, "PDF 應標示 Journal 未實施且不顯示殘留分數");
+assert.match(cccPDFMarkup.journalNotHeld, /綜合加權總分<\/td><td class="weighted">88\.7<\/td>/, "考試有實施時 PDF 應按原本 30:25:20 比例分配剩餘權重");
+assert.match(cccPDFMarkup.allNotHeld, /class="weight">100%[\s\S]*綜合加權總分<\/td><td class="weighted">80<\/td>/, "三項人工成績都未實施時，PDF 應以核心佔 100% 計分");
 assert.match(cccPDFMarkup.blank, /<strong>總評語<\/strong><div><\/div>/, "總評語沒有填寫時 PDF 應留白，不得代入橫線或輸入提示");
 assert.match(cccPDFMarkup.blank, /與回饋<\/strong><div><p class="ccc-print-learner-sign">/, "學員省思與回饋沒有填寫時 PDF 應留白");
 assert.doesNotMatch(cccPDFMarkup.blank, /請輸入|供學員填寫/, "PDF 不得印出表單欄位的輸入提示文字");
