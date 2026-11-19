@@ -77,7 +77,7 @@ assert.match(html, /currentText !== sharedFileBaselineText/, "覆寫前應辨識
 assert.match(html, /reconcileSharedFileChanges\(currentText\)/, "共用 JSON 更新時應先執行三方合併而非直接覆蓋");
 assert.match(html, /const MERGE_AMBIGUITY_MS = 5 \* 60 \* 1000/, "同欄位修改相差五分鐘內應視為需要人工選擇");
 assert.match(html, /id="mergeConflictDialog"/, "無法安全判斷的同欄位修改應提供選擇視窗");
-assert.match(html, /id="mergeConflictPassword"[^>]*type="password"/, "已提交或鎖定內容的合併應要求管理密碼");
+assert.match(html, /id="mergeConflictPassword"[^>]*type="password"/, "已提交或鎖定內容的合併應要求稽核密碼");
 assert.match(html, /type: "merge-resolution"/, "鎖定內容的合併選擇應建立不可覆蓋的稽核事件");
 assert.match(html, /window\.addEventListener\("beforeunload", warnIfSharedFileUnsynced\)/, "尚未同步時關閉頁面應觸發離開警告");
 assert.match(html, /initializeSharedDataGate\(\);/, "頁面初始化後應依開啟模式設定共用 JSON 流程");
@@ -434,6 +434,10 @@ const auditLocal = mergeState(null, [localAudit]);
 const auditShared = mergeState(null, [originalAudit, sharedAudit]);
 const auditMerge = mergeCore.mergeSharedStates(auditBase, auditLocal, auditShared);
 assert.deepEqual(auditMerge.state.auditLog.map((event) => event.id), ["audit-original", "audit-local", "audit-shared"], "稽核事件應採不可刪除的聯集合併");
+const migratedAudit = mergeState(null, [{ ...originalAudit, beforeItemScores: undefined }]);
+assert.equal(mergeCore.mergeSharedStates(auditBase, auditBase, migratedAudit).fatalConflicts.length, 0, "舊稽核事件在 JSON 重新讀取後仍應視為相同內容");
+const changedAudit = mergeState(null, [{ ...originalAudit, actorName: "其他人" }]);
+assert.equal(mergeCore.mergeSharedStates(auditBase, auditBase, changedAudit).fatalConflicts.length, 1, "同一稽核事件的內容被改寫仍應阻擋合併");
 
 function extractFunction(name) {
   const match = scripts[0][1].match(new RegExp(`    (?:async )?function ${name}\\([\\s\\S]*?\\n    \\}`));
@@ -443,7 +447,7 @@ function extractFunction(name) {
 
 for (const functionName of [
   "saveCCCDraft", "submitCCCForm", "addRosterResident", "removeRosterResident",
-  "saveTeacherDraft", "submitScores", "unlockModification", "submitModification", "createPeriod"
+  "saveTeacherDraft", "submitScores", "unlockModification", "submitModification", "createPeriod", "deleteSelectedForms"
 ]) {
   assert.match(extractFunction(functionName), /commitStateChange\(/, `${functionName} 應在保存失敗時回滾狀態`);
 }
@@ -471,6 +475,7 @@ const migratedCoreEPATimestamp = new Function(`
 assert.equal(migratedCoreEPATimestamp, "2026-08-14T10:04:00.000Z", "Core EPA 合併選擇的修改時間在重新載入後仍應保留");
 
 assert.doesNotMatch(extractFunction("renamePeriod"), /password|addAuditEvent/, "更改期別名稱不得要求密碼或新增稽核事件");
+assert.match(extractFunction("submitMergeConflictChoices"), /hasLockedConflict && elements\.mergeConflictPassword\.value !== AUDIT_PASSWORD/, "需要密碼的合併衝突應使用稽核密碼");
 assert.doesNotMatch(extractFunction("openSharedDataFile"), /requestPermission/, "共用資料夾流程不得額外要求會失去使用者手勢的權限");
 assert.match(extractFunction("openNetworkSharedDataFile"), /requestPermission\(\{ mode: "readwrite" \}\)/, "FTP JSON 應在同一開檔流程要求 readwrite 權限");
 
@@ -968,7 +973,7 @@ assert.equal(renamedPeriod.persistCount, 1, "有效的新名稱應持久化一�
 assert.equal(renamedPeriod.renderCount, 1, "重新命名完成後應重新渲染一次");
 
 const deletedPeriod = new Function(`
-  const ADMIN_PASSWORD = "tsgh123";
+  const AUDIT_PASSWORD = "DOC12345";
   let state = {
     periods: [
       {
@@ -988,7 +993,7 @@ const deletedPeriod = new Function(`
   let renderCount = 0;
   const toasts = [];
   const elements = {
-    deletePeriodPassword: { value: "wrong", selectCount: 0, select() { this.selectCount += 1; } },
+    deletePeriodPassword: { value: "tsgh123", selectCount: 0, select() { this.selectCount += 1; } },
     deletePeriodDialog: { closeCount: 0, close() { this.closeCount += 1; } },
     deletePeriodForm: { resetCount: 0, reset() { this.resetCount += 1; } }
   };
@@ -1002,15 +1007,15 @@ const deletedPeriod = new Function(`
   ${extractFunction("deletePeriod")}
   deletePeriod({ preventDefault() {} });
   const afterWrongPassword = { periodCount: state.periods.length, auditCount: state.auditLog.length, persistCount };
-  elements.deletePeriodPassword.value = ADMIN_PASSWORD;
+  elements.deletePeriodPassword.value = AUDIT_PASSWORD;
   deletePeriod({ preventDefault() {} });
   activeDeletePeriodId = "p2";
   deletePeriod({ preventDefault() {} });
   const afterLastPeriodAttempt = { periodCount: state.periods.length, auditCount: state.auditLog.length, persistCount };
   return { state, selectedCCCResidentId, selectedCoreEPAResidentId, selectedCoreEPAFormId, persistCount, renderCount, elements, toasts, afterWrongPassword, afterLastPeriodAttempt };
 `)();
-assert.deepEqual(deletedPeriod.afterWrongPassword, { periodCount: 2, auditCount: 1, persistCount: 0 }, "錯誤管理密碼不得刪除期別或新增稽核事件");
-assert.deepEqual(deletedPeriod.state.periods.map((period) => period.id), ["p2"], "正確管理密碼應只刪除指定期別");
+assert.deepEqual(deletedPeriod.afterWrongPassword, { periodCount: 2, auditCount: 1, persistCount: 0 }, "舊管理密碼不得刪除期別或新增稽核事件");
+assert.deepEqual(deletedPeriod.state.periods.map((period) => period.id), ["p2"], "正確稽核密碼應只刪除指定期別");
 assert.equal(deletedPeriod.state.selectedPeriodId, "p2", "刪除目前期別後應選取相鄰期別");
 assert.equal(deletedPeriod.state.auditLog[0].id, "existing-audit", "刪除期別不得覆蓋既有稽核紀錄");
 assert.equal(deletedPeriod.state.auditLog[1].type, "period-deletion", "刪除期別後應附加專屬稽核事件");
@@ -1804,11 +1809,15 @@ const renderedExportPanel = new Function(`
   const ITEM_NOT_APPLICABLE = "NA";
   const ITEM_MAX_SCORE = 5;
   let selectedExportResidentId = null;
+  let checked = [];
   const elements = {
     exportResidentSelect: { innerHTML: "", disabled: false },
     exportPersonButton: { disabled: false },
+    deleteSelectedFormsButton: { disabled: false },
     exportEmpty: { hidden: false, innerHTML: "" },
-    exportContent: { hidden: true, innerHTML: "", querySelector() { return / checked>/.test(this.innerHTML) ? {} : null; } }
+    exportContent: { hidden: true, innerHTML: "", querySelector(selector) {
+      return checked.find((item) => selector.includes("[data-printable]") ? item.printable : !item.disabled) || null;
+    } }
   };
   const residentFor = (period, residentId) => period.residents.find((resident) => resident.id === residentId);
   ${extractFunction("escapeHTML")}
@@ -1843,23 +1852,34 @@ const renderedExportPanel = new Function(`
     }
   };
   renderExportPanel(period);
-  const first = { markup: elements.exportContent.innerHTML, buttonDisabled: elements.exportPersonButton.disabled, options: elements.exportResidentSelect.innerHTML };
+  const buttons = () => [elements.exportPersonButton.disabled, elements.deleteSelectedFormsButton.disabled];
+  const first = { markup: elements.exportContent.innerHTML, buttons: buttons(), options: elements.exportResidentSelect.innerHTML };
+  checked = [{ printable: false, disabled: false }];
+  updateExportButtonState();
+  const blankButtons = buttons();
+  checked.push({ printable: true, disabled: false });
+  updateExportButtonState();
+  const printableButtons = buttons();
+  checked = [];
   selectedExportResidentId = "r2";
   renderExportPanel(period);
-  const second = { markup: elements.exportContent.innerHTML, buttonDisabled: elements.exportPersonButton.disabled };
+  const second = { markup: elements.exportContent.innerHTML, buttons: buttons() };
   renderExportPanel({ residents: [], assessments: {} });
-  return { first, second, emptyHidden: elements.exportEmpty.hidden, contentHidden: elements.exportContent.hidden, emptyButtonDisabled: elements.exportPersonButton.disabled };
+  return { first, second, blankButtons, printableButtons, emptyHidden: elements.exportEmpty.hidden, contentHidden: elements.exportContent.hidden, emptyButtons: buttons() };
 `)();
 assert.match(renderedExportPanel.first.options, /R1　測試醫師[\s\S]*R2　未命名/, "匯出分頁應先列出目前期別的住院醫師供選擇");
-assert.match(renderedExportPanel.first.markup, /data-export-kind="six-core" value="s1" checked>\s*<span>第 1 張 · 2026-11-10 · 教師甲<\/span>/, "雙方完成的六大核心表單應預設勾選");
-assert.match(renderedExportPanel.first.markup, /data-export-kind="six-core" value="s2" disabled>[\s\S]*?尚未完成/, "教師尚未評分的六大核心表單沒有正式表可印，必須停用不可勾選");
-assert.match(renderedExportPanel.first.markup, /data-export-kind="core-epa" value="e1" checked>[\s\S]*?暫存/, "已暫存的 Core EPA 表單應可匯出並標示暫存");
-assert.match(renderedExportPanel.first.markup, /data-export-kind="core-epa" value="e2" disabled>[\s\S]*?尚未填寫/, "完全空白的 Core EPA 表單不應匯出");
-assert.match(renderedExportPanel.first.markup, /data-export-kind="ccc" value="ccc" checked>[\s\S]*?暫存/, "已暫存的 CCC 評核表應可匯出");
-assert.equal(renderedExportPanel.first.buttonDisabled, false, "有可匯出的表單時匯出按鈕應可按");
-assert.match(renderedExportPanel.second.markup, /data-export-kind="ccc" value="ccc" disabled>[\s\S]*?尚未填寫/, "尚未填寫 CCC 的住院醫師不應匯出空白 CCC 評核表");
-assert.equal(renderedExportPanel.second.buttonDisabled, true, "沒有任何可匯出表單的住院醫師，匯出按鈕應停用");
-assert.ok(renderedExportPanel.contentHidden && !renderedExportPanel.emptyHidden && renderedExportPanel.emptyButtonDisabled, "期別沒有名單時匯出分頁應顯示空狀態並停用匯出");
+assert.match(renderedExportPanel.first.markup, /data-export-kind="six-core" value="s1" data-printable>\s*<span>第 1 張 · 2026-11-10 · 教師甲<\/span>/, "雙方完成的六大核心表單應可匯出，需手動勾選");
+assert.match(renderedExportPanel.first.markup, /data-export-kind="six-core" value="s2">[\s\S]*?尚未完成/, "未完成的六大核心表單可勾選刪除");
+assert.match(renderedExportPanel.first.markup, /data-export-kind="core-epa" value="e1" data-printable>[\s\S]*?暫存/, "已暫存的 Core EPA 表單應可匯出並標示暫存");
+assert.match(renderedExportPanel.first.markup, /data-export-kind="core-epa" value="e2">[\s\S]*?尚未填寫/, "完全空白的 Core EPA 表單可勾選刪除");
+assert.match(renderedExportPanel.first.markup, /data-export-kind="ccc" value="ccc" data-printable>[\s\S]*?暫存/, "已暫存的 CCC 評核表應可匯出");
+assert.deepEqual(renderedExportPanel.first.buttons, [true, true], "清單有資料時兩個操作也都要等使用者勾選");
+assert.deepEqual(renderedExportPanel.blankButtons, [true, false], "只勾選空白表單時只能刪除");
+assert.deepEqual(renderedExportPanel.printableButtons, [false, false], "勾選可匯出表單後可以匯出或刪除");
+assert.match(renderedExportPanel.second.markup, /data-export-kind="ccc" value="ccc" disabled>[\s\S]*?尚未填寫/, "沒有儲存 CCC 紀錄時應停用其勾選框");
+assert.deepEqual(renderedExportPanel.second.buttons, [true, true], "住院醫師沒有任何表單時應停用兩個按鈕");
+assert.ok(renderedExportPanel.contentHidden && !renderedExportPanel.emptyHidden, "期別沒有名單時匯出分頁應顯示空狀態");
+assert.deepEqual(renderedExportPanel.emptyButtons, [true, true], "期別沒有名單時應停用兩個按鈕");
 
 const radioDeselect = new Function(`
   class HTMLInputElement {

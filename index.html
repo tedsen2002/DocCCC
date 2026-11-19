@@ -401,17 +401,7 @@
     dialog::backdrop { background: rgba(15, 28, 21, 0.54); backdrop-filter: blur(3px); }
     dialog.shared-file-dialog { width: min(620px, calc(100% - 28px)); }
     .shared-file-dialog .dialog-body { max-height: none; }
-    .shared-file-name {
-      display: inline-block;
-      margin: 7px 0 13px;
-      padding: 5px 9px;
-      border-radius: 8px;
-      color: var(--green);
-      background: #e8f0e9;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 13px;
-      font-weight: 850;
-    }
+    .shared-file-path { overflow-wrap: anywhere; }
     .shared-file-steps { margin: 0 0 18px; padding-left: 22px; color: var(--muted); font-size: 14px; }
     .shared-file-steps li + li { margin-top: 5px; }
     .shared-file-progress { margin: 0 0 12px; padding: 10px 12px; border-radius: 11px; color: #365548; background: #edf6f1; font-size: 13px; font-weight: 750; }
@@ -857,14 +847,12 @@
     <div class="dialog-head">
       <div>
         <h2 id="sharedFileDialogTitle">先連結共用資料</h2>
-        <p id="sharedFileDialogIntro">每次開啟網頁都必須重新讀取最新的共用 JSON。</p>
+        <p id="sharedFileDialogIntro">這個 HTML (DocCCC) 必須先複製到這台電腦的本機磁碟再開啟；</p>
       </div>
     </div>
     <div class="dialog-body">
-      <p>HTML 必須先複製到這台電腦的本機磁碟再開啟；FTP 只保留下列固定資料檔：</p>
-      <code class="shared-file-name">DocCCC-data.json</code>
       <ol class="shared-file-steps">
-        <li>按下方按鈕，從 Windows「網路位置」開啟既有的固定 JSON。</li>
+        <li>按右下方橘色按鈕，從"<code class="shared-file-path">\\10.200.1.34\doc312\CR-112\!CCC</code>" 開啟既有的固定 JSON (DocCCC-data.json)。</li>
         <li>若瀏覽器詢問是否允許變更檔案，請按允許；完成後會直接載入並開始作業。</li>
         <li>暫存、提交與其他正式資料變更會自動寫回同一檔案；多人同欄位衝突時才會要求選擇。</li>
       </ol>
@@ -1017,6 +1005,7 @@
         </div>
         <div class="toolbar-actions">
           <button id="exportPersonButton" class="btn btn-export" type="button">匯出 PDF</button>
+          <button id="deleteSelectedFormsButton" class="btn btn-red" type="button" disabled>刪除勾選表單</button>
         </div>
       </div>
       <div id="exportEmpty" class="empty" hidden></div>
@@ -1236,13 +1225,37 @@
       </div>
       <div class="dialog-body">
         <div class="simple-field">
-          <label for="deletePeriodPassword">管理密碼</label>
-          <input id="deletePeriodPassword" name="deletePeriodPassword" type="password" autocomplete="current-password" required placeholder="輸入管理密碼">
+          <label for="deletePeriodPassword">稽核密碼</label>
+          <input id="deletePeriodPassword" name="deletePeriodPassword" type="password" autocomplete="current-password" required placeholder="輸入稽核密碼">
         </div>
         <div class="lock-warning">刪除後無法復原，但這個期別原有的稽核紀錄與本次「期別刪除」事件都會保留。</div>
         <div class="dialog-actions">
           <button class="btn btn-secondary" data-close-dialog="deletePeriodDialog" type="button">取消</button>
           <button class="btn btn-red" type="submit">確認刪除期別</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="deleteSelectedFormsDialog" aria-labelledby="deleteSelectedFormsTitle">
+    <form id="deleteSelectedFormsForm">
+      <div class="dialog-head">
+        <div>
+          <h2 id="deleteSelectedFormsTitle">刪除勾選表單</h2>
+          <p id="deleteSelectedFormsMeta"></p>
+        </div>
+        <button class="icon-button" data-close-dialog="deleteSelectedFormsDialog" type="button" aria-label="關閉">×</button>
+      </div>
+      <div class="dialog-body">
+        <ul id="deleteSelectedFormsList"></ul>
+        <p class="lock-warning">刪除後無法復原。原有稽核紀錄會保留。</p>
+        <div class="simple-field">
+          <label for="deleteSelectedFormsPassword">稽核密碼</label>
+          <input id="deleteSelectedFormsPassword" name="deleteSelectedFormsPassword" type="password" autocomplete="current-password" required autofocus>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" data-close-dialog="deleteSelectedFormsDialog" type="button">取消</button>
+          <button class="btn btn-red" type="submit">確認刪除表單</button>
         </div>
       </div>
     </form>
@@ -1293,8 +1306,8 @@
         <p id="mergeConflictSummary" class="merge-conflict-summary"></p>
         <div id="mergeConflictList" class="merge-conflict-list"></div>
         <div id="mergeConflictAdminField" class="simple-field merge-conflict-admin" hidden>
-          <label for="mergeConflictPassword">管理密碼（包含已提交／鎖定資料）</label>
-          <input id="mergeConflictPassword" name="mergeConflictPassword" type="password" autocomplete="current-password" placeholder="輸入管理密碼後才能套用">
+          <label for="mergeConflictPassword">稽核密碼（包含已提交／鎖定資料）</label>
+          <input id="mergeConflictPassword" name="mergeConflictPassword" type="password" autocomplete="current-password" placeholder="輸入稽核密碼後才能套用">
           <small>套用後會新增不可覆蓋的「合併衝突處理」稽核事件。</small>
         </div>
         <div class="dialog-actions">
@@ -1696,6 +1709,7 @@
     let unlockedCoreEPAFormId = null;
     let auditUnlocked = false;
     let selectedExportResidentId = null;
+    let deleteSelectedFormsContext = null;
     let exportPrintOriginalTitle = null;
     let toastTimer = null;
     let sharedFileHandle = null;
@@ -1726,6 +1740,12 @@
       exportPeriodSelect: document.querySelector("#exportPeriodSelect"),
       exportResidentSelect: document.querySelector("#exportResidentSelect"),
       exportPersonButton: document.querySelector("#exportPersonButton"),
+      deleteSelectedFormsButton: document.querySelector("#deleteSelectedFormsButton"),
+      deleteSelectedFormsDialog: document.querySelector("#deleteSelectedFormsDialog"),
+      deleteSelectedFormsForm: document.querySelector("#deleteSelectedFormsForm"),
+      deleteSelectedFormsMeta: document.querySelector("#deleteSelectedFormsMeta"),
+      deleteSelectedFormsList: document.querySelector("#deleteSelectedFormsList"),
+      deleteSelectedFormsPassword: document.querySelector("#deleteSelectedFormsPassword"),
       exportEmpty: document.querySelector("#exportEmpty"),
       exportContent: document.querySelector("#exportContent"),
       exportPrintReport: document.querySelector("#exportPrintReport"),
@@ -2141,14 +2161,15 @@
       [...(baseValue || []), ...(sharedValue || []), ...(localValue || [])].forEach((event) => {
         const key = eventKey(event);
         const existing = events.get(key);
-        if (existing && !mergeValuesEqual(existing, event)) {
+        const snapshot = cloneMergeValue(event);
+        if (existing && !mergeValuesEqual(existing, snapshot)) {
           if (!context.fatalPaths.has(`${path}/${mergePathPart(key)}`)) {
             context.fatalPaths.add(`${path}/${mergePathPart(key)}`);
             context.fatalConflicts.push({ path: `${path}/${mergePathPart(key)}`, reason: "同一筆稽核事件內容不一致" });
           }
           return;
         }
-        if (!existing) events.set(key, cloneMergeValue(event));
+        if (!existing) events.set(key, snapshot);
       });
       return [...events.values()].sort((left, right) => {
         const timeDifference = Date.parse(left?.occurredAt || "") - Date.parse(right?.occurredAt || "");
@@ -2160,9 +2181,12 @@
       if (path === "/schemaVersion") return SCHEMA_VERSION;
       if (path === "/selectedPeriodId") return cloneMergeValue(localValue ?? sharedValue ?? baseValue);
       if (path === "/auditLog") return mergeAuditLogs(baseValue, localValue, sharedValue, path, context);
-      if (mergeValuesEqual(localValue, sharedValue)) return cloneMergeValue(localValue);
-      if (mergeValuesEqual(localValue, baseValue)) return cloneMergeValue(sharedValue);
-      if (mergeValuesEqual(sharedValue, baseValue)) return cloneMergeValue(localValue);
+      // 即使只有一邊修改，根節點也要逐鍵合併才能檢查稽核紀錄。
+      if (path) {
+        if (mergeValuesEqual(localValue, sharedValue)) return cloneMergeValue(localValue);
+        if (mergeValuesEqual(localValue, baseValue)) return cloneMergeValue(sharedValue);
+        if (mergeValuesEqual(sharedValue, baseValue)) return cloneMergeValue(localValue);
+      }
 
       const localTimestamp = mergeOwnTimestamp(localValue, inheritedLocalTimestamp);
       const sharedTimestamp = mergeOwnTimestamp(sharedValue, inheritedSharedTimestamp);
@@ -2383,8 +2407,8 @@
       const pending = pendingMergeConflictResolution;
       if (!pending) return;
       const hasLockedConflict = pending.conflicts.some((conflict) => conflict.locked);
-      if (hasLockedConflict && elements.mergeConflictPassword.value !== ADMIN_PASSWORD) {
-        showToast("管理密碼不正確，尚未套用合併選擇。");
+      if (hasLockedConflict && elements.mergeConflictPassword.value !== AUDIT_PASSWORD) {
+        showToast("稽核密碼不正確，尚未套用合併選擇。");
         elements.mergeConflictPassword.select();
         return;
       }
@@ -2885,7 +2909,7 @@
       elements.sharedFileDialogTitle.textContent = isRemoteHTMLLaunch() ? "請先把 HTML 複製到本機" : "先連結共用資料";
       elements.sharedFileDialogIntro.textContent = isRemoteHTMLLaunch()
         ? "目前 index.html 是從 FTP、UNC 或其他網路位置直接啟動，瀏覽器不允許可靠寫入。"
-        : "每次開啟網頁都必須重新讀取 FTP 網路位置中的最新共用檔案。";
+        : "這個 HTML (DocCCC) 必須先複製到這台電腦的本機磁碟再開啟；";
       elements.closeSharedFileDialogButton.hidden = true;
       setSharedFileStatus("locked", "待連結 JSON");
       const unsupportedMessage = isRemoteHTMLLaunch()
@@ -3758,7 +3782,7 @@
               ? unlocked
                 ? `<button class="btn btn-secondary" type="button" data-core-epa-action="cancel-modification">取消修改</button><button class="btn btn-primary" type="submit">儲存修改並重新鎖定</button>`
                 : `<button class="btn btn-amber" type="button" data-core-epa-action="unlock">輸入管理密碼以修改</button>`
-              : `${coreEPAFormHasContent(draft) ? "" : `<button class="btn btn-red" type="button" data-core-epa-action="remove">刪除空白表單</button>`}<button class="btn btn-amber" type="button" data-core-epa-action="draft">暫存目前表單</button><button class="btn btn-primary" type="submit">確定並提交</button>`}
+              : `<button class="btn btn-amber" type="button" data-core-epa-action="draft">暫存目前表單</button><button class="btn btn-primary" type="submit">確定並提交</button>`}
           </div>
         </div>
       `;
@@ -4028,31 +4052,6 @@
       showToast("已取消 Core EPA 修改，正式資料未變更。");
     }
 
-    function removeEmptyCoreEPAForm() {
-      const { period, resident, assessment, form } = currentCoreEPAContext();
-      if (!period || !resident || !assessment || !form) return;
-      if (coreEPAFormHasContent(form)) { showToast("已有內容或已暫存的 Core EPA 表單不可刪除。"); return; }
-      const pending = readCoreEPAForm();
-      if (pending.teacherName || pending.levels.some(Boolean) || [pending.learnerAdvice, pending.mentorAdvice, pending.programAdvice].some(Boolean)) {
-        showToast("目前表單已有尚未暫存的內容，請先暫存或清空後再刪除。");
-        return;
-      }
-      if (!window.confirm(`確定刪除 ${form.assessmentDate} 的空白 Core EPA 評量表嗎？`)) return;
-      const formIndex = assessment.coreEpaForms.findIndex((item) => item.id === form.id);
-      const previousUpdatedAt = assessment.updatedAt;
-      assessment.coreEpaForms.splice(formIndex, 1);
-      assessment.updatedAt = new Date().toISOString();
-      if (!persist()) {
-        assessment.coreEpaForms.splice(formIndex, 0, form);
-        if (previousUpdatedAt === undefined) delete assessment.updatedAt;
-        else assessment.updatedAt = previousUpdatedAt;
-        return;
-      }
-      selectedCoreEPAFormId = assessment.coreEpaForms[formIndex]?.id || assessment.coreEpaForms[formIndex - 1]?.id || null;
-      render();
-      showToast(`已刪除 ${form.assessmentDate} 的空白 Core EPA 評量表。`);
-    }
-
     function submitCCCForm(event) {
       event.preventDefault();
       const { period, resident, assessment } = currentCCCContext();
@@ -4239,10 +4238,10 @@
       `;
     }
 
-    function exportItemMarkup(kind, id, label, available, statusClass, statusText) {
+    function exportItemMarkup(kind, id, label, printable, statusClass, statusText, exists = true) {
       return `
-        <label class="export-item${available ? "" : " is-unavailable"}">
-          <input type="checkbox" data-export-kind="${kind}" value="${escapeHTML(id)}"${available ? " checked" : " disabled"}>
+        <label class="export-item${exists ? "" : " is-unavailable"}">
+          <input type="checkbox" data-export-kind="${kind}" value="${escapeHTML(id)}"${printable ? " data-printable" : ""}${exists ? "" : " disabled"}>
           <span>${escapeHTML(label)}</span>
           <span class="status ${statusClass}">${statusText}</span>
         </label>
@@ -4264,6 +4263,7 @@
         elements.exportEmpty.hidden = false;
         elements.exportEmpty.innerHTML = `<strong>本期尚無住院醫師</strong>請先到「名單設定」建立本期名單。`;
         elements.exportPersonButton.disabled = true;
+        elements.deleteSelectedFormsButton.disabled = true;
         return;
       }
 
@@ -4282,7 +4282,8 @@
       });
       const cccAvailable = Boolean(assessment.cccSubmission || assessment.cccDraft);
       const cccItem = exportItemMarkup("ccc", "ccc", "CCC 評核表", cccAvailable,
-        assessment.cccSubmission ? "teacher-done" : cccAvailable ? "draft" : "pending", assessment.cccSubmission ? "已提交" : cccAvailable ? "暫存" : "尚未填寫");
+        assessment.cccSubmission ? "teacher-done" : cccAvailable ? "draft" : "pending",
+        assessment.cccSubmission ? "已提交" : cccAvailable ? "暫存" : "尚未填寫", cccAvailable);
       const group = (title, items) => `
         <fieldset class="export-group">
           <legend>${title}</legend>
@@ -4293,7 +4294,7 @@
       elements.exportContent.hidden = false;
       elements.exportContent.innerHTML = `
         <h2 class="section-heading">${escapeHTML(resident.level)} ${escapeHTML(resident.name || "未命名")}</h2>
-        <p class="section-help">勾選的表單會合併成一份 PDF，內容以已暫存或提交的資料為準。</p>
+        <p class="section-help">勾選可匯出的表單會合併成一份 PDF。已建立的表單，即使空白，也可以勾選刪除。</p>
         <div class="export-groups">
           ${group("六大核心", sixCoreItems)}
           ${group("Core EPAs", coreEpaItems)}
@@ -4304,7 +4305,8 @@
     }
 
     function updateExportButtonState() {
-      elements.exportPersonButton.disabled = !elements.exportContent.querySelector("input[data-export-kind]:checked");
+      elements.exportPersonButton.disabled = !elements.exportContent.querySelector("input[data-printable]:checked");
+      elements.deleteSelectedFormsButton.disabled = !elements.exportContent.querySelector("input[data-export-kind]:checked:not(:disabled)");
     }
 
     function exportPersonPDF() {
@@ -4315,7 +4317,7 @@
         showToast("目前沒有可匯出的資料。");
         return;
       }
-      const checkedIds = (kind) => [...elements.exportContent.querySelectorAll(`input[data-export-kind="${kind}"]:checked`)].map((input) => input.value);
+      const checkedIds = (kind) => [...elements.exportContent.querySelectorAll(`input[data-export-kind="${kind}"][data-printable]:checked`)].map((input) => input.value);
       const sixCoreForms = checkedIds("six-core").map((id) => findSixCoreForm(assessment, id)).filter((form) => form && isPrintableSixCoreForm(form));
       const coreEpaForms = checkedIds("core-epa").map((id) => coreEPAFormFor(assessment, id)).filter(Boolean);
       const cccRecord = checkedIds("ccc").length ? cccExportRecord(assessment) : null;
@@ -4335,6 +4337,56 @@
       document.title = `住院醫師評核資料_${period.name}_${resident.level}_${resident.name || "未命名"}`.replace(/[\\/:*?"<>|]/g, "_");
       document.body.classList.add("print-export");
       requestAnimationFrame(() => window.print());
+    }
+
+    function openDeleteSelectedFormsDialog() {
+      const period = currentPeriod();
+      const resident = residentFor(period, selectedExportResidentId);
+      const assessment = period?.assessments?.[selectedExportResidentId];
+      const checked = [...elements.exportContent.querySelectorAll("input[data-export-kind]:checked:not(:disabled)")];
+      if (!resident || !assessment || !checked.length) return;
+
+      const checkedIds = (kind) => new Set(checked.filter((input) => input.dataset.exportKind === kind).map((input) => input.value));
+      deleteSelectedFormsContext = {
+        periodId: period.id, residentId: resident.id, assessment,
+        sixCoreIds: checkedIds("six-core"), coreEpaIds: checkedIds("core-epa"), removeCCC: checkedIds("ccc").size > 0
+      };
+      elements.deleteSelectedFormsMeta.textContent = `${period.name} · ${resident.level} ${resident.name || "未命名"} · ${checked.length} 張表單`;
+      elements.deleteSelectedFormsList.innerHTML = checked.map((input) => {
+        const label = input.closest("label").querySelector("span").textContent;
+        const group = input.closest("fieldset").querySelector("legend").textContent;
+        return `<li>${escapeHTML(input.dataset.exportKind === "ccc" ? label : `${group} · ${label}`)}</li>`;
+      }).join("");
+      elements.deleteSelectedFormsDialog.showModal();
+    }
+
+    function deleteSelectedForms(event) {
+      event.preventDefault();
+      if (!deleteSelectedFormsContext) return;
+      if (elements.deleteSelectedFormsPassword.value !== AUDIT_PASSWORD) {
+        elements.deleteSelectedFormsPassword.setCustomValidity("稽核密碼不正確。");
+        elements.deleteSelectedFormsPassword.reportValidity();
+        return;
+      }
+      const { periodId, residentId, assessment, sixCoreIds, coreEpaIds, removeCCC } = deleteSelectedFormsContext;
+      if (state.periods.find((period) => period.id === periodId)?.assessments?.[residentId] !== assessment) {
+        elements.deleteSelectedFormsDialog.close();
+        showToast("資料已更新，請重新勾選要刪除的表單。");
+        return;
+      }
+      const saved = commitStateChange(() => {
+        if (sixCoreIds.size) assessment.sixCoreForms = sixCoreFormsFor(assessment).filter((form) => !sixCoreIds.has(form.id));
+        if (coreEpaIds.size) assessment.coreEpaForms = coreEpaFormsFor(assessment).filter((form) => !coreEpaIds.has(form.id));
+        if (removeCCC) {
+          delete assessment.cccDraft;
+          delete assessment.cccSubmission;
+        }
+        assessment.updatedAt = new Date().toISOString();
+      });
+      elements.deleteSelectedFormsDialog.close();
+      if (!saved) return;
+      render();
+      showToast(`已刪除 ${sixCoreIds.size + coreEpaIds.size + Number(removeCCC)} 張表單。`);
     }
 
     function finishExportPrint() {
@@ -4522,7 +4574,7 @@
             ${legacy ? `<button class="btn btn-secondary" type="button" disabled>舊版資料僅供查看</button>` : `
               <button class="btn btn-green" type="button" data-score-resident="${resident.id}" data-score-form="${form.id}" data-score-role="student" ${form.student ? "disabled" : ""}>${form.student ? "學生自評已鎖定" : "填寫學生自評"}</button>
               <button class="btn ${form.teacher ? "btn-blue" : "btn-red"}" type="button" data-score-resident="${resident.id}" data-score-form="${form.id}" data-score-role="teacher" ${form.teacher || !form.student ? "disabled" : ""}>${form.teacher ? "教師評分已鎖定" : form.student ? teacherDraft ? "繼續教師評核" : "填寫教師完整評核" : "請先完成學生自評"}</button>
-              ${form.student || form.teacher ? `<button class="btn btn-amber" type="button" data-modify-resident="${resident.id}" data-modify-form="${form.id}">修改評核</button>` : `<button class="btn btn-secondary" type="button" data-remove-six-core-resident="${resident.id}" data-remove-six-core-form="${form.id}">刪除空白表單</button>`}
+              ${form.student || form.teacher ? `<button class="btn btn-amber" type="button" data-modify-resident="${resident.id}" data-modify-form="${form.id}">修改評核</button>` : ""}
             `}
           </div>
           ${submissionTimes.length ? `<div class="done-time">${escapeHTML(submissionTimes.join(" · "))}</div>` : ""}
@@ -4593,9 +4645,6 @@
       });
       elements.residentGrid.querySelectorAll("[data-modify-resident]").forEach((button) => {
         button.addEventListener("click", () => openModifyDialog(button.dataset.modifyResident, button.dataset.modifyForm));
-      });
-      elements.residentGrid.querySelectorAll("[data-remove-six-core-form]").forEach((button) => {
-        button.addEventListener("click", () => removeEmptySixCoreForm(button.dataset.removeSixCoreResident, button.dataset.removeSixCoreForm));
       });
       drawRadarCharts(elements.residentGrid, period);
       elements.residentGrid.querySelectorAll('canvas[data-radar-kind="absolute"]').forEach((canvas) => {
@@ -5014,28 +5063,6 @@
       requestAnimationFrame(() => elements.coreEpaForm.querySelector('input[name="teacherIdentityMode"]:not(:disabled)')?.focus());
     }
 
-    function removeEmptySixCoreForm(residentId, formId) {
-      const period = currentPeriod();
-      const resident = residentFor(period, residentId);
-      const assessment = period?.assessments?.[residentId];
-      const form = findSixCoreForm(assessment, formId);
-      if (!period || !resident || !assessment || !form) return;
-      if (form.student || form.teacher || form.teacherDraft) { showToast("已有評核內容的表單不可刪除。"); return; }
-      if (!window.confirm(`確定刪除 ${form.assessmentDate} 的空白六大核心表單嗎？`)) return;
-      const index = assessment.sixCoreForms.findIndex((item) => item.id === formId);
-      const previousUpdatedAt = assessment.updatedAt;
-      assessment.sixCoreForms.splice(index, 1);
-      assessment.updatedAt = new Date().toISOString();
-      if (!persist()) {
-        assessment.sixCoreForms.splice(index, 0, form);
-        if (previousUpdatedAt === undefined) delete assessment.updatedAt;
-        else assessment.updatedAt = previousUpdatedAt;
-        return;
-      }
-      render();
-      showToast("空白六大核心表單已刪除。");
-    }
-
     function activeSixCoreForm() {
       const context = activeScoreContext;
       const period = state.periods.find((item) => item.id === context?.periodId);
@@ -5361,8 +5388,8 @@
       const period = state.periods[periodIndex];
       if (!period) { elements.deletePeriodDialog.close(); showToast("找不到要刪除的期別。"); return; }
       if (state.periods.length <= 1) { showToast("至少需保留一個期別，無法刪除。"); return; }
-      if (elements.deletePeriodPassword.value !== ADMIN_PASSWORD) {
-        showToast("管理密碼不正確。");
+      if (elements.deletePeriodPassword.value !== AUDIT_PASSWORD) {
+        showToast("稽核密碼不正確。");
         elements.deletePeriodPassword.select();
         return;
       }
@@ -5614,6 +5641,14 @@
     });
     elements.exportContent.addEventListener("change", updateExportButtonState);
     elements.exportPersonButton.addEventListener("click", exportPersonPDF);
+    elements.deleteSelectedFormsButton.addEventListener("click", openDeleteSelectedFormsDialog);
+    elements.deleteSelectedFormsForm.addEventListener("submit", deleteSelectedForms);
+    elements.deleteSelectedFormsPassword.addEventListener("input", () => elements.deleteSelectedFormsPassword.setCustomValidity(""));
+    elements.deleteSelectedFormsDialog.addEventListener("close", () => {
+      deleteSelectedFormsContext = null;
+      elements.deleteSelectedFormsForm.reset();
+      elements.deleteSelectedFormsPassword.setCustomValidity("");
+    });
     elements.cccResidentSelect.addEventListener("change", () => {
       selectedCCCResidentId = elements.cccResidentSelect.value;
       renderCCCForm(currentPeriod());
@@ -5646,7 +5681,6 @@
       const actionButton = event.target.closest("[data-core-epa-action]");
       if (!actionButton) return;
       if (actionButton.dataset.coreEpaAction === "draft") saveCoreEPAForm();
-      if (actionButton.dataset.coreEpaAction === "remove") removeEmptyCoreEPAForm();
       if (actionButton.dataset.coreEpaAction === "unlock") openCoreEPAUnlockDialog();
       if (actionButton.dataset.coreEpaAction === "cancel-modification") cancelCoreEPAModification();
     });
