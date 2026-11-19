@@ -322,6 +322,11 @@
     canvas[data-radar-kind="absolute"]:focus-visible { outline: 3px solid rgba(29, 107, 80, 0.28); outline-offset: 2px; }
     .chart-hint { margin: 2px 0 0; color: var(--green-2); text-align: center; font-size: 11px; font-weight: 800; }
     .result-summary { display: grid; gap: 4px; margin-top: 10px; font-size: 11px; }
+    .result-details { margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; }
+    .result-details > summary { min-height: 44px; box-sizing: border-box; padding: 12px; border-radius: 10px; color: var(--green); font-size: 12px; font-weight: 800; cursor: pointer; }
+    .result-details > summary:hover { background: #edf4ef; }
+    .result-details > summary:focus-visible { outline: 3px solid rgba(23, 105, 255, 0.25); outline-offset: 2px; }
+    .result-details .result-summary { margin: 0 12px 12px; }
     .result-row { display: grid; grid-template-columns: minmax(110px, 1.2fr) minmax(145px, 1.35fr) 0.8fr; gap: 8px; padding: 5px 2px; border-bottom: 1px solid #e5e7e1; }
     .result-row span:first-child { font-weight: 850; }
     .result-row.head { color: var(--muted); font-size: 10px; font-weight: 800; }
@@ -4530,7 +4535,10 @@
                   <canvas width="360" height="280" data-radar-resident="${resident.id}" data-radar-form="${form.id}" data-radar-kind="levels" aria-label="${escapeHTML(resident.level)} ${escapeHTML(form.assessmentDate)} 學生與教師 Level 六角圖"></canvas>
                 </section>
               </div>
-              ${resultSummary(form)}
+              <details class="result-details">
+                <summary>評分明細</summary>
+                ${resultSummary(form)}
+              </details>
             </div>
           ` : legacy && complete ? `
             <div class="chart-wrap">
