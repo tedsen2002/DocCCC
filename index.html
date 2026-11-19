@@ -460,6 +460,8 @@
     .simple-field { display: grid; gap: 7px; margin-bottom: 18px; }
     .simple-field label { font-size: 13px; font-weight: 800; }
     .simple-field[hidden], .modify-stage[hidden] { display: none; }
+    .password-hint { margin: 0; color: var(--muted); font-size: 13px; }
+    .password-hint strong { color: var(--ink); }
     .teacher-identity-panel { display: grid; gap: 10px; margin: 0 0 18px; padding: 14px; border: 1px solid #c9d8d0; border-radius: 13px; background: #f4f8f5; }
     .teacher-identity-panel[hidden], .teacher-name-change[hidden] { display: none; }
     .teacher-identity-panel legend { padding: 0 5px; font-size: 14px; font-weight: 900; }
@@ -1120,6 +1122,7 @@
         <div class="simple-field">
           <label for="coreEpaUnlockPassword">管理密碼</label>
           <input id="coreEpaUnlockPassword" name="coreEpaUnlockPassword" type="password" autocomplete="current-password" required placeholder="輸入管理密碼">
+          <p class="password-hint">管理密碼：<strong>tsgh123</strong></p>
         </div>
         <div class="lock-warning">密碼驗證成功會立即留下「管理解鎖」稽核紀錄；修改內容儲存後會再次鎖定。</div>
         <div class="dialog-actions">
@@ -1178,6 +1181,7 @@
           <div class="simple-field">
             <label for="adminPassword">管理密碼</label>
             <input id="adminPassword" name="adminPassword" type="password" autocomplete="current-password" required placeholder="輸入管理密碼">
+            <p class="password-hint">管理密碼：<strong>tsgh123</strong></p>
           </div>
           <div class="lock-warning">密碼驗證成功會立即留下「解鎖」稽核紀錄，即使之後取消修改也會保留。</div>
           <div class="dialog-actions">

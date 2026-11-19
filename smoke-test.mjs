@@ -261,6 +261,9 @@ assert.match(html, /function submitCoreEPAForm\(event\)/, "Core EPA 應有獨立
 assert.match(html, /submittedAt: form\.submittedAt \|\| timestamp/, "Core EPA 第一次提交後應保存固定提交時間");
 assert.match(html, /id="coreEpaUnlockPassword"[^>]*type="password"/, "Core EPA 已提交表單應提供管理密碼解鎖視窗");
 assert.match(html, /function unlockCoreEPAForm\(event\)/, "Core EPA 管理解鎖應有獨立流程");
+for (const id of ["coreEpaUnlockPassword", "adminPassword"]) {
+  assert.match(html, new RegExp(`id="${id}"[^>]*>\\s*<p class="password-hint">管理密碼：<strong>tsgh123</strong></p>`), `${id} 解鎖修改彈窗應直接顯示管理密碼，讓教師不必另查手冊`);
+}
 assert.match(html, /type: modifying \? "core-epa-modification" : "core-epa-submission"/, "Core EPA 提交與修改應留下不同稽核事件");
 assert.match(html, /querySelectorAll\("input, textarea"\)[^;]*control\.disabled = true/, "Core EPA 正式提交後應停用所有可編輯欄位");
 assert.match(html, /id="addCoreEpaFormButton" class="btn btn-create"[^>]*>＋ 新增表單<\/button>/, "Core EPA 頁右上應有醒目的新增表單按鈕");
